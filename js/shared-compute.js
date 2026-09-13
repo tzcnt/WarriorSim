@@ -654,6 +654,7 @@ function initSharedCompute(maxThreads) {
             write('local', localThreadCount, true);
             write('network', network, enabled);
             write('shared', shared, enabled);
+            if (sharedSlider) sharedSlider.disabled = !enabled || SHARED_THREADS_MIN >= sharedMax;
         }});
     const localSlider = slider('local', 1, localMax, localThreadCount);
     if (localSlider) {

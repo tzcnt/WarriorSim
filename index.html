@@ -145,12 +145,13 @@
           <div class="share-compute-entry share-compute-idle" data-threads="shared">
             <div class="share-compute-row"><span>Your shared threads</span><span>&mdash;</span></div>
             <input class="share-compute-slider" type="range" min="2" max="2" value="2"
-              aria-label="Shared compute threads">
+              aria-label="Shared compute threads" disabled>
           </div>
         </div>
-        <p id="share-compute-help">Help other players while idle and get help with your simulations. Uses CPU, battery,
-          and data, including in background tabs. Your simulation setup is shared with participating devices. Your own
-          simulations always take priority.</p>
+        <p id="share-compute-help">Help other players while idle and get help with your simulations. Your own
+          simulations always take priority. Uses CPU, battery, and data in background tabs.
+          Only your simulation setup is shared with other users; your IP is not public, and your session is not logged
+          by the server.</p>
       </div>
       <div class="manual"><a href="https://docs.google.com/document/d/1-ugglMDHqIQlEDiE2z9G7zuI-kgyvb2kvgPobWbcxy0/edit"
           target="_blank">User Manual</a></div>
@@ -238,7 +239,10 @@
           <li>
             <label>Target Type</label>
             <select dir="rtl" name="targetcreaturetype">
-              <option>Other</option><option>Giant</option><option>Dragonkin</option><option>Mounted</option>
+              <option>Other</option>
+              <option>Giant</option>
+              <option>Dragonkin</option>
+              <option>Mounted</option>
             </select>
           </li>
           <li>
