@@ -27,8 +27,11 @@ class Spell {
         if (spell.durationactive) this.cooldown = Math.max(parseInt(spell.duration), this.cooldown);
         if (spell.value1) this.value1 = parseInt(spell.value1);
         if (spell.value2) this.value2 = parseInt(spell.value2);
-        if (spell.unqueueactive) this.unqueue = parseInt(spell.unqueue);
-        if (spell.exmacro) this.exmacro = spell.exmacro;
+        // Ignore saved queue tricks in Forever, where queued strikes do not improve off-hand hit chance.
+        if (player.mode !== 'forever') {
+            if (spell.unqueueactive) this.unqueue = parseInt(spell.unqueue);
+            if (spell.exmacro) this.exmacro = spell.exmacro;
+        }
         if (spell.globalsactive) this.globals = spell.globals;
         if (spell.afterswing) this.afterswing = spell.afterswing;
         if (spell.timetoendactive) this.timetoend = parseInt(spell.timetoend) * 1000;

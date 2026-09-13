@@ -3,11 +3,38 @@
 const test = require('node:test');
 const {extraFixtures} = require('./extra-fixtures');
 const {assertNativeReports} = require('./report-assertions');
-const {runReference, mergeReports} = require('./reference-engine');
+const {runReference, mergeReports, createReferenceEngine, createConfiguredPlayer, loadFixtures} = require('./reference-engine');
 const {loadNativeModule, runNative, createNativeHandle} = require('./native-engine');
+const {queuedStrikeFixtures} = require('./queued-strike-fixtures');
 let wasmModule;
 
 test.before(async () => { wasmModule = await loadNativeModule(); });
+
+for (const queued of queuedStrikeFixtures().filter(fixture => fixture.mode === 'forever')) {
+    for (const execute of [false, true]) test(`${queued.name}: native ignores legacy queue options${execute ? ' during Execute' : ''}`, () => {
+        const fixture = execute ? structuredClone(loadFixtures().find(value => value.mode === 'forever')) : queued;
+        if (execute) {
+            fixture.rotation = queued.rotation;
+            fixture.player.adjacent = queued.player.adjacent;
+        }
+        const engine = createReferenceEngine('forever');
+        const player = createConfiguredPlayer(engine, fixture);
+        const spec = player.serializeSimulationSpec(fixture.sim);
+        for (const spell of spec.player.spells) {
+            if (spell.kind === 'HeroicStrike' || spell.kind === 'Cleave') {
+                spell.props.unqueue = 1000;
+                spell.props.exmacro = true;
+            }
+        }
+        const handle = wasmModule.createEngine(JSON.stringify(spec), fixture.sim.seed);
+        try {
+            const actual = JSON.parse(wasmModule.runBatch(handle, fixture.sim.iterations, 0, true));
+            assertNativeReports(actual, runReference(fixture), queued.name + ' legacy options');
+        } finally {
+            wasmModule.destroyEngine(handle);
+        }
+    });
+}
 
 for (const fixture of extraFixtures()) {
     test(`${fixture.name}: optimized native complete parity and persistent batches`, () => {

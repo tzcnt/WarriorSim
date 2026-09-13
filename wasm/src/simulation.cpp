@@ -265,7 +265,7 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
             }
 
             const auto* execute = player_.spell("execute"_action);
-            if (!execute || player_.step < executeStep) {
+            if (!player_.foreverMode && (!execute || player_.step < executeStep)) {
                 for (const int index : player_.configured.queuedStrikes) {
                     auto* value = &player_.spells[static_cast<std::size_t>(index)];
                     if (value->props.number("unqueue"_prop) && player_.nextswinghs &&
@@ -326,7 +326,7 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
         for (const int index : player_.configured.timedSpells)
             spellTimerCandidate(player_, index, next);
         const auto* executeAtEvent = player_.spell("execute"_action);
-        if (!executeAtEvent || player_.step < executeStep) {
+        if (!player_.foreverMode && (!executeAtEvent || player_.step < executeStep)) {
             for (const int index : player_.configured.queuedStrikes) {
                 const auto& value = player_.spells[static_cast<std::size_t>(index)];
                 if (value.props.number("unqueue"_prop)) {

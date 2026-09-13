@@ -372,7 +372,8 @@ Result PlayerState::rollWeapon(WeaponState& weapon) {
     double tmp = 0;
     const int roll = rng.tenK();
     double miss = weapon.dwmiss;
-    if (nextswinghs) miss = weapon.miss;
+    // Only Classic removes the dual-wield miss penalty while a strike is queued.
+    if (!foreverMode && nextswinghs) miss = weapon.miss;
     tmp += std::max(miss, 0.0) * 100;
     if (roll < tmp) return Result::Miss;
     tmp += weapon.dodge * 100; if (roll < tmp) return Result::Dodge;

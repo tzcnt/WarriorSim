@@ -89,7 +89,7 @@ bool queuedStrikeCanUse(PlayerState& player, SpellState& spell) {
           player.spell("bloodthirst"_action)->timer >= maincd) &&
         !(maincd && player.spell("mortalstrike"_action) &&
           player.spell("mortalstrike"_action)->timer >= maincd)) return false;
-    return !value(spell, "unqueue"_prop) || player.mh.timer > value(spell, "unqueuetimer"_prop);
+    return player.foreverMode || !value(spell, "unqueue"_prop) || player.mh.timer > value(spell, "unqueuetimer"_prop);
 }
 
 bool standardMeleeCanUse(PlayerState& player, SpellState& spell) {
@@ -212,7 +212,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
                 stance = "battle";
             player.switchStance(stance);
         }
-        if (delayedHeroic && option(*delayedHeroic, "exmacro"_prop)) {
+        if (!player.foreverMode && delayedHeroic && option(*delayedHeroic, "exmacro"_prop)) {
             if (spellCanUse(player, *delayedHeroic)) {
                 player.cast(*delayedHeroic);
                 player.heroicdelay = 0;
