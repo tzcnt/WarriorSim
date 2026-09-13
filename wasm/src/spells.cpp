@@ -43,11 +43,6 @@ bool rageReady(const PlayerState& player, const SpellState& spell) {
     return value(spell, "cost"_prop) <= player.rage && player.rage >= value(spell, "minrage"_prop);
 }
 
-std::string secondaryStance(const PlayerState& player) {
-    const auto* might = player.spell("unstoppablemight"_action);
-    return might ? might->props.string("secondarystance"_prop) : std::string{};
-}
-
 void useBase(PlayerState& player, SpellState& spell) {
     player.timer = 1500;
     player.rage -= value(spell, "cost"_prop);
@@ -152,37 +147,14 @@ bool spellCanUse(PlayerState& player, SpellState& spell) {
     case SpellKind::Hamstring:
         return standardMeleeCanUse(player, spell);
 
-    case SpellKind::Pummel:
-        return spell.timer == 0 && player.timer == 0 && cost <= player.rage &&
-            (!minrage || player.rage >= minrage) && mainCooldownReady(player, spell);
-
     case SpellKind::ThunderClap:
         return spell.timer == 0 && player.timer == 0 && cost <= player.rage &&
             (!minrage || player.rage >= minrage) &&
             (player.props.boolean("furiousthunder"_prop) || player.isValidStance("battle"));
 
-    case SpellKind::VictoryRush:
-        return player.timer == 0 && spell.stacks == 0;
-
-    case SpellKind::RagingBlow:
-        return spell.timer == 0 && player.timer == 0 && player.isEnraged();
-
-    case SpellKind::MasterStrike:
-        return spell.timer == 0 && player.timer == 0 && cost <= player.rage &&
-            (!minrage || player.rage >= minrage) && mainCooldownReady(player, spell);
-
     case SpellKind::BerserkerRage:
         return spell.timer == 0 && player.timer == 0 &&
             (!maxrage || player.isValidStance("zerk") || player.rage <= maxrage);
-
-    case SpellKind::QuickStrike:
-        return spell.timer == 0 && player.timer == 0 && cost <= player.rage &&
-            ((!minrage && !value(spell, "maincd"_prop)) ||
-             (minrage && player.rage >= minrage) ||
-             (value(spell, "maincd"_prop) && player.spell("bloodthirst"_action) &&
-              player.spell("bloodthirst"_action)->timer >= value(spell, "maincd"_prop)) ||
-             (value(spell, "maincd"_prop) && player.spell("mortalstrike"_action) &&
-              player.spell("mortalstrike"_action)->timer >= value(spell, "maincd"_prop)));
 
     case SpellKind::RagePotion:
         return spell.timer == 0 && player.rage < minrage && player.step >= spell.useStep;
@@ -206,79 +178,10 @@ bool spellCanUse(PlayerState& player, SpellState& spell) {
     case SpellKind::ShieldSlam:
         return player.props.boolean("shield"_prop) && spell.timer == 0 && player.timer == 0 &&
             (player.freeshieldslam || cost <= player.rage) &&
-            (player.freeshieldslam || player.rage >= minrage) &&
-            (!option(spell, "swordboard"_prop) || player.freeshieldslam);
-
-    case SpellKind::Shockwave:
-        return player.props.boolean("shield"_prop) && spell.timer == 0 && player.timer == 0 &&
-            cost <= player.rage &&
-            (player.isValidStance("def") || player.talents.number("rageretained"_prop) >= cost) &&
-            (!maxrage || player.isValidStance("def") || player.rage <= maxrage) &&
-            (!minrage || player.rage >= minrage) && mainCooldownReady(player, spell);
-
-    case SpellKind::UnstoppableMight: {
-        if (player.stancetimer || !player.aura("echoesbattle"_action)) return false;
-        const std::string base = player.props.string("basestance"_prop);
-        const std::string secondary = spell.props.string("secondarystance"_prop);
-        const auto forecastRemaining = [&](const std::string& stance) {
-            const auto key = detail::stanceForecastAction(stance);
-            const std::string fallback = stance + "forecast";
-            const auto* aura = key ? player.aura(*key) : player.aura(fallback);
-            return aura ? aura->timer - player.step : 0.0;
-        };
-        const auto echoesRemaining = [&](const std::string& stance) {
-            const auto key = detail::stanceEchoAction(stance);
-            const std::string fallback = "echoes" + stance;
-            const auto* aura = key ? player.aura(*key) : player.aura(fallback);
-            return aura ? aura->timer - player.step : 0.0;
-        };
-        if (player.aura("battleforecast"_action) && option(spell, "switchtimeactive"_prop)) {
-            if (player.stance == base && forecastRemaining(secondary) <= value(spell, "switchtime"_prop) &&
-                player.rage <= value(spell, "switchrage"_prop)) {
-                spell.props.setString("switchto"_prop, secondary);
-                return true;
-            }
-            if (player.stance == secondary && forecastRemaining(base) <= value(spell, "switchtime"_prop) &&
-                player.rage <= value(spell, "switchrage"_prop)) {
-                spell.props.setString("switchto"_prop, base);
-                return true;
-            }
-        }
-        if (player.aura("battleforecast"_action) && option(spell, "switchoractive"_prop)) {
-            if (player.stance == base &&
-                (forecastRemaining(secondary) <= value(spell, "switchortime"_prop) ||
-                 player.rage <= value(spell, "switchorrage"_prop))) {
-                spell.props.setString("switchto"_prop, secondary);
-                return true;
-            }
-            if (player.stance == secondary &&
-                (forecastRemaining(base) <= value(spell, "switchortime"_prop) ||
-                 player.rage <= value(spell, "switchorrage"_prop))) {
-                spell.props.setString("switchto"_prop, base);
-                return true;
-            }
-        }
-        if (option(spell, "switchechoesactive"_prop)) {
-            if (player.stance == base && echoesRemaining(secondary) <= value(spell, "switchechoestime"_prop) &&
-                player.rage <= value(spell, "switchechoesrage"_prop)) {
-                spell.props.setString("switchto"_prop, secondary);
-                return true;
-            }
-            if (player.stance == secondary && echoesRemaining(base) <= value(spell, "switchechoestime"_prop) &&
-                player.rage <= value(spell, "switchechoesrage"_prop)) {
-                spell.props.setString("switchto"_prop, base);
-                return true;
-            }
-        }
-        if (option(spell, "switchdefault"_prop) && player.stance != base) {
-            spell.props.setString("switchto"_prop, base);
-            return true;
-        }
-        return false;
-    }
+            (player.freeshieldslam || player.rage >= minrage);
 
     case SpellKind::StanceSwitch:
-        return !player.spell("unstoppablemight"_action) && !player.stancetimer &&
+        return !player.stancetimer &&
                player.stance != player.props.string("basestance"_prop);
 
     case SpellKind::GrilekFury:
@@ -315,7 +218,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
     case SpellKind::Execute:
         if (!player.isValidStance("zerk") && !player.isValidStance("battle")) {
             std::string stance = "zerk";
-            if (player.props.string("basestance"_prop) == "battle" || secondaryStance(player) == "battle")
+            if (player.props.string("basestance"_prop) == "battle")
                 stance = "battle";
             player.switchStance(stance);
         }
@@ -368,7 +271,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
     case SpellKind::Hamstring: {
         if (!player.isValidStance("zerk") && !player.isValidStance("battle")) {
             std::string stance = "zerk";
-            if (player.props.string("basestance"_prop) == "battle" || secondaryStance(player) == "battle")
+            if (player.props.string("basestance"_prop) == "battle")
                 stance = "battle";
             player.switchStance(stance);
         }
@@ -379,33 +282,10 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
         return;
     }
 
-    case SpellKind::Pummel:
-        if (!player.isValidStance("zerk") && !player.isValidStance("battle")) {
-            std::string stance = "zerk";
-            if (player.props.string("basestance"_prop) == "battle" || secondaryStance(player) == "battle")
-                stance = "battle";
-            player.switchStance(stance);
-        }
-        useBase(player, spell);
-        return;
-
     case SpellKind::ThunderClap:
         if (!player.isValidStance("battle") && !player.props.boolean("furiousthunder"_prop))
             player.switchStance("battle");
         useBase(player, spell);
-        return;
-
-    case SpellKind::VictoryRush:
-        ++spell.stacks;
-        player.timer = 1500;
-        player.rage -= cost;
-        spell.maxdelay = reactionDelay(player);
-        return;
-
-    case SpellKind::MasterStrike:
-        player.rage -= cost;
-        player.timer = 1500;
-        spell.timer = cooldown * 1000;
         return;
 
     case SpellKind::BerserkerRage: {
@@ -469,11 +349,6 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
         spell.maxdelay = reactionDelay(player);
         return;
 
-    case SpellKind::Shockwave:
-        if (!player.isValidStance("def")) player.switchStance("def");
-        useBase(player, spell);
-        return;
-
     case SpellKind::TheMoltenCore: {
         double procDamage = fixedMagicProc(player, 20);
         for (int i = 0; i < player.props.integer("adjacent"_prop); ++i)
@@ -481,11 +356,6 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
         spell.idmg += procDamage;
         return;
     }
-
-    case SpellKind::UnstoppableMight:
-        spell.maxdelay = reactionDelay(player);
-        player.switchStance(spell.props.string("switchto"_prop));
-        return;
 
     case SpellKind::StanceSwitch:
         spell.maxdelay = reactionDelay(player);
@@ -505,8 +375,6 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
     case SpellKind::Spell:
     case SpellKind::Bloodthirst:
     case SpellKind::MortalStrike:
-    case SpellKind::RagingBlow:
-    case SpellKind::QuickStrike:
         useBase(player, spell);
         return;
     }
@@ -543,26 +411,10 @@ double spellDamage(PlayerState& player, SpellState& spell, WeaponState* weapon) 
     }
     case SpellKind::Hamstring:
         return value(spell, "value1"_prop) * dmgmod;
-    case SpellKind::Pummel:
-        return (20 + player.stats.number("ap"_prop) * .05) * dmgmod;
     case SpellKind::ThunderClap: {
         double damage = value(spell, "value1"_prop);
         if (player.props.boolean("furiousthunder"_prop)) damage *= 2;
         return damage * dmgmod;
-    }
-    case SpellKind::VictoryRush:
-        return player.stats.number("ap"_prop) * .45 * dmgmod;
-    case SpellKind::RagingBlow:
-        return normalizedWeaponDamage(player, player.mh) * dmgmod;
-    case SpellKind::MasterStrike: {
-        const WeaponState& use = weapon ? *weapon : player.mh;
-        return weaponSpeedDamage(player, use) * dmgmod * .35;
-    }
-    case SpellKind::QuickStrike: {
-        const double damage = player.rng.integer(player.stats.number("ap"_prop) * .25,
-                                                 player.stats.number("ap"_prop) * .35) +
-                              player.stats.number("moddmgdone"_prop);
-        return damage * dmgmod * (player.props.boolean("heroicbonus"_prop) ? 1.25 : 1);
     }
     case SpellKind::Slam: {
         const WeaponState& use = weapon ? *weapon : player.mh;
@@ -578,8 +430,6 @@ double spellDamage(PlayerState& player, SpellState& spell, WeaponState* weapon) 
             static_cast<std::int32_t>(player.stats.number("ap"_prop) * .15);
         return damage * dmgmod * player.mainspelldmg;
     }
-    case SpellKind::Shockwave:
-        return player.stats.number("ap"_prop) / 2.0 * dmgmod;
     default:
         return 0;
     }

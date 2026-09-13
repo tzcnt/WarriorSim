@@ -26,34 +26,23 @@ enum class School : std::uint8_t { None = 0, Physical = 1, Holy = 2, Fire = 4, N
                                   Frost = 16, Shadow = 32, Arcane = 64 };
 
 enum class SpellKind : std::uint8_t {
-    Spell, Bloodthirst, Whirlwind, Overpower, Execute, Bloodrage, HeroicStrike,
-    Cleave, MortalStrike, SunderArmor, Hamstring, Pummel, ThunderClap,
-    VictoryRush, RagingBlow, MasterStrike, BerserkerRage, QuickStrike,
-    RagePotion, Slam, Fireball, GunAxe, BlademasterFury, ShieldSlam, Shockwave,
-    TheMoltenCore, UnstoppableMight, StanceSwitch, GrilekFury
+    Spell, Bloodthirst, Whirlwind, Overpower, Execute, Bloodrage, HeroicStrike, Cleave,
+    MortalStrike, SunderArmor, Hamstring, ThunderClap, BerserkerRage, RagePotion, Slam,
+    Fireball, GunAxe, BlademasterFury, ShieldSlam, TheMoltenCore, StanceSwitch,
+    GrilekFury
 };
 
 enum class AuraKind : std::uint8_t {
-    Aura, TwowEnrageAura, Recklessness, Flurry, DeepWounds, OldDeepWounds,
-    PotentVenoms, Crusader, Cloudkeeper, Felstriker, DeathWish, BattleStance,
-    DefensiveStance, BerserkerStance, MightyRagePotion,
-    QuicknessPotion, Bloodlust, Chastise, BloodFury, Berserking, Perception,
-    Empyrean, Eskhandar, Tempest, Zeal, Annihilator, Rivenspike, Bonereaver,
-    Destiny, Untamed, Champion, ZandalariVigil, ForgottenOrder,
-    ElementiumChampion, Pummeler, Windfury, Swarmguard, Hategrips, Flask,
-    Slayer, WorgenMark, Spider, Earthstrike, Gabbar, PrimalBlessing,
-    PrimalBlessing2, TowerForgeSetBonus, BloodrageAura, Zandalarian, Avenger,
-    BerserkerRageAura, BattleShout, ConsumedRage, Rend, Vibroblade, Ultrasonic,
-    VoidMadness, WeaponBleed, Ragehammer, BlisteringRagehammer, Jackhammer,
-    LordGeneral, Stoneslayer, CleaveArmor, StrengthChampion, MildlyIrradiated,
-    GyromaticAcceleration, Spicy, GneuroLogical, CoinFlip, Rampage,
-    WreckingCrew, SerpentAscension, VoodooFrenzy, RoarGuardian,
-    RelentlessStrength, EchoesDread, FreshMeat, SuddenDeath, WarriorsResolve,
-    EchoesBattle, EchoesZerk, EchoesDef, EchoesGlad, BattleForecast,
-    ZerkForecast, DefForecast, GladForecast, MeltArmor,
-    SingleMinded, DemonTaintedBlood, MoonstalkerFury, MagmadarsReturn,
-    JujuFlurry, WrathWray, CrusaderZeal, GrilekGuard, ObsidianStrength,
-    ObsidianHaste, Shieldrender, MoltenEmberstone, Modrag, UnrelentingStrikes
+    Aura, Recklessness, Flurry, OldDeepWounds, Crusader, Cloudkeeper, Felstriker,
+    DeathWish, BattleStance, DefensiveStance, BerserkerStance, MightyRagePotion,
+    BloodFury, Berserking, Empyrean, Eskhandar, Zeal, Annihilator, Rivenspike,
+    Bonereaver, Destiny, Untamed, Pummeler, Windfury, Swarmguard, Flask, Slayer, Spider,
+    Earthstrike, Gabbar, PrimalBlessing, PrimalBlessing2, BloodrageAura, Zandalarian,
+    Avenger, BerserkerRageAura, BattleShout, Rend, VoidMadness, WeaponBleed,
+    GyromaticAcceleration, GneuroLogical, CoinFlip, SerpentAscension, VoodooFrenzy,
+    RoarGuardian, RelentlessStrength, WarriorsResolve, DemonTaintedBlood,
+    MoonstalkerFury, MagmadarsReturn, JujuFlurry, WrathWray, GrilekGuard,
+    ObsidianStrength, ObsidianHaste
 };
 
 namespace detail {
@@ -106,20 +95,6 @@ inline std::optional<KnownAction> stanceAuraAction(std::string_view stance) {
     if (stance == "battle") return "battlestance"_action;
     if (stance == "zerk") return "berserkerstance"_action;
     if (stance == "def") return "defensivestance"_action;
-    return std::nullopt;
-}
-
-inline std::optional<KnownAction> stanceEchoAction(std::string_view stance) {
-    if (stance == "battle") return "echoesbattle"_action;
-    if (stance == "zerk") return "echoeszerk"_action;
-    if (stance == "def") return "echoesdef"_action;
-    return std::nullopt;
-}
-
-inline std::optional<KnownAction> stanceForecastAction(std::string_view stance) {
-    if (stance == "battle") return "battleforecast"_action;
-    if (stance == "zerk") return "zerkforecast"_action;
-    if (stance == "def") return "defforecast"_action;
     return std::nullopt;
 }
 
@@ -267,7 +242,6 @@ enum class ProcStage : std::uint8_t {
     Windfury,
     Swarmguard,
     Zandalarian,
-    PotentVenoms,
     RelentlessStrength,
     Shieldrender,
     Dragonbreath,
@@ -276,7 +250,6 @@ enum class ProcStage : std::uint8_t {
 struct ProcPlanEntry {
     ProcStage stage = ProcStage::WeaponProc1Damage;
     int action = kNoRef;
-    int secondaryAction = kNoRef;
     double chance = 0;
 };
 
@@ -351,13 +324,11 @@ struct AuraState {
     double mintime = 0;
     double cooldownTimer = 0;
     double nexttick = 0;
-    int ticksleft = 0;
     double tfbstep = -6000;
     bool firstuse = true;
     double uptime = 0;
     double totaldmg = 0;
     double idmg = 0;
-    double saveddmg = 0;
     std::vector<double> data;
 };
 
@@ -401,10 +372,8 @@ struct CachedPeriodicAura {
 
 struct ConfiguredActionLists {
     int bloodrageSelection = kNoRef;
-    int unstoppableMightSelection = kNoRef;
     int stanceSwitchSelection = kNoRef;
     int procTailFlurry = kNoRef;
-    int procTailUnrelentingStrikes = kNoRef;
     std::vector<CachedAuraAction> stepAuras;
     std::vector<CachedAuraAction> endAuras;
     std::vector<int> noGcdAuras;
@@ -416,7 +385,6 @@ struct ConfiguredActionLists {
     std::vector<int> tickAuras;
     std::vector<int> weaponBleeds;
     std::vector<int> timedSpells;
-    std::vector<int> absoluteAuras;
     std::vector<int> stepSpells;
     std::vector<int> periodicAuras;
     std::vector<int> finalAuras;
@@ -462,7 +430,6 @@ struct PlayerState {
     double timer = 0;
     double itemtimer = 0;
     double stancetimer = 0;
-    double ragetimer = 0;
     double dodgetimer = 0;
     double crittimer = 0;
     double spelldelay = 0;
@@ -548,7 +515,6 @@ struct PlayerState {
     bool stepTimer(double amount);
     bool stepItemTimer(double amount);
     bool stepStanceTimer(double amount);
-    void stepRageTimer(double amount);
     void stepDodgeTimer(double amount);
     void stepAuras(bool noBleeds = false);
     void endAuras();
@@ -568,7 +534,6 @@ struct PlayerState {
     double physProc(double dmg);
     void switchStance(std::string_view value);
     [[nodiscard]] bool isValidStance(std::string_view value, bool isRend = false) const;
-    [[nodiscard]] bool isEnraged() const;
 };
 
 // Spell behavior. All functions stay in native code during an iteration.

@@ -4,7 +4,19 @@ JavaScript constructs the player from this repository's unchanged Classic Era/Wo
 
 ## Build
 
+Run `./build-dist.sh` or `./build-dist.ps1` to do a complete rebuild of the deployment assets.
+
+This includes sub-calls to `scripts/generate-native-keys.js` and `./wasm/build.ps1` or `./wasm/build.sh`.
+
 Use `./wasm/build.ps1` for Release, `./wasm/build.ps1 -Profiling` for the separate profiling artifact, or `-Configuration Debug`. The script finds Emscripten through EMSDK or the sibling `../emsdk` installation. Generated artifacts live under `wasm/dist`.
+
+For a standalone WASM build, run `node scripts/generate-native-keys.js` first
+after changing native action literals.
+The generator derives action names from C++ and rebuilds both tables' positional
+indices. The property name array is curated: keep names accessed dynamically
+(including live weapon skill slots), and remove names only when JavaScript no
+longer produces them. `node scripts/generate-native-keys.js --check` verifies that
+both headers are current; compile-time assertions also check every index.
 
 ## Interface
 
@@ -31,6 +43,10 @@ The protocol is ready for a future native worker application, which must be buil
 and checked against the advertised bundle's engine behavior before joining its pool.
 
 ## Replay log
+
+The remaining sections record the historical port and its measurements before
+the Season of Discovery removal. Their SoD fixtures and removed ability coverage
+are retained as history; they do not describe the current Classic/Forever suites.
 
 The source optimization sequence was replayed in order, with this repository's JavaScript combat behavior as authority. Every stage compiled and passed the native/API parity tests available at that stage. All measurements below were taken in this destination.
 

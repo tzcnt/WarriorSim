@@ -33,23 +33,46 @@ for (const fixture of extraFixtures()) {
         if (fixture.name.endsWith('bloodrage-unscheduled')) {
             assert.equal(expected.player.auras.bloodrage.uptime, 0);
         }
-        if (fixture.name.endsWith('spicy-dynamic-procs')) {
-            const player = createConfiguredPlayer(createReferenceEngine(fixture.mode), fixture);
-            assert.equal(player.attackproc1, undefined);
-            assert.equal(player.attackproc2, undefined);
-            assert.ok(expected.player.auras.spicy.uptime > 0);
-            assert.ok(expected.player.mh.totalprocdmg > 0);
-        }
-        if (fixture.name.endsWith('unstoppable-with-echoes')) {
-            assert.ok(expected.player.auras.echoesbattle.uptime > 0);
-            assert.ok(expected.player.auras.echoeszerk.uptime > 0);
-        }
-        if (fixture.name.endsWith('stance-switch-without-unstoppable')) {
-            assert.ok(expected.player.auras.echoeszerk.uptime > 0);
-            assert.equal(expected.player.spells.unstoppablemight, undefined);
+        if (fixture.name.endsWith('overpower-stance-switch')) {
+            assert.ok(expected.player.spells.overpower.totaldmg > 0);
         }
     });
 }
+
+for (const mode of ['classic', 'forever']) {
+    test(`${mode}: Overpower requires Battle Stance and returns after the stance cooldown`, () => {
+        const fixture = extraFixtures().find(value => value.name === `${mode}-overpower-stance-switch`);
+        const player = createConfiguredPlayer(createReferenceEngine(mode), fixture);
+        player.reset(100);
+        const {overpower, stanceswitch} = player.spells;
+        assert.equal(player.stance, 'zerk', 'start in the configured stance');
+        assert.equal(player.stancetimer, 0, 'no automatic switch at fight start');
+        assert.equal(player.rage, 100, 'starting rage is not lost to a forced switch');
+        assert.ok(!player.isValidStance('battle'));
+        assert.ok(!overpower.canUse(), 'Overpower needs a dodge');
+        player.dodgetimer = 5000;
+        player.talents.rageretained = 0;
+        assert.ok(!overpower.canUse(), 'switching must retain enough rage to cast');
+        player.talents.rageretained = 25;
+        assert.equal(overpower.canUse(), true);
+        overpower.use();
+        assert.equal(player.stance, 'battle');
+        assert.equal(player.rage, 25 - overpower.cost);
+        assert.equal(player.dodgetimer, 0);
+        assert.ok(!stanceswitch.canUse(), 'the stance cooldown gates the return');
+        player.stepstancetimer(1000);
+        assert.equal(stanceswitch.canUse(), true);
+        stanceswitch.use();
+        assert.equal(player.stance, 'zerk');
+        assert.ok(!player.isValidStance('battle'));
+    });
+}
+
+test('WoW Forever reproduces the Classic Era report for every configured baseline', () => {
+    for (const fixture of loadFixtures().filter(value => value.mode === 'classic')) {
+        assertNativeReports(runReference({...fixture, mode: 'forever'}), runReference(fixture), fixture.name);
+    }
+});
 
 test('Heroic bonus changes Heroic Strike but leaves Cleave weapon damage unchanged', () => {
     for (const name of ['classic-dw-fury', 'classic-adjacent-cleave']) {

@@ -2,7 +2,7 @@
 
 const {loadFixtures} = require('./reference-engine');
 const {
-    bloodrageCases, stanceCases, aliasCases, orderedProcs, spicyDynamicProcs,
+    bloodrageCases, stanceCases, aliasCases, orderedProcs,
 } = require('./ability-proc-fixtures');
 
 function extraFixtures() {
@@ -83,7 +83,7 @@ function extraFixtures() {
     return [
         heroic, cleave, phantom, suppression, long, trinkets,
         earthstrike, priority, clocks, gabbar, hamstring, ...bloodrageCases, ...stanceCases,
-        ...aliasCases, orderedProcs, spicyDynamicProcs,
+        ...aliasCases, orderedProcs,
     ];
 }
 

@@ -414,6 +414,9 @@ two browser-protocol clients using actual deployed WASM workers over a real loca
 WebSocket coordinator. It requires built `wasm/dist` and `dist` assets. Background
 throttling and real internet speedups still require field testing.
 
+The following validation record predates the Season of Discovery removal;
+references to SoD describe the tabs and fixtures available at that time.
+
 Validation of this shared-compute port passed all 178 Node tests across the
 WASM, reference, worker, and compute suites, plus 20 source regressions (198 tests
 total). Another 20 regression checks passed against minified deployment assets.

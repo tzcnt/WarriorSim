@@ -79,11 +79,6 @@ void nextTickCandidate(PlayerState& player, int index, double& next) {
     if (value.timer) minPositive(value.nexttick - player.step, next);
 }
 
-void absoluteAuraCandidate(PlayerState& player, int index, double& next) {
-    const auto& value = player.auras[static_cast<std::size_t>(index)];
-    if (value.timer) minPositive(value.timer - player.step, next);
-}
-
 void spellTimerCandidate(PlayerState& player, int index, double& next) {
     const auto& value = player.spells[static_cast<std::size_t>(index)];
     if (value.timer) minPositive(value.timer, next);
@@ -194,8 +189,6 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
                     for (const int index : player_.configured.onUseAuras)
                         if (choose(player_, delayedSpell, index, true)) break;
                 }
-                if (!delayedSpell && player_.configured.unstoppableMightSelection != kNoRef)
-                    choose(player_, delayedSpell, player_.configured.unstoppableMightSelection, false);
                 if (!delayedSpell && player_.configured.stanceSwitchSelection != kNoRef)
                     choose(player_, delayedSpell, player_.configured.stanceSwitchSelection, false);
                 if (!delayedSpell && player_.timer) {
@@ -269,8 +262,7 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
                     if (delayedSpell.spell &&
                         (delayedSpell.spell->kind == SpellKind::Whirlwind ||
                          delayedSpell.spell->kind == SpellKind::BlademasterFury ||
-                         delayedSpell.spell->kind == SpellKind::ThunderClap ||
-                         delayedSpell.spell->kind == SpellKind::Shockwave)) {
+                         delayedSpell.spell->kind == SpellKind::ThunderClap)) {
                         for (int i = 0; i < player_.prop("adjacent"_prop); ++i) {
                             done = player_.cast(*delayedSpell.spell, delayedHeroic,
                                                 static_cast<int>(player_.prop("adjacent"_prop)), done);
@@ -340,7 +332,6 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
         if (player_.timer && player_.timer < next) next = player_.timer;
         if (player_.itemtimer && player_.itemtimer < next) next = player_.itemtimer;
         if (player_.stancetimer && player_.stancetimer < next) next = player_.stancetimer;
-        if (player_.ragetimer && player_.ragetimer < next) next = player_.ragetimer;
         if (targetSpeed) minPositive(targetSpeed - positiveModulo(player_.step, targetSpeed), next);
         if (player_.talents.number("angermanagement"_prop)) minPositive(3000 - positiveModulo(player_.step, 3000), next);
         if (player_.flag("vaelbuff"_prop)) minPositive(1000 - positiveModulo(player_.step, 1000), next);
@@ -356,8 +347,6 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
         }
         for (const int index : player_.configured.timedSpells)
             spellTimerCandidate(player_, index, next);
-        for (const int index : player_.configured.absoluteAuras)
-            absoluteAuraCandidate(player_, index, next);
         const auto* executeAtEvent = player_.spell("execute"_action);
         const auto* suddenAtEvent = player_.aura("suddendeath"_action);
         if (!executeAtEvent || (player_.step < executeStep && (!suddenAtEvent || !suddenAtEvent->timer))) {
@@ -383,7 +372,6 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
         }
         if (player_.itemtimer && player_.stepItemTimer(next) && !player_.spelldelay) spellcheck = true;
         if (player_.stancetimer && player_.stepStanceTimer(next) && !player_.spelldelay) spellcheck = true;
-        if (player_.ragetimer) player_.stepRageTimer(next);
         if (player_.dodgetimer) player_.stepDodgeTimer(next);
         if (player_.spelldelay) player_.spelldelay += next;
         if (player_.heroicdelay) player_.heroicdelay += next;
@@ -407,12 +395,6 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
             if (!value.timer) continue;
             (void)auraStep(player_, value);
             if (!player_.spelldelay) spellcheck = true; // JS Aura.step returns undefined.
-        }
-        for (const int index : player_.configured.absoluteAuras) {
-            auto& value = player_.auras[static_cast<std::size_t>(index)];
-            if (!value.timer) continue;
-            (void)auraStep(player_, value);
-            if (!player_.spelldelay) spellcheck = true;
         }
     }
 

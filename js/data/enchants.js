@@ -1208,7 +1208,6 @@ var enchant = {
     items: [226485,226484,226489,226486,226488,226490,226491,226487,232259,232257,232262,232255,232260,232256,232258,232261],
     bonus: [
        { count: 2, stats: { block: 30 } },
-       { count: 6, stats: { gladdmg: 4 } },
     ]
  },
  {
@@ -1235,16 +1234,6 @@ var enchant = {
      { count: 2, stats: { ap: 40 } },
      { count: 4, stats: { procspell: "WarriorsResolve", procchance: 6 } },
      { count: 6, stats: { resist: { fire: 8, frost: 8, nature: 8, shadow: 8 }}},
-  ]
-},
-{
-  id: 1720,
-  name: 'Unstoppable Might',
-  items: [226499,226497,226494,226495,226493,226492,226498,226496,232251,232249,232254,232247,232252,232248,232250,232253],
-  bonus: [
-     { count: 2, stats: { switchrage: true } },
-     { count: 4, stats: { switchdelay: true } },
-     { count: 6, stats: { switchbonus: true } },
   ]
 },
 {
@@ -1429,7 +1418,6 @@ var enchant = {
   bonus: [
      { count: 2, stats: { defense: 7 }},
      { count: 3, stats: { shieldslamcd: 2 }},
-     { count: 5, stats: { gladbloodrage: 30 }},
   ]
 },
 

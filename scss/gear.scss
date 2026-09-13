@@ -198,10 +198,6 @@ section.main {
         }
     }
 
-    table.runes {
-        cursor: pointer;
-    }
-
     progress {
         width: 80%;
         max-width: calc(100% - 320px);
@@ -257,29 +253,6 @@ section.main {
             outline: 0;
         }
     }
-
-    .runes {
-        display: flex;
-        justify-content: left;
-        align-items: center;
-        flex-wrap: wrap;
-        margin-bottom: 20px;
-
-        label {
-            text-align: center;
-            font-weight: bold;
-            margin-right: 10px;
-            margin-left: 4px;
-        }
-
-        .active .icon {
-            border-color: #ffcd45;
-            img {
-                filter: none;
-            }
-        }
-    }
-
     
     .search {
         position: relative;
@@ -339,7 +312,6 @@ section.main {
         }
     }
 
-
     @include tablet {
         th:not(:nth-child(2)):not(:first-child):not(:last-child) {
             display: none;
@@ -354,5 +326,4 @@ section.main {
         box-sizing: border-box;
     }
 }
-
 
