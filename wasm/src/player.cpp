@@ -146,7 +146,6 @@ void PlayerState::reset(double startingRage) {
     if (auto* value = aura("battlestance"_action)) value->timer = stance == "battle" ? 1 : 0;
     if (auto* value = aura("berserkerstance"_action)) value->timer = stance == "zerk" ? 1 : 0;
     if (auto* value = aura("defensivestance"_action)) value->timer = stance == "def" ? 1 : 0;
-    if (auto* value = aura("gladiatorstance"_action)) value->timer = stance == "glad" ? 1 : 0;
     if (auto* value = spell("unstoppablemight"_action); value && value->props.boolean("switchstart"_prop))
         switchStance(value->props.string("secondarystance"_prop));
     update();
@@ -984,7 +983,6 @@ void PlayerState::switchStance(std::string_view value) {
     if (auto* auraValue = aura("battlestance"_action)) auraValue->timer = 0;
     if (auto* auraValue = aura("berserkerstance"_action)) auraValue->timer = 0;
     if (auto* auraValue = aura("defensivestance"_action)) auraValue->timer = 0;
-    if (auto* auraValue = aura("gladiatorstance"_action)) auraValue->timer = 0;
     const auto stanceKey = detail::stanceAuraAction(stance);
     if (auto* auraValue = stanceKey ? aura(*stanceKey) : aura(std::string_view{})) auraValue->timer = 1;
     rage = std::min(rage, talents.number("rageretained"_prop));
@@ -994,15 +992,14 @@ void PlayerState::switchStance(std::string_view value) {
     const auto forecastKey = detail::stanceForecastAction(stance);
     const std::string forecastFallback = stance + "forecast";
     if (auto* forecast = forecastKey ? aura(*forecastKey) : aura(forecastFallback)) auraUse(*this, *forecast);
-    props.set("ragemod"_prop, (base.number("ragemod"_prop) ? base.number("ragemod"_prop) : 1) *
-        (stance == "glad" && !target.props.number("speed"_prop) ? 1.5 : 1));
+    props.set("ragemod"_prop, base.number("ragemod"_prop) ? base.number("ragemod"_prop) : 1);
     if (flag("switchrage"_prop)) ragetimer = 10;
     stancetimer = 1000;
     updateAuras();
 }
 
 bool PlayerState::isValidStance(std::string_view value, bool isRend) const {
-    return stance == value || (stance == "glad" && flag("shield"_prop)) ||
+    return stance == value ||
         (value == "zerk" && active(*this, "echoeszerk"_action)) ||
         (value == "battle" && active(*this, "echoesbattle"_action)) ||
         (value == "def" && active(*this, "echoesdef"_action)) || active(*this, "echoesglad"_action) ||

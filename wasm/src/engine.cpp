@@ -172,7 +172,6 @@ PlayerState readPlayer(const val& value) {
     requireStance("battlestance", AuraKind::BattleStance);
     requireStance("berserkerstance", AuraKind::BerserkerStance);
     requireStance("defensivestance", AuraKind::DefensiveStance);
-    requireStance("gladiatorstance", AuraKind::GladiatorStance);
 
     for (std::size_t i = 0; i < detail::kActionKeyCount; ++i) {
         const auto key = detail::kActionKeyNames[i];
@@ -492,8 +491,7 @@ AuraKind parseAuraKind(std::string_view value) {
     AURA_KIND(Aura); AURA_KIND(TwowEnrageAura); AURA_KIND(Recklessness); AURA_KIND(Flurry);
     AURA_KIND(DeepWounds); AURA_KIND(OldDeepWounds); AURA_KIND(PotentVenoms); AURA_KIND(Crusader);
     AURA_KIND(Cloudkeeper); AURA_KIND(Felstriker); AURA_KIND(DeathWish); AURA_KIND(BattleStance);
-    AURA_KIND(DefensiveStance); AURA_KIND(BerserkerStance); AURA_KIND(GladiatorStance);
-    AURA_KIND(MightyRagePotion); AURA_KIND(QuicknessPotion); AURA_KIND(Bloodlust);
+    AURA_KIND(DefensiveStance); AURA_KIND(BerserkerStance); AURA_KIND(MightyRagePotion); AURA_KIND(QuicknessPotion); AURA_KIND(Bloodlust);
     AURA_KIND(Chastise); AURA_KIND(BloodFury); AURA_KIND(Berserking); AURA_KIND(Perception);
     AURA_KIND(Empyrean); AURA_KIND(Eskhandar); AURA_KIND(Tempest); AURA_KIND(Zeal);
     AURA_KIND(Annihilator); AURA_KIND(Rivenspike); AURA_KIND(Bonereaver); AURA_KIND(Destiny);
@@ -514,7 +512,7 @@ AuraKind parseAuraKind(std::string_view value) {
     AURA_KIND(SuddenDeath); AURA_KIND(WarriorsResolve); AURA_KIND(EchoesBattle);
     AURA_KIND(EchoesZerk); AURA_KIND(EchoesDef); AURA_KIND(EchoesGlad);
     AURA_KIND(BattleForecast); AURA_KIND(ZerkForecast); AURA_KIND(DefForecast);
-    AURA_KIND(GladForecast); AURA_KIND(DefendersResolve); AURA_KIND(MeltArmor);
+    AURA_KIND(GladForecast); AURA_KIND(MeltArmor);
     AURA_KIND(SingleMinded); AURA_KIND(DemonTaintedBlood); AURA_KIND(MoonstalkerFury);
     AURA_KIND(MagmadarsReturn); AURA_KIND(JujuFlurry); AURA_KIND(WrathWray);
     AURA_KIND(CrusaderZeal); AURA_KIND(GrilekGuard); AURA_KIND(ObsidianStrength);
@@ -662,7 +660,7 @@ void PlayerState::buildConfiguredActionLists() {
         {"battleshout"_action, false}, {"echoeszerk"_action, false}, {"echoesbattle"_action, false},
         {"echoesdef"_action, false}, {"echoesglad"_action, false}, {"battleforecast"_action, false},
         {"zerkforecast"_action, false}, {"defforecast"_action, false}, {"gladforecast"_action, false},
-        {"defendersresolve"_action, false}, {"singleminded"_action, false}, {"demontaintedblood"_action, false},
+        {"singleminded"_action, false}, {"demontaintedblood"_action, false},
         {"wrathwray"_action, false}, {"moonstalkerfury"_action, false}, {"jujuflurry"_action, false},
         {"grilekguard"_action, false}, {"obsidianhaste"_action, false},
         {"obsidianstrength"_action, false}, };
@@ -702,7 +700,7 @@ void PlayerState::buildConfiguredActionLists() {
         {"voodoofrenzy"_action, false}, {"battleshout"_action, false}, {"echoeszerk"_action, false},
         {"echoesbattle"_action, false}, {"echoesdef"_action, false}, {"echoesglad"_action, false},
         {"battleforecast"_action, false}, {"zerkforecast"_action, false}, {"defforecast"_action, false},
-        {"gladforecast"_action, false}, {"defendersresolve"_action, false}, {"singleminded"_action, false},
+        {"gladforecast"_action, false}, {"singleminded"_action, false},
         {"moonstalkerfury"_action, false}, {"demontaintedblood"_action, false}, {"wrathwray"_action, false},
         {"jujuflurry"_action, false}, {"grilekguard"_action, false},
         {"obsidianhaste"_action, false}, {"obsidianstrength"_action, false}, };

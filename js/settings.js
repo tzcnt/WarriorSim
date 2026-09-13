@@ -567,7 +567,6 @@ SIM.SETTINGS = {
                 <option value="battle" ${spell.secondarystance == 'battle' ? 'selected' : ''}>Battle Stance</option>
                 <option value="def" ${spell.secondarystance == 'def' ? 'selected' : ''}>Defensive Stance</option>
                 <option value="zerk" ${spell.secondarystance == 'zerk' ? 'selected' : ''}>Berserker Stance</option>
-                <option value="glad" ${spell.secondarystance == 'glad' ? 'selected' : ''}>Gladiator Stance</option></option>
             </select></li>`);
 
         if (typeof spell.switchstart !== 'undefined')

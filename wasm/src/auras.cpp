@@ -462,15 +462,7 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         aura.starttimer = player.step;
         aura.stacks = aura.props.integer("value2"_prop);
         if (!player.isValidStance("def", true) && !player.isValidStance("battle", true)) {
-            std::string stance = "battle";
-            if (player.flag("switchdelay"_prop) && player.stance == "glad") {
-                stance = player.props.string("basestance"_prop);
-                if (stance == "glad") {
-                    if (const auto* unstoppable = player.spell("unstoppablemight"_action))
-                        stance = unstoppable->props.string("secondarystance"_prop, stance);
-                }
-            }
-            player.switchStance(stance);
+            player.switchStance("battle");
         }
         player.rage -= aura.props.number("cost"_prop);
         double baseDamage = aura.props.number("value1"_prop);
@@ -595,10 +587,6 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         }
         break;
     }
-    case AuraKind::DefendersResolve:
-        aura.stats.set("ap"_prop, 4 * player.stats.number("defense"_prop));
-        useWithUpdate(player, aura, &PlayerState::updateAP, 0, true);
-        break;
     case AuraKind::SingleMinded:
         begin(player, aura);
         aura.stacks = std::min(5, aura.stacks + 1);
@@ -634,7 +622,6 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
     case AuraKind::BattleStance:
     case AuraKind::DefensiveStance:
     case AuraKind::BerserkerStance:
-    case AuraKind::GladiatorStance:
         basic();
         break;
     default:
@@ -645,8 +632,8 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
 
 bool auraStep(PlayerState& player, AuraState& aura) {
     if (aura.kind == AuraKind::Flurry || aura.kind == AuraKind::BattleStance ||
-        aura.kind == AuraKind::DefensiveStance || aura.kind == AuraKind::BerserkerStance ||
-        aura.kind == AuraKind::GladiatorStance) return true;
+        aura.kind == AuraKind::DefensiveStance ||
+        aura.kind == AuraKind::BerserkerStance) return true;
 
     switch (aura.kind) {
     case AuraKind::DeepWounds:
@@ -852,8 +839,6 @@ bool auraStep(PlayerState& player, AuraState& aura) {
         return true;
     case AuraKind::RelentlessStrength:
         return stepWithUpdate(player, aura, &PlayerState::updateBonusDmg, true);
-    case AuraKind::DefendersResolve:
-        return stepWithUpdate(player, aura, &PlayerState::updateAP);
     case AuraKind::MeltArmor:
     case AuraKind::Modrag:
         return stepWithUpdate(player, aura, &PlayerState::updateBonusDmg);

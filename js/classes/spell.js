@@ -116,8 +116,6 @@ class Whirlwind extends Spell {
     use() {
         if (!this.player.isValidStance('zerk')) {
             let stance = 'zerk';
-            if (this.player.switchdelay && this.player.stance == 'glad')
-                stance = this.player.basestance == 'glad' ? this.player.spells.unstoppablemight.secondarystance : this.player.basestance;
             this.player.switch(stance);
         }
         this.player.timer = 1500;
@@ -153,8 +151,6 @@ class Overpower extends Spell {
     use() {
         if (!this.player.isValidStance('battle')) {
             let stance = 'battle';
-            if (this.player.switchdelay && this.player.stance == 'glad')
-                stance = this.player.basestance == 'glad' ? this.player.spells.unstoppablemight.secondarystance : this.player.basestance;
             this.player.switch(stance);
         }
 
@@ -191,9 +187,7 @@ class Execute extends Spell {
     use(delayedheroic) {
         if (!this.player.isValidStance('zerk') && !this.player.isValidStance('battle')) {
             let stance = 'zerk';
-            if (this.player.switchdelay && this.player.stance == 'glad')
-                stance = this.player.basestance == 'glad' ? this.player.spells.unstoppablemight.secondarystance : this.player.basestance;
-            else if (this.player.basestance == 'battle') stance = 'battle';
+            if (this.player.basestance == 'battle') stance = 'battle';
             else if (this.player.spells.unstoppablemight && this.player.spells.unstoppablemight.secondarystance == 'battle') stance = 'battle';
             this.player.switch(stance);
         }
@@ -242,7 +236,6 @@ class Bloodrage extends Spell {
         this.cooldown = 60;
         this.useonly = true;
         this.offensive = false;
-        if (player.basestance == 'glad' && player.gladbloodrage) this.cooldown -= 30;
     }
     use() {
         this.timer = this.cooldown * 1000;
@@ -608,9 +601,7 @@ class ShieldSlam extends Spell {
     }
     dmg() {
         let dmg;
-        // SS benefits from the buff it triggers, add it manually if its not up
-        let ap = this.player.stats.ap + (this.player.auras.defendersresolve && !this.player.auras.defendersresolve.timer ? 4 * this.player.stats.defense : 0);
-        dmg = rng(this.value1, this.value2) + (this.player.stats.block * 2) + ~~(ap * 0.15);
+        dmg = rng(this.value1, this.value2) + (this.player.stats.block * 2) + ~~(this.player.stats.ap * 0.15);
         return dmg * this.player.stats.dmgmod * this.player.mainspelldmg;
     }
     use() {
@@ -623,7 +614,6 @@ class ShieldSlam extends Spell {
     canUse() {
         return this.player.shield && !this.timer && !this.player.timer && (this.player.freeshieldslam || this.cost <= this.player.rage) 
             && (this.player.freeshieldslam || this.player.rage >= this.minrage)
-            && (!this.resolve || (this.player.auras.defendersresolve && !this.player.auras.defendersresolve.timer))
             && (!this.swordboard || this.player.freeshieldslam);
     }
 }
@@ -1049,13 +1039,6 @@ class BerserkerStance extends Aura {
     constructor(player, id) {
         super(player, id, 'Berserker Stance');
         this.stats = { crit: 3 };
-    }
-}
-
-class GladiatorStance extends Aura {
-    constructor(player, id) {
-        super(player, id, 'Gladiator Stance');
-        this.mult_stats = { dmgmod: player.shield ? 10 : 0 };
     }
 }
 
@@ -1777,8 +1760,6 @@ class Rend extends Aura {
 
         if (!this.player.isValidStance('def', true) && !this.player.isValidStance('battle', true)) {
             let stance = 'battle';
-            if (this.player.switchdelay && this.player.stance == 'glad')
-                stance = this.player.basestance == 'glad' ? this.player.spells.unstoppablemight.secondarystance : this.player.basestance;
             this.player.switch(stance);
         }
 
@@ -2405,30 +2386,6 @@ class GladForecast extends Aura {
         this.maxdelay = rng(this.player.reactionmin, this.player.reactionmax);
         this.player.auras.battleforecast.remove();
         /* start-log */ if (this.player.logging) this.player.log(`${this.name} applied`); /* end-log */
-    }
-}
-
-class DefendersResolve extends Aura {
-    constructor(player, id) {
-        super(player, id, 'Defender\'s Resolve');
-        this.duration = 15;
-    }
-    use() {
-        this.stats = { ap: 4 * this.player.stats.defense };
-        if (this.timer) this.uptime += (step - this.starttimer);
-        this.timer = step + this.duration * 1000;
-        this.starttimer = step;
-        this.player.updateAP();
-        this.maxdelay = rng(this.player.reactionmin, this.player.reactionmax);
-        /* start-log */ if (this.player.logging) this.player.log(`${this.name} applied`); /* end-log */
-    }
-    step() {
-        if (step >= this.timer) {
-            this.uptime += (this.timer - this.starttimer);
-            this.timer = 0;
-            this.player.updateAP();
-            /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
-        }
     }
 }
 

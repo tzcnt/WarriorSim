@@ -36,7 +36,7 @@ enum class SpellKind : std::uint8_t {
 enum class AuraKind : std::uint8_t {
     Aura, TwowEnrageAura, Recklessness, Flurry, DeepWounds, OldDeepWounds,
     PotentVenoms, Crusader, Cloudkeeper, Felstriker, DeathWish, BattleStance,
-    DefensiveStance, BerserkerStance, GladiatorStance, MightyRagePotion,
+    DefensiveStance, BerserkerStance, MightyRagePotion,
     QuicknessPotion, Bloodlust, Chastise, BloodFury, Berserking, Perception,
     Empyrean, Eskhandar, Tempest, Zeal, Annihilator, Rivenspike, Bonereaver,
     Destiny, Untamed, Champion, ZandalariVigil, ForgottenOrder,
@@ -50,7 +50,7 @@ enum class AuraKind : std::uint8_t {
     WreckingCrew, SerpentAscension, VoodooFrenzy, RoarGuardian,
     RelentlessStrength, EchoesDread, FreshMeat, SuddenDeath, WarriorsResolve,
     EchoesBattle, EchoesZerk, EchoesDef, EchoesGlad, BattleForecast,
-    ZerkForecast, DefForecast, GladForecast, DefendersResolve, MeltArmor,
+    ZerkForecast, DefForecast, GladForecast, MeltArmor,
     SingleMinded, DemonTaintedBlood, MoonstalkerFury, MagmadarsReturn,
     JujuFlurry, WrathWray, CrusaderZeal, GrilekGuard, ObsidianStrength,
     ObsidianHaste, Shieldrender, MoltenEmberstone, Modrag, UnrelentingStrikes
@@ -106,7 +106,6 @@ inline std::optional<KnownAction> stanceAuraAction(std::string_view stance) {
     if (stance == "battle") return "battlestance"_action;
     if (stance == "zerk") return "berserkerstance"_action;
     if (stance == "def") return "defensivestance"_action;
-    if (stance == "glad") return "gladiatorstance"_action;
     return std::nullopt;
 }
 
@@ -114,7 +113,6 @@ inline std::optional<KnownAction> stanceEchoAction(std::string_view stance) {
     if (stance == "battle") return "echoesbattle"_action;
     if (stance == "zerk") return "echoeszerk"_action;
     if (stance == "def") return "echoesdef"_action;
-    if (stance == "glad") return "echoesglad"_action;
     return std::nullopt;
 }
 
@@ -122,7 +120,6 @@ inline std::optional<KnownAction> stanceForecastAction(std::string_view stance) 
     if (stance == "battle") return "battleforecast"_action;
     if (stance == "zerk") return "zerkforecast"_action;
     if (stance == "def") return "defforecast"_action;
-    if (stance == "glad") return "gladforecast"_action;
     return std::nullopt;
 }
 

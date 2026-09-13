@@ -1,6 +1,6 @@
 {
   "oracle": "destination JavaScript; no native execution",
-  "revision": "ba633314c74520138834cc29a1abaeb17c9499fe",
+  "revision": "90fa75a07b304d2eebd56f0fbd3391facef47801",
   "reports": {
     "classic-dw-fury": {
       "iterations": 20,
@@ -119,13 +119,6 @@
           },
           "defensivestance": {
             "name": "Defensive Stance",
-            "uptime": 0,
-            "totaldmg": 0,
-            "totalusedrage": 0,
-            "cost": 0
-          },
-          "gladiatorstance": {
-            "name": "Gladiator Stance",
             "uptime": 0,
             "totaldmg": 0,
             "totalusedrage": 0,
@@ -432,13 +425,6 @@
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 0
-          },
-          "gladiatorstance": {
-            "name": "Gladiator Stance",
-            "uptime": 0,
-            "totaldmg": 0,
-            "totalusedrage": 0,
-            "cost": 0
           }
         },
         "spells": {
@@ -708,13 +694,6 @@
           },
           "defensivestance": {
             "name": "Defensive Stance",
-            "uptime": 0,
-            "totaldmg": 0,
-            "totalusedrage": 0,
-            "cost": 0
-          },
-          "gladiatorstance": {
-            "name": "Gladiator Stance",
             "uptime": 0,
             "totaldmg": 0,
             "totalusedrage": 0,
@@ -994,13 +973,6 @@
           },
           "defensivestance": {
             "name": "Defensive Stance",
-            "uptime": 0,
-            "totaldmg": 0,
-            "totalusedrage": 0,
-            "cost": 0
-          },
-          "gladiatorstance": {
-            "name": "Gladiator Stance",
             "uptime": 0,
             "totaldmg": 0,
             "totalusedrage": 0,

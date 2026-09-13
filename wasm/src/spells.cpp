@@ -48,14 +48,6 @@ std::string secondaryStance(const PlayerState& player) {
     return might ? might->props.string("secondarystance"_prop) : std::string{};
 }
 
-std::string stanceForGladExit(const PlayerState& player, std::string desired) {
-    if (player.props.boolean("switchdelay"_prop) && player.stance == "glad") {
-        const std::string base = player.props.string("basestance"_prop);
-        return base == "glad" ? secondaryStance(player) : base;
-    }
-    return desired;
-}
-
 void useBase(PlayerState& player, SpellState& spell) {
     player.timer = 1500;
     player.rage -= value(spell, "cost"_prop);
@@ -215,8 +207,6 @@ bool spellCanUse(PlayerState& player, SpellState& spell) {
         return player.props.boolean("shield"_prop) && spell.timer == 0 && player.timer == 0 &&
             (player.freeshieldslam || cost <= player.rage) &&
             (player.freeshieldslam || player.rage >= minrage) &&
-            (!option(spell, "resolve"_prop) ||
-             (player.aura("defendersresolve"_action) && !player.aura("defendersresolve"_action)->timer)) &&
             (!option(spell, "swordboard"_prop) || player.freeshieldslam);
 
     case SpellKind::Shockwave:
@@ -308,13 +298,13 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
     switch (spell.kind) {
     case SpellKind::Whirlwind:
         if (!player.isValidStance("zerk"))
-            player.switchStance(stanceForGladExit(player, "zerk"));
+            player.switchStance("zerk");
         useBase(player, spell);
         return;
 
     case SpellKind::Overpower:
         if (!player.isValidStance("battle"))
-            player.switchStance(stanceForGladExit(player, "battle"));
+            player.switchStance("battle");
         player.timer = 1500;
         player.dodgetimer = 0;
         spell.timer = cooldown * 1000;
@@ -325,9 +315,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
     case SpellKind::Execute:
         if (!player.isValidStance("zerk") && !player.isValidStance("battle")) {
             std::string stance = "zerk";
-            if (player.props.boolean("switchdelay"_prop) && player.stance == "glad")
-                stance = stanceForGladExit(player, stance);
-            else if (player.props.string("basestance"_prop) == "battle" || secondaryStance(player) == "battle")
+            if (player.props.string("basestance"_prop) == "battle" || secondaryStance(player) == "battle")
                 stance = "battle";
             player.switchStance(stance);
         }
@@ -585,11 +573,9 @@ double spellDamage(PlayerState& player, SpellState& spell, WeaponState* weapon) 
     case SpellKind::BlademasterFury:
         return normalizedWeaponDamage(player, player.mh) * dmgmod;
     case SpellKind::ShieldSlam: {
-        double ap = player.stats.number("ap"_prop);
-        if (auto* resolve = player.aura("defendersresolve"_action); resolve && !resolve->timer)
-            ap += 4 * player.stats.number("defense"_prop);
         const double damage = player.rng.integer(value(spell, "value1"_prop), value(spell, "value2"_prop)) +
-            player.stats.number("block"_prop) * 2 + static_cast<std::int32_t>(ap * .15);
+            player.stats.number("block"_prop) * 2 +
+            static_cast<std::int32_t>(player.stats.number("ap"_prop) * .15);
         return damage * dmgmod * player.mainspelldmg;
     }
     case SpellKind::Shockwave:
