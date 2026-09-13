@@ -233,6 +233,7 @@ PlayerState readPlayer(const val& value) {
     const auto mode = out.props.string("mode"_prop);
     if (mode != "classic" && mode != "forever") throw std::runtime_error("unsupported game mode: " + mode);
     out.turtleMode = false;
+    out.foreverMode = mode == "forever";
     out.stance = out.props.string("stance"_prop, out.props.string("basestance"_prop, "battle"));
     out.critdmgbonus = out.props.number("critdmgbonus"_prop);
     out.mainspelldmg = out.props.number("mainspelldmg"_prop, 1);
@@ -474,7 +475,7 @@ void WeaponState::loadScalars() {
 
 SpellKind parseSpellKind(std::string_view value) {
 #define SPELL_KIND(name) if (value == #name) return SpellKind::name
-    SPELL_KIND(Spell); SPELL_KIND(Bloodthirst); SPELL_KIND(Whirlwind); SPELL_KIND(Overpower);
+    SPELL_KIND(SpearingStrike); SPELL_KIND(Spell); SPELL_KIND(Bloodthirst); SPELL_KIND(Whirlwind); SPELL_KIND(Overpower);
     SPELL_KIND(Execute); SPELL_KIND(Bloodrage); SPELL_KIND(HeroicStrike); SPELL_KIND(Cleave);
     SPELL_KIND(MortalStrike); SPELL_KIND(SunderArmor); SPELL_KIND(Hamstring);
     SPELL_KIND(ThunderClap);
@@ -488,7 +489,7 @@ SpellKind parseSpellKind(std::string_view value) {
 
 AuraKind parseAuraKind(std::string_view value) {
 #define AURA_KIND(name) if (value == #name) return AuraKind::name
-    AURA_KIND(Aura); AURA_KIND(Recklessness); AURA_KIND(Flurry);
+    AURA_KIND(Enrage); AURA_KIND(SweepingStrikes); AURA_KIND(Aura); AURA_KIND(Recklessness); AURA_KIND(Flurry);
     AURA_KIND(OldDeepWounds); AURA_KIND(Crusader);
     AURA_KIND(Cloudkeeper); AURA_KIND(Felstriker); AURA_KIND(DeathWish); AURA_KIND(BattleStance);
     AURA_KIND(DefensiveStance); AURA_KIND(BerserkerStance); AURA_KIND(MightyRagePotion);
@@ -519,7 +520,7 @@ AuraKind parseAuraKind(std::string_view value) {
 const char* spellKindName(SpellKind kind) {
     switch (kind) {
 #define CASE(name) case SpellKind::name: return #name
-        CASE(Spell); CASE(Bloodthirst); CASE(Whirlwind); CASE(Overpower); CASE(Execute);
+        CASE(SpearingStrike); CASE(Spell); CASE(Bloodthirst); CASE(Whirlwind); CASE(Overpower); CASE(Execute);
         CASE(Bloodrage); CASE(HeroicStrike); CASE(Cleave); CASE(MortalStrike);
         CASE(SunderArmor); CASE(Hamstring); CASE(ThunderClap);
         CASE(BerserkerRage);
@@ -536,6 +537,8 @@ const char* auraKindName(AuraKind kind) {
     switch (kind) {
         case AuraKind::Aura: return "Aura";
         case AuraKind::Flurry: return "Flurry";
+        case AuraKind::Enrage: return "Enrage";
+        case AuraKind::SweepingStrikes: return "SweepingStrikes";
         case AuraKind::OldDeepWounds: return "OldDeepWounds";
         case AuraKind::Rend: return "Rend";
         default: return "AuraSubclass";
@@ -624,6 +627,8 @@ void PlayerState::buildConfiguredActionLists() {
     configured.bloodrageSelection = spellIndex("bloodrage"_action);
     configured.stanceSwitchSelection = spellIndex("stanceswitch"_action);
 
+    addOrderedKey(configured.stepAuras, "enrage"_action);
+    addOrderedKey(configured.stepAuras, "sweepingstrikes"_action);
     addOrderedProc(configured.stepAuras, mh.proc1);
     addOrderedProc(configured.stepAuras, mh.proc2);
     if (oh) {
@@ -659,6 +664,8 @@ void PlayerState::buildConfiguredActionLists() {
     addOrderedKey(configured.stepAuras, "deepwounds3"_action, false, true, true);
     addOrderedKey(configured.stepAuras, "deepwounds4"_action, false, true, true);
 
+    addOrderedKey(configured.endAuras, "enrage"_action);
+    addOrderedKey(configured.endAuras, "sweepingstrikes"_action);
     addOrderedProc(configured.endAuras, mh.proc1);
     addOrderedProc(configured.endAuras, mh.proc2);
     if (oh) {
@@ -714,11 +721,11 @@ void PlayerState::buildConfiguredActionLists() {
     addPeriodic("rend"_action, 3000);
     addAuras(configured.tickAuras, {"deepwounds"_action, "deepwounds2"_action, "deepwounds3"_action, "deepwounds4"_action});
     addAuras(configured.weaponBleeds, {"weaponbleedmh"_action, "weaponbleedoh"_action});
-    addSpells(configured.timedSpells, {"bloodthirst"_action, "mortalstrike"_action,
+    addSpells(configured.timedSpells, {"spearingstrike"_action, "bloodthirst"_action, "mortalstrike"_action,
         "shieldslam"_action, "whirlwind"_action,
         "blademasterfury"_action, "bloodrage"_action, "ragepotion"_action,
         "overpower"_action, "execute"_action, "slam"_action});
-    addSpells(configured.stepSpells, {"berserkerrage"_action,
+    addSpells(configured.stepSpells, {"spearingstrike"_action, "berserkerrage"_action,
         "bloodthirst"_action, "mortalstrike"_action, "shieldslam"_action,
         "whirlwind"_action, "blademasterfury"_action, "bloodrage"_action,
         "ragepotion"_action, "overpower"_action, "execute"_action,
@@ -727,7 +734,7 @@ void PlayerState::buildConfiguredActionLists() {
     addAuras(configured.periodicAuras, {"rend"_action, "deepwounds"_action,
         "weaponbleedmh"_action, "weaponbleedoh"_action,
         "deepwounds2"_action, "deepwounds3"_action, "deepwounds4"_action});
-    addAuras(configured.finalAuras, {"deepwounds"_action, "deepwounds2"_action,
+    addAuras(configured.finalAuras, {"sweepingstrikes"_action, "deepwounds"_action, "deepwounds2"_action,
         "deepwounds3"_action, "deepwounds4"_action, "rend"_action, "weaponbleedmh"_action,
         "weaponbleedoh"_action});
     addSpells(configured.finalSpells, {"fireball"_action, "gunaxe"_action,

@@ -1,6 +1,7 @@
 'use strict';
 
 const {loadFixtures} = require('./reference-engine');
+const {foreverFixtures} = require('./forever-fixtures');
 const {
     bloodrageCases, stanceCases, aliasCases, orderedProcs,
 } = require('./ability-proc-fixtures');
@@ -83,7 +84,7 @@ function extraFixtures() {
     return [
         heroic, cleave, phantom, suppression, long, trinkets,
         earthstrike, priority, clocks, gabbar, hamstring, ...bloodrageCases, ...stanceCases,
-        ...aliasCases, orderedProcs,
+        ...aliasCases, orderedProcs, ...foreverFixtures(),
     ];
 }
 

@@ -6,6 +6,8 @@ importScripts(...[
     'js/data/enchants.min.js',
     'js/data/spells.min.js',
     'js/data/talents.min.js',
+    'js/data/talents_forever.min.js',
+    'js/talent-rules.min.js',
     'js/classes/player.min.js',
     'js/classes/simulation.min.js',
     'js/classes/spell.min.js',
@@ -43,6 +45,8 @@ function importRules(mode) {
     const catalog = CATALOGS[mode];
     if (!catalog) throw new Error(`Unknown simulator mode: ${mode}`);
     importScripts(simulationAssetUrl(catalog));
+    globalThis.mode = mode;
+    selectTalentRules(mode);
 }
 
 function parseReport(value) {

@@ -38,7 +38,7 @@ double averageWeaponDamage(const PlayerState& player, const WeaponState& weapon)
                     player.stats.number("moddmgdone"_prop);
     damage = damage * weapon.modifier * player.stats.number("dmgmod"_prop, 1) +
              player.stats.number("moddmgtaken"_prop);
-    return damage * (1 - player.armorReduction);
+    return damage * (1 - player.weaponArmorReduction(weapon));
 }
 
 void useWeapon(PlayerState& player, WeaponState& weapon) {
@@ -98,7 +98,10 @@ void activateProcReference(PlayerState& player, ProcState& proc) {
 } // namespace
 
 void PlayerState::reset(double startingRage) {
-    rage = startingRage;
+    if (foreverMode) swordspecstep = -1;
+    rage = foreverMode ? std::min(startingRage, prop("ragecap"_prop, 100)) : startingRage;
+    bloodthrilltimer = 0;
+    props.set("mounted"_prop, target.props.string("creaturetype"_prop) == "Mounted");
     timer = itemtimer = stancetimer = dodgetimer = crittimer = 0;
     critdmgbonus = 0;
     mainspelldmg = 1;
@@ -130,7 +133,7 @@ void PlayerState::reset(double startingRage) {
         value.nexttick = 0;
         value.cooldownTimer = 0;
         value.tfbstep = -6000;
-        if (value.kind == AuraKind::OldDeepWounds ||
+        if (value.kind == AuraKind::SweepingStrikes || value.kind == AuraKind::OldDeepWounds ||
             value.kind == AuraKind::Rend ||
             value.kind == AuraKind::WeaponBleed) value.idmg = 0;
     }
@@ -164,6 +167,10 @@ void PlayerState::update() {
         oh->miss = missChance(*oh);
         oh->dwmiss = dwMissChance(*oh);
         if (turtleMode) oh->dwmiss -= talents.number("offhit"_prop);
+        if (foreverMode) {
+            oh->miss -= talents.number("offhit"_prop);
+            oh->dwmiss -= talents.number("offhit"_prop);
+        }
         oh->dodge = dodgeChance(*oh);
         oh->effectiveCrit = effectiveCrit(*oh);
     }
@@ -459,7 +466,7 @@ void PlayerState::addRage(double dmg, Result result, WeaponState& weapon, const 
         if (result != Result::Miss && result != Result::Dodge && talents.number("umbridledwrath"_prop) &&
             rng.tenK() < talents.number("umbridledwrath"_prop) * 100) {
             rage += 1;
-            if (turtleMode && weapon.twohand) rage += 1;
+            if ((turtleMode || foreverMode) && weapon.twohand) rage += 1;
         }
     }
     if (ability) {
@@ -472,9 +479,11 @@ void PlayerState::addRage(double dmg, Result result, WeaponState& weapon, const 
         if (result == Result::Hit && flag("altmightthreeset"_prop) && rng.tenK() < 1000) rage += 15;
     } else {
         if (result == Result::Dodge)
-            rage += (averageWeaponDamage(*this, weapon) / props.number("rageconversion"_prop)) * 7.5 * .75;
+            rage += (averageWeaponDamage(*this, weapon) / props.number("rageconversion"_prop)) * 7.5 * .75 *
+                (foreverMode && weapon.offhand ? 1 + talents.number("offragebonus"_prop) : 1);
         else if (result != Result::Miss)
-            rage += (dmg / props.number("rageconversion"_prop)) * 7.5 * props.number("ragemod"_prop, 1);
+            rage += (dmg / props.number("rageconversion"_prop)) * 7.5 * props.number("ragemod"_prop, 1) *
+                (foreverMode && weapon.offhand ? 1 + talents.number("offragebonus"_prop) : 1);
     }
     if (props.number("extrarage"_prop) && result == Result::Hit) rage += props.number("extrarage"_prop);
     if (props.number("extracritrage"_prop) && result == Result::Crit) rage += props.number("extracritrage"_prop);
@@ -488,7 +497,7 @@ void PlayerState::addRageMh(double dmg, Result result, WeaponState& weapon, cons
         if (result != Result::Miss && result != Result::Dodge && talents.number("umbridledwrath"_prop) &&
             rng.tenK() < talents.number("umbridledwrath"_prop) * 100) {
             rage += 1;
-            if (turtleMode && weapon.twohand) rage += 1;
+            if ((turtleMode || foreverMode) && weapon.twohand) rage += 1;
         }
     }
     if (ability) {
@@ -636,15 +645,31 @@ double PlayerState::castOh(SpellState& ability, int adjacent, double damageSoFar
     return done + procDmg;
 }
 
+double PlayerState::weaponArmorReduction(const WeaponState& weapon) const {
+    if (!foreverMode || !talents.number("weaponmasterarp"_prop) || (weapon.type != 0 && weapon.type != 6)) return armorReduction;
+    const double armor = target.armor * (1 - talents.number("weaponmasterarp"_prop));
+    return std::min(.75, armor / (armor + 400 + 85 * props.number("level"_prop)));
+}
+
 double PlayerState::dealDamage(double dmg, Result result, WeaponState& weapon,
                                SpellState* ability, bool adjacent) {
     const bool landed = result != Result::Miss && result != Result::Dodge;
-    if (landed && isPhysical(ability)) dmg *= 1 - armorReduction;
+    if (landed && isPhysical(ability)) dmg *= 1 - weaponArmorReduction(weapon);
     if (!adjacent) {
         if (!turtleMode) addRage(dmg, result, weapon, ability);
         else if (&weapon == &mh) addRageMh(dmg, result, weapon, ability);
         else addRageOh(dmg, result, weapon, ability);
     }
+    if (landed && dmg > 0 && !adjacent && (!ability || ability->props.integer("defenseType"_prop, 2) == 2)) {
+        if (const auto* rend = aura("rend"_action); talents.number("bloodthrill"_prop) && rend && rend->timer > step && rend->stacks &&
+            rng.tenK() < talents.number("bloodthrill"_prop) * 100) bloodthrilltimer = 6000;
+        if (auto* sweeping = aura("sweepingstrikes"_action); prop("adjacent"_prop) && sweeping && sweeping->timer && sweeping->stacks) {
+            sweeping->idmg += dmg;
+            sweeping->totaldmg += dmg;
+            if (!--sweeping->stacks) auraEnd(*this, *sweeping);
+        }
+    }
+    if (landed && ability && ability->kind == SpellKind::SpearingStrike) props.set("mounted"_prop, false);
     return landed ? dmg : 0;
 }
 

@@ -8,7 +8,7 @@
 
 namespace warriorsim::detail {
 
-inline constexpr std::size_t kDensePropertyCount = 167;
+inline constexpr std::size_t kDensePropertyCount = 178;
 inline constexpr std::array<std::string_view, kDensePropertyCount> kDensePropertyNames = {
     "abilitiescrit",
     "adjacent",
@@ -177,6 +177,17 @@ inline constexpr std::array<std::string_view, kDensePropertyCount> kDensePropert
     "zerkerpriority",
     "afterswing",
     "dodgetimeworn",
+    "apcoefficient",
+    "blockcoefficient",
+    "bloodthrill",
+    "creaturetype",
+    "flatbonus",
+    "mounted",
+    "offragebonus",
+    "ragingblows",
+    "swingmode",
+    "tickrage",
+    "weaponmasterarp",
 };
 
 constexpr std::uint64_t propertyHash(std::string_view value) {
@@ -354,6 +365,17 @@ constexpr int propertyIndex(std::string_view value) {
     case propertyHash("zerkerpriority"): return value == "zerkerpriority" ? 164 : -1;
     case propertyHash("afterswing"): return value == "afterswing" ? 165 : -1;
     case propertyHash("dodgetimeworn"): return value == "dodgetimeworn" ? 166 : -1;
+    case propertyHash("apcoefficient"): return value == "apcoefficient" ? 167 : -1;
+    case propertyHash("blockcoefficient"): return value == "blockcoefficient" ? 168 : -1;
+    case propertyHash("bloodthrill"): return value == "bloodthrill" ? 169 : -1;
+    case propertyHash("creaturetype"): return value == "creaturetype" ? 170 : -1;
+    case propertyHash("flatbonus"): return value == "flatbonus" ? 171 : -1;
+    case propertyHash("mounted"): return value == "mounted" ? 172 : -1;
+    case propertyHash("offragebonus"): return value == "offragebonus" ? 173 : -1;
+    case propertyHash("ragingblows"): return value == "ragingblows" ? 174 : -1;
+    case propertyHash("swingmode"): return value == "swingmode" ? 175 : -1;
+    case propertyHash("tickrage"): return value == "tickrage" ? 176 : -1;
+    case propertyHash("weaponmasterarp"): return value == "weaponmasterarp" ? 177 : -1;
     default: return -1;
     }
 }

@@ -503,10 +503,10 @@ var talentsForever = [
             ],
             "d": [
                "Gives your melee weapon attacks a benefit depending on the weapon.\n\nAxe/Polearm: Increases your critical strike chance by 1%.\n\nMace/Staff: Your attacks ignore 3% of your target's armor.\n\nSword: Your successful melee attacks have a 1% chance to trigger an extra attack on the target.",
-               "Gives your melee weapon attacks a benefit depending on the weapon.\n\nAxe/Polearm: Increases your critical strike chance by 1%.\n\nMace/Staff: Your attacks ignore 3% of your target's armor.\n\nSword: Your successful melee attacks have a 2% chance to trigger an extra attack on the target.",
-               "Gives your melee weapon attacks a benefit depending on the weapon.\n\nAxe/Polearm: Increases your critical strike chance by 1%.\n\nMace/Staff: Your attacks ignore 3% of your target's armor.\n\nSword: Your successful melee attacks have a 3% chance to trigger an extra attack on the target.",
-               "Gives your melee weapon attacks a benefit depending on the weapon.\n\nAxe/Polearm: Increases your critical strike chance by 1%.\n\nMace/Staff: Your attacks ignore 3% of your target's armor.\n\nSword: Your successful melee attacks have a 4% chance to trigger an extra attack on the target.",
-               "Gives your melee weapon attacks a benefit depending on the weapon.\n\nAxe/Polearm: Increases your critical strike chance by 1%.\n\nMace/Staff: Your attacks ignore 3% of your target's armor.\n\nSword: Your successful melee attacks have a 5% chance to trigger an extra attack on the target."
+               "Gives your melee weapon attacks a benefit depending on the weapon.\n\nAxe/Polearm: Increases your critical strike chance by 2%.\n\nMace/Staff: Your attacks ignore 6% of your target's armor.\n\nSword: Your successful melee attacks have a 2% chance to trigger an extra attack on the target.",
+               "Gives your melee weapon attacks a benefit depending on the weapon.\n\nAxe/Polearm: Increases your critical strike chance by 3%.\n\nMace/Staff: Your attacks ignore 9% of your target's armor.\n\nSword: Your successful melee attacks have a 3% chance to trigger an extra attack on the target.",
+               "Gives your melee weapon attacks a benefit depending on the weapon.\n\nAxe/Polearm: Increases your critical strike chance by 4%.\n\nMace/Staff: Your attacks ignore 12% of your target's armor.\n\nSword: Your successful melee attacks have a 4% chance to trigger an extra attack on the target.",
+               "Gives your melee weapon attacks a benefit depending on the weapon.\n\nAxe/Polearm: Increases your critical strike chance by 5%.\n\nMace/Staff: Your attacks ignore 15% of your target's armor.\n\nSword: Your successful melee attacks have a 5% chance to trigger an extra attack on the target."
             ],
             "x": 2,
             "y": 4,
@@ -1219,7 +1219,7 @@ var talentsForever = [
             ],
             "d": [
                "Your Berserker Rage ability will instantly generate 5 Rage and has a 50% chance to remove all movement impairing effects when activated.",
-               "Your Berserker Rage ability will instantly generate 5 Rage and has a 100% chance to remove all movement impairing effects when activated."
+               "Your Berserker Rage ability will instantly generate 10 Rage and has a 100% chance to remove all movement impairing effects when activated."
             ],
             "x": 0,
             "y": 5,

@@ -7,8 +7,8 @@ const vm = require('node:vm');
 const ROOT = path.resolve(__dirname, '..', '..');
 
 const MODE_SOURCES = {
- classic: ['js/data/gear.js','js/data/enchants.js','js/data/talents.js','js/data/spells.js','js/data/buffs.js','js/data/session.js'],
- forever: ['js/data/gear_forever.js','js/data/enchants.js','js/data/talents.js','js/data/spells.js','js/data/buffs.js','js/data/session_forever.js'],
+ classic: ['js/data/gear.js','js/data/enchants.js','js/data/talents.js','js/data/spells.js','js/data/talents_forever.js','js/talent-rules.js','js/data/buffs.js','js/data/session.js'],
+ forever: ['js/data/gear_forever.js','js/data/enchants.js','js/data/talents.js','js/data/spells.js','js/data/talents_forever.js','js/talent-rules.js','js/data/buffs.js','js/data/session_forever.js'],
 };
 
 const ENGINE_SOURCES = [
@@ -115,6 +115,10 @@ function createReferenceEngine(mode, options = {}) {
         };
     `, context);
 
+    context.__referenceEngine.evaluate = (source, bindings = {}) => {
+        Object.assign(context, bindings);
+        return vm.runInContext(source, context);
+    };
     return context.__referenceEngine;
 }
 
@@ -192,7 +196,7 @@ function createState(engine, fixture) {
     for (const [id, changes] of Object.entries(fixture.rotation || {})) {
         const spell = rotation.get(id);
         if (spell) Object.assign(spell, changes);
-        else state.rotation.push({ id: Number(id), ...changes });
+        else state.rotation.push({ id: Number.isFinite(Number(id)) ? Number(id) : id, ...changes });
     }
 
     if (fixture.buffs) state.buffs = fixture.buffs;
@@ -210,6 +214,9 @@ function createState(engine, fixture) {
 
     return {
         talents: state.talents,
+        talentSchema: fixture.talentSchema || state.talentSchema,
+        mode: fixture.mode,
+        level: fixture.player.level,
         buffs: state.buffs,
         rotation: state.rotation,
         gear: state.gear,
@@ -219,6 +226,8 @@ function createState(engine, fixture) {
 }
 
 function createConfiguredPlayer(engine, fixture, logging = false) {
+    for (const {slot, item} of fixture.itemsAdd || [])
+        engine.evaluate('if (!gear[slot].some(i => i.id === item.id)) gear[slot].push(item)', {slot, item: clone(item)});
     engine.configure(createState(engine, fixture));
     const config = clone(fixture.player);
     config.mode = fixture.mode;

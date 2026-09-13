@@ -130,7 +130,7 @@ class Weapon {
     avgdmg() {
         let dmg = ((this.mindmg + this.bonusdmg + this.maxdmg + this.bonusdmg)/2) + (this.player.stats.ap / 14) * this.normSpeed + this.player.stats.moddmgdone;
         dmg = dmg * this.modifier * this.player.stats.dmgmod + this.player.stats.moddmgtaken;
-        return dmg * (1 - this.player.armorReduction);
+        return dmg * (1 - this.player.weaponArmorReduction(this));
     }
     use() {
         this.timer = Math.round(this.speed * 1000 / this.player.stats.haste);

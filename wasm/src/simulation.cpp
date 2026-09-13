@@ -135,13 +135,13 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
         if (++loopGuard > 10000000) throw std::runtime_error("simulation event loop made no progress");
         if (next != 0 && player_.talents.number("angermanagement"_prop) &&
             positiveModulo(player_.step, 3000) == 0) {
-            player_.rage = player_.rage >= 99 ? 100 : player_.rage + 1;
+            player_.rage = std::min(player_.rage + 1, player_.prop("ragecap"_prop, 100));
             spellcheck = true;
             if (auto* consumed = player_.aura("consumedrage"_action); consumed && player_.rage >= 60 && player_.rage < 81)
                 auraUse(player_, *consumed);
         }
         if (player_.flag("vaelbuff"_prop) && next != 0 && positiveModulo(player_.step, 1000) == 0) {
-            player_.rage = player_.rage >= 60 ? 100 : player_.rage + 20;
+            player_.rage = player_.foreverMode ? std::min(player_.rage + 20, player_.prop("ragecap"_prop, 100)) : player_.rage >= 60 ? 100 : player_.rage + 20;
             spellcheck = true;
             if (auto* consumed = player_.aura("consumedrage"_action); consumed && player_.rage >= 60)
                 auraUse(player_, *consumed);
@@ -152,9 +152,11 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
         const double targetSpeed = player_.target.props.number("speed"_prop);
         if (targetSpeed && positiveModulo(player_.step, targetSpeed) == 0) {
             const double oldRage = player_.rage;
-            const double incoming = player_.rng.integer(player_.target.props.number("mindmg"_prop),
+            double incoming = player_.rng.integer(player_.target.props.number("mindmg"_prop),
                                                         player_.target.props.number("maxdmg"_prop));
-            player_.rage = std::min(player_.rage + incoming / player_.prop("rageconversion"_prop) * 2.5, 100.0);
+            if (const auto* wish = player_.aura("deathwish"_action); player_.foreverMode && wish && wish->timer > player_.step) incoming *= 1.05;
+            player_.rage = std::min(player_.rage + incoming / player_.prop("rageconversion"_prop) * 2.5, player_.prop("ragecap"_prop, 100));
+            if (auto* enrage = player_.aura("enrage"_action); incoming > 0 && enrage && player_.rng.tenK() < 3000) auraUse(player_, *enrage);
             spellcheck = true;
             if (auto* consumed = player_.aura("consumedrage"_action); consumed && player_.rage >= 60 && oldRage < 60)
                 auraUse(player_, *consumed);
@@ -243,7 +245,7 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
                         auto& slam = *delayedSpell.spell;
                         const double casttime = slam.props.number("casttime"_prop);
                         slamStep = player_.freeslam ? player_.step : player_.step + casttime;
-                        player_.timer = 1500;
+                        player_.timer = slam.props.number("gcd"_prop, 1500);
                         player_.heroicdelay = 0;
                         player_.nextswinghs = false;
                         next = 0;
@@ -318,7 +320,7 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
         }
 
         if (!slamStep) {
-            if (!player_.mh.timer || (!player_.spelldelay && spellcheck) || (!player_.heroicdelay && spellcheck)) {
+            if (player_.mh.timer <= 0 || (player_.oh && player_.oh->timer <= 0) || (!player_.spelldelay && spellcheck) || (!player_.heroicdelay && spellcheck)) {
                 next = 0;
                 continue;
             }
@@ -332,6 +334,10 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
         if (player_.timer && player_.timer < next) next = player_.timer;
         if (player_.itemtimer && player_.itemtimer < next) next = player_.itemtimer;
         if (player_.stancetimer && player_.stancetimer < next) next = player_.stancetimer;
+        if (const auto* enrage = player_.aura("enrage"_action); enrage && enrage->timer > player_.step)
+            minPositive(enrage->timer - player_.step, next);
+        if (const auto* sweeping = player_.aura("sweepingstrikes"_action); sweeping && sweeping->cooldownTimer > player_.step)
+            minPositive(sweeping->cooldownTimer - player_.step, next);
         if (targetSpeed) minPositive(targetSpeed - positiveModulo(player_.step, targetSpeed), next);
         if (player_.talents.number("angermanagement"_prop)) minPositive(3000 - positiveModulo(player_.step, 3000), next);
         if (player_.flag("vaelbuff"_prop)) minPositive(1000 - positiveModulo(player_.step, 1000), next);
@@ -363,8 +369,15 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
         if (!(next >= 0) || !std::isfinite(next)) throw std::runtime_error("invalid next simulation event time");
         player_.step += next;
         if (player_.step > maxSteps) break;
-        player_.mh.timer -= next;
-        if (player_.oh) player_.oh->timer -= next;
+        if (!slamStep || delayedSpell.spell->props.number("swingmode"_prop) != 1) {
+            player_.mh.timer -= next;
+            if (player_.oh) player_.oh->timer -= next;
+            if (slamStep && delayedSpell.spell->props.number("swingmode"_prop) == 2) {
+                player_.mh.timer = std::max(0.0, player_.mh.timer);
+                if (player_.oh) player_.oh->timer = std::max(0.0, player_.oh->timer);
+            }
+        }
+        if (player_.bloodthrilltimer) player_.bloodthrilltimer = std::max(0.0, player_.bloodthrilltimer - next);
         canSpellQueue = false;
         if (player_.timer && player_.stepTimer(next) && !player_.spelldelay) {
             spellcheck = true;
@@ -376,6 +389,10 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
         if (player_.spelldelay) player_.spelldelay += next;
         if (player_.heroicdelay) player_.heroicdelay += next;
 
+        if (auto* enrage = player_.aura("enrage"_action); enrage && enrage->timer) {
+            (void)auraStep(player_, *enrage); spellcheck = true;
+        }
+        if (const auto* sweeping = player_.aura("sweepingstrikes"_action); sweeping && sweeping->cooldownTimer == player_.step) spellcheck = true;
         for (const int index : player_.configured.stepSpells) {
             auto& value = player_.spells[static_cast<std::size_t>(index)];
             if (value.timer && !spellStep(player_, value, next) && !player_.spelldelay)

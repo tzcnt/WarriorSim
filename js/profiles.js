@@ -326,6 +326,10 @@ SIM.PROFILES = {
             }
             storage.buffs = minified.buffs;
             storage.talents = minified.talents;
+            if (mode === 'forever') {
+                storage.talents = normalizeForeverTalents(minified.talents, minified.talentSchema, storage.level || 60);
+                storage.talentSchema = FOREVER_TALENT_SCHEMA;
+            }
 
             storage.gear = {};
             for (let type in minified.gear) {

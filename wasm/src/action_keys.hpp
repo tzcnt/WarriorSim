@@ -7,7 +7,7 @@
 
 namespace warriorsim::detail {
 
-inline constexpr std::size_t kActionKeyCount = 75;
+inline constexpr std::size_t kActionKeyCount = 77;
 inline constexpr std::array<std::string_view, kActionKeyCount> kActionKeyNames = {
     "annihilator",
     "battleshout",
@@ -67,11 +67,13 @@ inline constexpr std::array<std::string_view, kActionKeyCount> kActionKeyNames =
     "singleminded",
     "slam",
     "slayer",
+    "spearingstrike",
     "spider",
     "stanceswitch",
     "suddendeath",
     "sunderarmor",
     "swarmguard",
+    "sweepingstrikes",
     "themoltencore",
     "thunderclap",
     "victoryrush",
@@ -152,23 +154,25 @@ constexpr int actionKeyIndex(std::string_view value) {
     case actionKeyHash("singleminded"): return value == "singleminded" ? 55 : -1;
     case actionKeyHash("slam"): return value == "slam" ? 56 : -1;
     case actionKeyHash("slayer"): return value == "slayer" ? 57 : -1;
-    case actionKeyHash("spider"): return value == "spider" ? 58 : -1;
-    case actionKeyHash("stanceswitch"): return value == "stanceswitch" ? 59 : -1;
-    case actionKeyHash("suddendeath"): return value == "suddendeath" ? 60 : -1;
-    case actionKeyHash("sunderarmor"): return value == "sunderarmor" ? 61 : -1;
-    case actionKeyHash("swarmguard"): return value == "swarmguard" ? 62 : -1;
-    case actionKeyHash("themoltencore"): return value == "themoltencore" ? 63 : -1;
-    case actionKeyHash("thunderclap"): return value == "thunderclap" ? 64 : -1;
-    case actionKeyHash("victoryrush"): return value == "victoryrush" ? 65 : -1;
-    case actionKeyHash("voidmadness"): return value == "voidmadness" ? 66 : -1;
-    case actionKeyHash("voodoofrenzy"): return value == "voodoofrenzy" ? 67 : -1;
-    case actionKeyHash("weaponbleedmh"): return value == "weaponbleedmh" ? 68 : -1;
-    case actionKeyHash("weaponbleedoh"): return value == "weaponbleedoh" ? 69 : -1;
-    case actionKeyHash("whirlwind"): return value == "whirlwind" ? 70 : -1;
-    case actionKeyHash("wrathwray"): return value == "wrathwray" ? 71 : -1;
-    case actionKeyHash("wreckingcrew"): return value == "wreckingcrew" ? 72 : -1;
-    case actionKeyHash("zandalarian"): return value == "zandalarian" ? 73 : -1;
-    case actionKeyHash("zeal"): return value == "zeal" ? 74 : -1;
+    case actionKeyHash("spearingstrike"): return value == "spearingstrike" ? 58 : -1;
+    case actionKeyHash("spider"): return value == "spider" ? 59 : -1;
+    case actionKeyHash("stanceswitch"): return value == "stanceswitch" ? 60 : -1;
+    case actionKeyHash("suddendeath"): return value == "suddendeath" ? 61 : -1;
+    case actionKeyHash("sunderarmor"): return value == "sunderarmor" ? 62 : -1;
+    case actionKeyHash("swarmguard"): return value == "swarmguard" ? 63 : -1;
+    case actionKeyHash("sweepingstrikes"): return value == "sweepingstrikes" ? 64 : -1;
+    case actionKeyHash("themoltencore"): return value == "themoltencore" ? 65 : -1;
+    case actionKeyHash("thunderclap"): return value == "thunderclap" ? 66 : -1;
+    case actionKeyHash("victoryrush"): return value == "victoryrush" ? 67 : -1;
+    case actionKeyHash("voidmadness"): return value == "voidmadness" ? 68 : -1;
+    case actionKeyHash("voodoofrenzy"): return value == "voodoofrenzy" ? 69 : -1;
+    case actionKeyHash("weaponbleedmh"): return value == "weaponbleedmh" ? 70 : -1;
+    case actionKeyHash("weaponbleedoh"): return value == "weaponbleedoh" ? 71 : -1;
+    case actionKeyHash("whirlwind"): return value == "whirlwind" ? 72 : -1;
+    case actionKeyHash("wrathwray"): return value == "wrathwray" ? 73 : -1;
+    case actionKeyHash("wreckingcrew"): return value == "wreckingcrew" ? 74 : -1;
+    case actionKeyHash("zandalarian"): return value == "zandalarian" ? 75 : -1;
+    case actionKeyHash("zeal"): return value == "zeal" ? 76 : -1;
     default: return -1;
     }
 }

@@ -16,6 +16,11 @@ for (const fixture of extraFixtures()) {
         const partitions = fixture.sim.iterations === 3 ? [1, 2] : [1, 4, fixture.sim.iterations - 5];
         assertNativeReports(runPartitioned(fixture, partitions), expected, fixture.name);
         assert.ok(expected.totaldmg > 0);
+        for (const group of ['spells', 'auras'])
+            for (const key of (fixture.mode === 'forever' ? fixture.expect?.[group] : []) || []) {
+                const action = expected.player[group][key];
+                assert.ok(action && (action.totaldmg > 0 || action.uptime > 0), `${fixture.name}: ${key} is exercised`);
+            }
         if (fixture.name.includes('phantom')) assert.ok(expected.player.mh.totalprocdmg > 0);
         for (const [key, duration] of Object.entries({slayer: 20000, spider: 15000, earthstrike: 20000})) {
             if (expected.player.auras[key]) {
@@ -68,9 +73,9 @@ for (const mode of ['classic', 'forever']) {
     });
 }
 
-test('WoW Forever reproduces the Classic Era report for every configured baseline', () => {
+test('WoW Forever uses its own talents and differs from the Classic Era baseline', () => {
     for (const fixture of loadFixtures().filter(value => value.mode === 'classic')) {
-        assertNativeReports(runReference({...fixture, mode: 'forever'}), runReference(fixture), fixture.name);
+        assert.notEqual(runReference({...fixture, mode: 'forever'}).totaldmg, runReference(fixture).totaldmg, fixture.name);
     }
 });
 

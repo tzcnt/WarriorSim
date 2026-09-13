@@ -837,6 +837,11 @@ SIM.UI = {
         obj.sources = _sources;
         obj.phases = _phases;
         obj.talents = _talents;
+        if (mode === 'forever') {
+            obj.talents = talentSelection();
+            obj.talentSchema = FOREVER_TALENT_SCHEMA;
+            obj.targetcreaturetype = view.fight.find('select[name="targetcreaturetype"]').val() || 'Other';
+        }
         obj.gear = _gear;
         obj.enchant = _enchant;
         obj.resistance = _resistance;
@@ -854,6 +859,12 @@ SIM.UI = {
         if (!localStorage[mode + profileid]) localStorage[mode + profileid] = JSON.stringify(session);
 
         let storage = JSON.parse(localStorage[mode + profileid]);
+        if (mode === 'forever') {
+            storage.talents = normalizeForeverTalents(storage.talents || session.talents,
+                storage.talents ? storage.talentSchema : session.talentSchema, storage.level || session.level);
+            storage.talentSchema = FOREVER_TALENT_SCHEMA;
+            localStorage[mode + profileid] = JSON.stringify(storage);
+        }
         if (!storage.level) storage.level = session.level;
         if (!storage.targetlevel) storage.targetlevel = session.targetlevel;
         if (!storage.profilename) storage.profilename = session.profilename;
@@ -894,6 +905,9 @@ SIM.UI = {
         }
 
         updateGlobals({
+            mode,
+            level: storage.level,
+            talentSchema: storage.talentSchema,
             talents: !storage.talents ? session.talents : storage.talents,
             buffs: !storage.buffs ? session.buffs : storage.buffs,
             rotation: !storage.rotation ? session.rotation : storage.rotation,

@@ -51,8 +51,9 @@ SIM.SETTINGS = {
 
         view.talents.on('click', '.icon', function (e) {
             let talent = view.getTalent($(this));
-            let total = view.getTalentTotal($(this));
-            if (total < talent.y * 5) return;
+            e.preventDefault();
+            if (talent.c >= talent.m) return;
+            if (mode !== 'forever' && view.getTalentTotal($(this)) < talent.y * 5) return;
 
             let storage = JSON.parse(localStorage[mode + (globalThis.profileid || 0)]);
             let level = parseInt(storage.level);
@@ -63,14 +64,17 @@ SIM.SETTINGS = {
             let available = Math.max(level - 9 - count, 0);
             if (available <= 0) return;
 
-            talent.c = talent.c < talent.m ? talent.c + 1 : talent.m;
+            talent.c++;
+            if (mode === 'forever' && !validTalentBuild(talents, talents.map(tree => tree.t.map(t => t.c)), level)) {
+                talent.c--; return;
+            }
             $(this).attr('data-count', talent.c);
             if (talent.c >= talent.m) $(this).addClass('maxed');
             if (talent.enable)
                 $('.rotation [data-id="' + talent.enable + '"]').removeClass('hidden');
             if (talent.enablename)
                 $('.rotation [data-name="' + talent.enablename + '"]').removeClass('hidden');
-            $(this).find('a').attr('href', WEB_DB_URL + 'spell=' + talent.s[talent.c == 0 ? 0 : talent.c - 1]);
+            view.updateTalentTooltip($(this), talent);
             SIM.UI.updateSession();
             SIM.UI.updateSidebar();
             view.buildSpells();
@@ -82,16 +86,10 @@ SIM.SETTINGS = {
             if (talent.c < 1) return;
             talent.c--;
 
-            let valid = true;
-            let count = [];
-            let tree = $(this).parents('table').index() - 2;
-            for (let t of talents[tree].t)
-                count[t.y] = (count[t.y] || 0) + t.c;
-            for(let i = 0; i < count.length; i++)
-                count[i] += count[i-1] || 0;
-            for (let t of talents[tree].t)
-                if (t.c && t.y * 5 > count[t.y - 1])
-                    valid = false;
+            const storage = JSON.parse(localStorage[mode + (globalThis.profileid || 0)]);
+            const tree = talents[Number($(this).parents('table').attr('data-tree'))];
+            const valid = mode === 'forever' ? validTalentBuild(talents, talents.map(tree => tree.t.map(t => t.c)), storage.level) :
+                tree.t.every(t => !t.c || t.y === 0 || tree.t.reduce((sum, lower) => sum + (lower.y < t.y ? lower.c : 0), 0) >= t.y * 5);
             if (!valid) {
                 talent.c++;
                 return;
@@ -111,9 +109,10 @@ SIM.SETTINGS = {
                     if (spell.name == talent.enablename)
                         spell.active = false;
             }
-            $(this).find('a').attr('href', WEB_DB_URL + 'spell=' + talent.s[talent.c == 0 ? 0 : talent.c - 1]);
+            view.updateTalentTooltip($(this), talent);
             SIM.UI.updateSession();
             SIM.UI.updateSidebar();
+            view.buildSpells();
         });
 
         view.talents.on('click', '.js-talents-reset', function (e) {
@@ -218,10 +217,21 @@ SIM.SETTINGS = {
             SIM.UI.updateSidebar();
         });
 
-        view.fight.on('change', 'select[name="spellqueueing"]', function (e) {
+        view.fight.on('change', 'select[name="spellqueueing"], select[name="targetcreaturetype"]', function (e) {
             e.stopPropagation();
             SIM.UI.updateSession();
             SIM.UI.updateSidebar();
+        });
+
+        view.fight.on('change', 'input[name="level"]', function () {
+            if (mode === 'forever' && Number(this.value) >= 1 && Number(this.value) <= 60) {
+                const selected = normalizeForeverTalents(talentSelection(), FOREVER_TALENT_SCHEMA, this.value);
+                talents.forEach((tree, i) => tree.t.forEach((t, j) => { t.c = selected[i].t[j]; }));
+                view.buildTalents();
+                SIM.UI.updateSession();
+                SIM.UI.updateSidebar();
+                view.buildSpells();
+            }
         });
 
         view.fight.on('keyup', 'input[type="text"]', function (e) {
@@ -371,6 +381,7 @@ SIM.SETTINGS = {
         let buffs = '';
         let items = '';
         for (let spell of spells) {
+            if (spell.mode && spell.mode !== mode) continue;
 
             // race restriction
             if (spell.id == 26296 && storage.race !== "Troll") {
@@ -451,6 +462,10 @@ SIM.SETTINGS = {
             <a href="${WEB_DB_URL}${spell.item ? 'item' : 'spell'}=${spell.id}" class="wh-tooltip"></a>
             </div></div>`);
 
+            if (spell.localDescription) {
+                div.find('a').removeClass('wh-tooltip').attr('href', '#');
+                div.find('.icon').attr('title', spell.name + '\n' + spell.localDescription);
+            }
             if (spell.buff) buffs += div[0].outerHTML;
             else if (spell.item || spell.itemblock) items += div[0].outerHTML;
             else container.append(div);
@@ -656,32 +671,45 @@ SIM.SETTINGS = {
         var view = this;
         view.talents.find('table').remove();
         for (let tree of talents) {
-            let table = $('<table><tr><th colspan="4">' + tree.n + '</th></tr></table>');
+            let table = $('<table><tr><th colspan="4">' + tree.n + '</th></tr></table>').attr('data-tree', talents.indexOf(tree));
             for (let i = 0; i < 7; i++) table.prepend('<tr><td></td><td></td><td></td><td></td></tr>');
             for (let talent of tree.t) {
                 let div = $('<div class="icon" data-count="' + talent.c + '" data-x="' + talent.x + '" data-y="' + talent.y + '"></div>');
                 div.html('<img src="https://wow.zamimg.com/images/wow/icons/medium/' + talent.iconname.toLowerCase() + '.jpg" alt="' + talent.n + '" />');
                 if (talent.c >= talent.m) div.addClass('maxed');
                 div.append(`<a href="${WEB_DB_URL}spell=` + talent.s[talent.c == 0 ? 0 : talent.c - 1] + `" class="wh-tooltip"></a>`);
+                view.updateTalentTooltip(div, talent);
                 table.find('tr').eq(talent.y).children().eq(talent.x).append(div);
             }
             view.talents.append(table);
         }
     },
 
+    updateTalentTooltip: function (div, talent) {
+        if (talent.forever) {
+            const text = [talent.n + ' (' + talent.c + '/' + talent.m + ')',
+                talent.d[Math.max(0, talent.c - 1)], talent.c > 0 && talent.c < talent.m ? 'Next rank: ' + talent.d[talent.c] : '',
+                talent.forever.cost, talent.forever.reqText].filter(Boolean).join('\n\n');
+            div.attr('title', text).attr('aria-label', text);
+            div.find('a').removeClass('wh-tooltip').attr('href', '#');
+        } else {
+            div.find('a').attr('href', WEB_DB_URL + 'spell=' + talent.s[Math.max(0, talent.c - 1)]);
+        }
+    },
+
     getTalent: function (div) {
-        let tree = div.parents('table').index() - 1;
+        let tree = Number(div.parents('table').attr('data-tree'));
         let x = div.data('x');
         let y = div.data('y');
-        for (let talent of talents[tree - 1].t)
+        for (let talent of talents[tree].t)
             if (talent.x == x && talent.y == y)
                 return talent;
     },
 
     getTalentTotal: function (div) {
-        let tree = div.parents('table').index() - 1;
+        let tree = Number(div.parents('table').attr('data-tree'));
         let count = 0;
-        for (let talent of talents[tree - 1].t)
+        for (let talent of talents[tree].t)
             count += parseInt(talent.c);
         return count;
     }

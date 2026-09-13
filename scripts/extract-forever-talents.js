@@ -16,6 +16,15 @@ const talents = snapshot.warrior.trees.map(tree => {
         assert(Number.isInteger(talent.max) && talent.max > 0);
         const ranks = Array.from({ length: talent.max }, (_, rank) => rankText(talent, rank + 1));
         const d = ranks.map(rank => rank.text);
+        // Provisional overrides agreed for the simulator; preserve the raw snapshot.
+        if (talent.name === 'Weaponmaster') {
+            for (let rank = 1; rank <= talent.max; rank++)
+                d[rank - 1] = d[0].replace('by 1%', `by ${rank}%`)
+                    .replace('ignore 3%', `ignore ${rank * 3}%`)
+                    .replace('a 1% chance', `a ${rank}% chance`);
+        }
+        if (talent.name === 'Improved Berserker Rage')
+            d[1] = d[1].replace('generate 5 Rage', 'generate 10 Rage');
         assert(d.every(text => typeof text === 'string' && text.length));
         const result = {
             i: null,

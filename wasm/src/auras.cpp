@@ -91,6 +91,12 @@ bool isAlwaysBase(AuraKind kind) {
 } // namespace
 
 bool auraCanUse(PlayerState& player, AuraState& aura) {
+    if (aura.kind == AuraKind::SweepingStrikes) {
+        const double cost = aura.props.number("cost"_prop);
+        return !aura.timer && !player.timer && player.prop("adjacent"_prop) > 0 &&
+            aura.cooldownTimer <= player.step && player.rage >= cost &&
+            (player.isValidStance("battle") || player.talents.number("rageretained"_prop) >= cost);
+    }
     const bool ready = !active(aura) && player.step >= aura.useStep;
     switch (aura.kind) {
     case AuraKind::Recklessness:
@@ -197,6 +203,17 @@ void auraEnd(PlayerState& player, AuraState& aura) {
 }
 
 void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter) {
+    if (aura.kind == AuraKind::SweepingStrikes) {
+        if (!player.isValidStance("battle")) player.switchStance("battle");
+        player.rage -= aura.props.number("cost"_prop);
+        player.timer = 1500;
+        aura.timer = 1;
+        aura.stacks = 5;
+        aura.starttimer = player.step;
+        aura.cooldownTimer = player.step + cooldownMs(aura);
+        setDelay(player, aura);
+        return;
+    }
     const auto basic = [&] {
         begin(player, aura);
         player.updateAuras();
@@ -252,7 +269,7 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         accountRefresh(player, aura);
         const double oldRage = player.rage;
         player.rage = std::min(player.rage + static_cast<double>(player.rng.integer(
-            aura.props.number("value1"_prop), aura.props.number("value2"_prop))), 100.0);
+            aura.props.number("value1"_prop), aura.props.number("value2"_prop))), player.prop("ragecap"_prop, 100));
         aura.timer = player.step + durationMs(aura) - precounter;
         aura.starttimer = player.step - precounter;
         player.updateStrength();
@@ -423,7 +440,7 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         break;
     case AuraKind::WarriorsResolve: {
         const double oldRage = player.rage;
-        player.rage = std::min(player.rage + 10, 100.0);
+        player.rage = std::min(player.rage + 10, player.prop("ragecap"_prop, 100));
         consumedRage(player, oldRage);
         break;
     }
@@ -457,6 +474,7 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
 }
 
 bool auraStep(PlayerState& player, AuraState& aura) {
+    if (aura.kind == AuraKind::SweepingStrikes) return aura.timer != 0;
     if (aura.kind == AuraKind::Flurry || aura.kind == AuraKind::BattleStance ||
         aura.kind == AuraKind::DefensiveStance ||
         aura.kind == AuraKind::BerserkerStance) return true;
@@ -511,7 +529,7 @@ bool auraStep(PlayerState& player, AuraState& aura) {
         return stepWithUpdate(player, aura, &PlayerState::updateAP, true);
     case AuraKind::BloodrageAura:
         if (detail::jsRemainder(player.step - aura.starttimer, 1000.0) == 0) {
-            player.rage = std::min(player.rage + 1, 100.0);
+            player.rage = std::min(player.rage + aura.props.number("tickrage"_prop, 1), player.prop("ragecap"_prop, 100));
             if (player.rage >= 60 && player.rage < 81) {
                 if (auto* consumed = player.aura("consumedrage"_action)) auraUse(player, *consumed);
             }

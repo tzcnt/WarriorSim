@@ -109,6 +109,7 @@ bool spellCanUse(PlayerState& player, SpellState& spell) {
     const double maxrage = value(spell, "maxrage"_prop);
 
     switch (spell.kind) {
+    case SpellKind::SpearingStrike:
     case SpellKind::Bloodthirst:
     case SpellKind::MortalStrike:
         return standardMeleeCanUse(player, spell);
@@ -121,7 +122,7 @@ bool spellCanUse(PlayerState& player, SpellState& spell) {
 
     case SpellKind::Overpower:
         return spell.timer == 0 && player.timer == 0 && cost <= player.rage &&
-            player.dodgetimer != 0 &&
+            (player.dodgetimer != 0 || player.bloodthrilltimer != 0) &&
             (player.isValidStance("battle") || player.talents.number("rageretained"_prop) >= cost) &&
             (!maxrage || player.isValidStance("battle") || player.rage <= maxrage) &&
             mainCooldownReady(player, spell);
@@ -210,6 +211,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
             player.switchStance("battle");
         player.timer = 1500;
         player.dodgetimer = 0;
+        player.bloodthrilltimer = 0;
         spell.timer = cooldown * 1000;
         spell.maxdelay = reactionDelay(player);
         player.rage -= cost;
@@ -243,7 +245,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
     case SpellKind::Bloodrage: {
         spell.timer = cooldown * 1000;
         const double oldRage = player.rage;
-        player.rage = std::min(player.rage + value(spell, "rage"_prop), 100.0);
+        player.rage = std::min(player.rage + value(spell, "rage"_prop), player.prop("ragecap"_prop, 100));
         useAura(player, "bloodrage"_action);
         spell.maxdelay = reactionDelay(player);
         if (player.turtleMode && player.talents.number("enrage"_prop))
@@ -293,7 +295,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
         spell.timer = cooldown * 1000;
         const double oldRage = player.rage;
         if (!player.isValidStance("zerk")) player.switchStance("zerk");
-        player.rage = std::min(player.rage + value(spell, "rage"_prop), 100.0);
+        player.rage = std::min(player.rage + value(spell, "rage"_prop), player.prop("ragecap"_prop, 100));
         useAura(player, "berserkerrage"_action);
         spell.maxdelay = reactionDelay(player);
         if (oldRage < 60 && player.rage >= 60) useAura(player, "consumedrage"_action);
@@ -304,7 +306,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
         spell.timer = cooldown * 1000;
         const double oldRage = player.rage;
         player.rage = std::min(player.rage + static_cast<double>(player.rng.integer(
-            value(spell, "value1"_prop), value(spell, "value2"_prop))), 100.0);
+            value(spell, "value1"_prop), value(spell, "value2"_prop))), player.prop("ragecap"_prop, 100));
         spell.maxdelay = reactionDelay(player);
         if (oldRage < 60 && player.rage >= 60) useAura(player, "consumedrage"_action);
         return;
@@ -315,7 +317,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
         if (free) spell.offhandhit = true;
         if (!free) player.rage -= cost;
         spell.maxdelay = reactionDelay(player);
-        if (value(spell, "casttime"_prop) && !free && !player.turtleMode) {
+        if (value(spell, "casttime"_prop) && !free && !player.turtleMode && !value(spell, "swingmode"_prop)) {
             useWeapon(player, player.mh);
             if (player.oh) useWeapon(player, *player.oh);
         }
@@ -367,12 +369,13 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
         spell.timer = cooldown * 1000;
         spell.maxdelay = reactionDelay(player);
         const double oldRage = player.rage;
-        player.rage = std::min(player.rage + value(spell, "rage"_prop), 100.0);
+        player.rage = std::min(player.rage + value(spell, "rage"_prop), player.prop("ragecap"_prop, 100));
         if (oldRage < 60 && player.rage >= 60) useAura(player, "consumedrage"_action);
         return;
     }
 
     case SpellKind::Spell:
+    case SpellKind::SpearingStrike:
     case SpellKind::Bloodthirst:
     case SpellKind::MortalStrike:
         useBase(player, spell);
@@ -385,12 +388,17 @@ double spellDamage(PlayerState& player, SpellState& spell, WeaponState* weapon) 
     switch (spell.kind) {
     case SpellKind::Bloodthirst: {
         const double damage = player.turtleMode ?
-            200 + player.stats.number("ap"_prop) * .35 : player.stats.number("ap"_prop) * .45;
+            200 + player.stats.number("ap"_prop) * .35 : player.stats.number("ap"_prop) * value(spell, "apcoefficient"_prop, .45) + value(spell, "flatbonus"_prop);
         return damage * dmgmod * player.mainspelldmg;
     }
     case SpellKind::Whirlwind:
-        if (active(player, "consumedrage"_action)) spell.offhandhit = true;
-        return normalizedWeaponDamage(player, player.mh) * dmgmod;
+        if (player.talents.number("ragingblows"_prop) || active(player, "consumedrage"_action)) spell.offhandhit = true;
+        return normalizedWeaponDamage(player, player.foreverMode && weapon ? *weapon : player.mh) * dmgmod;
+    case SpellKind::SpearingStrike: {
+        const auto type = player.target.props.string("creaturetype"_prop);
+        const bool bonus = type == "Giant" || type == "Dragonkin" || player.flag("mounted"_prop);
+        return normalizedWeaponDamage(player, player.mh) * (bonus ? 1.2 : .4) * dmgmod;
+    }
     case SpellKind::Overpower: {
         const double mod = player.props.boolean("heroicbonus"_prop) ? 1.25 : 1;
         return normalizedWeaponDamage(player, player.mh, value(spell, "value1"_prop)) * dmgmod * mod;
@@ -426,8 +434,8 @@ double spellDamage(PlayerState& player, SpellState& spell, WeaponState* weapon) 
         return normalizedWeaponDamage(player, player.mh) * dmgmod;
     case SpellKind::ShieldSlam: {
         const double damage = player.rng.integer(value(spell, "value1"_prop), value(spell, "value2"_prop)) +
-            player.stats.number("block"_prop) * 2 +
-            static_cast<std::int32_t>(player.stats.number("ap"_prop) * .15);
+            player.stats.number("block"_prop) * value(spell, "blockcoefficient"_prop, 2) +
+            static_cast<std::int32_t>(player.stats.number("ap"_prop) * value(spell, "apcoefficient"_prop, .15));
         return damage * dmgmod * player.mainspelldmg;
     }
     default:

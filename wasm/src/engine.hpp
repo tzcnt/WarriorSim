@@ -29,7 +29,7 @@ enum class SpellKind : std::uint8_t {
     Spell, Bloodthirst, Whirlwind, Overpower, Execute, Bloodrage, HeroicStrike, Cleave,
     MortalStrike, SunderArmor, Hamstring, ThunderClap, BerserkerRage, RagePotion, Slam,
     Fireball, GunAxe, BlademasterFury, ShieldSlam, TheMoltenCore, StanceSwitch,
-    GrilekFury
+    GrilekFury, SpearingStrike
 };
 
 enum class AuraKind : std::uint8_t {
@@ -42,7 +42,7 @@ enum class AuraKind : std::uint8_t {
     GyromaticAcceleration, GneuroLogical, CoinFlip, SerpentAscension, VoodooFrenzy,
     RoarGuardian, RelentlessStrength, WarriorsResolve, DemonTaintedBlood,
     MoonstalkerFury, MagmadarsReturn, JujuFlurry, WrathWray, GrilekGuard,
-    ObsidianStrength, ObsidianHaste
+    ObsidianStrength, ObsidianHaste, Enrage, SweepingStrikes
 };
 
 namespace detail {
@@ -450,6 +450,9 @@ struct PlayerState {
     bool freeslam = false;
     bool freeshieldslam = false;
     bool turtleMode = false;
+    bool foreverMode = false;
+    double bloodthrilltimer = 0;
+    double weaponArmorReduction(const WeaponState& weapon) const;
     std::string stance;
 
     [[nodiscard]] SpellState* spell(std::string_view key);

@@ -18,6 +18,7 @@ class Player {
                 mindmg: parseInt($('input[name="targetmindmg"]').val()),
                 maxdmg: parseInt($('input[name="targetmaxdmg"]').val()),
                 bleedreduction: $('select[name="bleedreduction"]').val(),
+                creaturetype: $('select[name="targetcreaturetype"]').val() || 'Other',
             },
         };
     }
@@ -44,6 +45,8 @@ class Player {
         this.freeslam = false;
         this.freeshieldslam = false;
         this.ragecostbonus = 0;
+        this.ragecap = 100;
+        this.bloodthrilltimer = 0;
         this.logging = config.logging;
         this.race = config.race;
         this.aqbooks = config.aqbooks;
@@ -52,6 +55,7 @@ class Player {
         this.adjacent = config.adjacent;
         this.spelldamage = 0;
         this.target = config.target;
+        this.mounted = this.target?.creaturetype === "Mounted";
         this.mode = config.mode;
         this.bleedmod = parseFloat(this.target.bleedreduction);
         this.spellqueueing = config.spellqueueing;
@@ -139,6 +143,10 @@ class Player {
         this.addTalents();
         this.addGear();
         if (!this.mh) return;
+        if (this.mode === 'forever' && this.shield) {
+            this.base.dmgmod *= 1 + this.talents.bastion;
+            this.base.spelldmgmod *= 1 + this.talents.bastion;
+        }
         this.addSets();
         this.addEnchants();
         this.addTempEnchants();
@@ -147,6 +155,7 @@ class Player {
         this.sortSpells();
         this.setSkills();
         if (this.talents.flurry) this.auras.flurry = new Flurry(this);
+        if (this.mode === 'forever' && this.talents.enrage) this.auras.enrage = new Enrage(this);
         if (this.talents.deepwounds) this.auras.deepwounds = new OldDeepWounds(this);
         if (this.adjacent && this.talents.deepwounds) {
             for (let i = 2; i <= (this.adjacent + 1); i++)
@@ -208,13 +217,21 @@ class Player {
         }
     }
     addTalents() {
-        this.talents = {};
+        this.talents = this.mode === 'forever' ? {...foreverTalentDefaults} : {};
         for (let tree in talents) {
             for (let talent of talents[tree].t) {
                 this.talents = Object.assign(this.talents, talent.aura(talent.c));
             }
         }
         if (this.talents.defense) this.base.defense += this.talents.defense;
+        if (this.mode === 'forever') {
+            this.ragecap += this.talents.extraragecap;
+            this.ragecostbonus = this.talents.focusedrage;
+            this.base.hit += this.talents.precision;
+            this.base.strmod *= 1 + this.talents.vitality;
+            this.target.misschance = Math.max(100, this.target.misschance - this.talents.precision * 100);
+            this.target.binaryresist = this.getTargetSpellBinaryResist();
+        }
     }
     addGear() {
         for (let type in gear) {
@@ -546,6 +563,12 @@ class Player {
     addSpells(testItem) {
         this.preporder = [];
         for (let spell of spells) {
+            if (spell.mode && spell.mode !== this.mode) continue;
+            if (this.mode === 'forever') {
+                if (this.level < (spell.minlevel || 0) || this.level > (spell.maxlevel || 60)) continue;
+                const talent = talentsForever.flatMap(tree => tree.t).find(t => t.n === spell.name);
+                if (talent?.enable && !talent.c) continue;
+            }
             if (spell.item && this.items.includes(spell.id) && spell.id == testItem && spell.id == testItem && !spell.timetoendactive && !spell.timetostartactive) {
                 // Blademasters Fury
                 if (spell.id == 219223) spell.active = true;
@@ -554,8 +577,10 @@ class Player {
             if (spell.active || (spell.item && this.items.includes(spell.id) && (spell.timetoendactive || spell.timetostartactive))) {
                 if (!spell.aura && this.mh.type == WEAPONTYPE.FISHINGPOLE) continue; 
                 if (spell.item && !this.items.includes(spell.id)) continue;
-                if (spell.aura) this.auras[spell.classname.toLowerCase()] = eval(`new ${spell.classname}(this, ${spell.id})`);
-                else this.spells[spell.classname.toLowerCase()] = eval(`new ${spell.classname}(this, ${spell.id})`);
+                const action = eval(`new ${spell.classname}(this, spell.id)`);
+                if (this.mode === 'forever') action.cost = Math.max(0, action.cost || 0);
+                if (spell.aura) this.auras[spell.classname.toLowerCase()] = action;
+                else this.spells[spell.classname.toLowerCase()] = action;
                 this.preporder.push(spell);
             }
         }
@@ -587,7 +612,10 @@ class Player {
         this.base.skill_3 += this.mh.twohand ? this.base.skill_23 : this.base.skill_13;
     }
     reset(rage) {
-        this.rage = rage;
+        if (this.mode === "forever") this.swordspecstep = -1;
+        this.mounted = this.target?.creaturetype === "Mounted";
+        this.rage = this.mode === 'forever' ? Math.min(rage, this.ragecap) : rage;
+        this.bloodthrilltimer = 0;
         this.timer = 0;
         this.itemtimer = 0;
         this.stancetimer = 0;
@@ -646,6 +674,7 @@ class Player {
         if (this.auras.rend) {
             this.auras.rend.idmg = 0;
         }
+        if (this.auras.sweepingstrikes) this.auras.sweepingstrikes.idmg = 0;
         if (this.auras.weaponbleedmh) {
             this.auras.weaponbleedmh.idmg = 0;
         }
@@ -679,6 +708,10 @@ class Player {
             this.oh.glanceChance = this.getGlanceChance(this.oh);
             this.oh.miss = this.getMissChance(this.oh);
             this.oh.dwmiss = this.getDWMissChance(this.oh);
+            if (this.mode === 'forever') {
+                this.oh.miss -= this.talents.offhit;
+                this.oh.dwmiss -= this.talents.offhit;
+            }
             this.oh.dodge = this.getDodgeChance(this.oh);
         }
     }
@@ -896,7 +929,7 @@ class Player {
         let oldRage = this.rage;
         if (!spell || spell instanceof HeroicStrike || spell instanceof Cleave) {
             if (result != RESULT.MISS && result != RESULT.DODGE && this.talents.umbridledwrath && rng10k() < this.talents.umbridledwrath * 100) {
-                this.rage += 1;
+                this.rage += this.mode === 'forever' && weapon.twohand ? 2 : 1;
             }
         }
         if (spell) {
@@ -908,16 +941,18 @@ class Player {
         }
         else {
             if (result == RESULT.DODGE) {
-                this.rage += (weapon.avgdmg() / this.rageconversion) * 7.5 * 0.75;
+                this.rage += (weapon.avgdmg() / this.rageconversion) * 7.5 * 0.75 *
+                    (this.mode === 'forever' && weapon.offhand ? 1 + this.talents.offragebonus : 1);
             }
             else if (result != RESULT.MISS) {
-                this.rage += (dmg / this.rageconversion) * 7.5 * this.ragemod;
+                this.rage += (dmg / this.rageconversion) * 7.5 * this.ragemod *
+                    (this.mode === 'forever' && weapon.offhand ? 1 + this.talents.offragebonus : 1);
             }
         }
         if (this.extrarage && result == RESULT.HIT) this.rage += this.extrarage;
         if (this.extracritrage && result == RESULT.CRIT) this.rage += this.extracritrage;
         
-        if (this.rage > 100) this.rage = 100;
+        if (this.rage > this.ragecap) this.rage = this.ragecap;
 
         if (this.auras.consumedrage && oldRage < 60 && this.rage >= 60)
             this.auras.consumedrage.use();
@@ -964,6 +999,8 @@ class Player {
         }
     }
     stepauras(nobleeds) {
+        if (this.auras.enrage?.timer) this.auras.enrage.step();
+        if (this.auras.sweepingstrikes?.timer) this.auras.sweepingstrikes.step();
 
         if (this.mh.proc1 && this.mh.proc1.spell && this.mh.proc1.spell.timer) this.mh.proc1.spell.step();
         if (this.mh.proc2 && this.mh.proc2.spell && this.mh.proc2.spell.timer) this.mh.proc2.spell.step();
@@ -1018,6 +1055,8 @@ class Player {
         }
     }
     endauras() {
+        if (this.auras.enrage?.timer) this.auras.enrage.end();
+        if (this.auras.sweepingstrikes?.timer) this.auras.sweepingstrikes.end();
 
         if (this.mh.proc1 && this.mh.proc1.spell && this.mh.proc1.spell.timer) this.mh.proc1.spell.end();
         if (this.mh.proc2 && this.mh.proc2.spell && this.mh.proc2.spell.timer) this.mh.proc2.spell.end();
@@ -1288,14 +1327,27 @@ class Player {
     dealdamage(dmg, result, weapon, spell, adjacent) {
         if (result != RESULT.MISS && result != RESULT.DODGE) {
             if(spell == null || spell.school == SCHOOL.PHYSICAL)
-              dmg *= (1 - this.armorReduction);
+              dmg *= (1 - this.weaponArmorReduction(weapon));
             if (!adjacent) this.addRage(dmg, result, weapon, spell);
+            if (dmg > 0 && !adjacent && (!spell || spell.defenseType === DEFENSETYPE.MELEE)) {
+                if (this.talents.bloodthrill && this.auras.rend?.timer > step && this.auras.rend.stacks && rng10k() < this.talents.bloodthrill * 100)
+                    this.bloodthrilltimer = 6000;
+                const sweeping = this.auras.sweepingstrikes;
+                if (this.adjacent && sweeping?.timer && sweeping.stacks) sweeping.copy(dmg);
+            }
+            if (spell instanceof SpearingStrike) this.mounted = false;
             return dmg;
         }
         else {
             if (!adjacent) this.addRage(dmg, result, weapon, spell);
             return 0;
         }
+    }
+    weaponArmorReduction(weapon) {
+        if (this.mode !== 'forever' || !this.talents.weaponmasterarp ||
+            (weapon.type !== WEAPONTYPE.MACE && weapon.type !== WEAPONTYPE.STAFF)) return this.armorReduction;
+        const armor = this.target.armor * (1 - this.talents.weaponmasterarp);
+        return Math.min(.75, armor / (armor + 400 + 85 * this.level));
     }
     proccrit(offhand, adjacent, spell) {
         this.crittimer = 1;

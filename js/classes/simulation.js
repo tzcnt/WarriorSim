@@ -386,13 +386,13 @@ class Simulation {
 
             // Passive ticks
             if (next != 0 && step % 3000 == 0 && player.talents.angermanagement) {
-                player.rage = player.rage >= 99 ? 100 : player.rage + 1;
+                player.rage = Math.min(player.rage + 1, player.ragecap || 100);
                 spellcheck = true;
                 if (player.auras.consumedrage && player.rage >= 60 && player.rage < 81)
                     player.auras.consumedrage.use();
             }
             if (player.vaelbuff && next != 0 && step % 1000 == 0) {
-                player.rage = player.rage >= 60 ? 100 : player.rage + 20;
+                player.rage = player.mode === 'forever' ? Math.min(player.rage + 20, player.ragecap) : player.rage >= 60 ? 100 : player.rage + 20;
                 spellcheck = true;
                 if (player.auras.consumedrage && player.rage >= 60)
                     player.auras.consumedrage.use();
@@ -404,8 +404,10 @@ class Simulation {
             if (player.target.speed && step % player.target.speed == 0) {
                 let oldRage = player.rage;
                 let dmg = rng(player.target.mindmg, player.target.maxdmg);
+                if (player.mode === 'forever' && player.auras.deathwish?.timer > step) dmg *= 1.05;
                 let gained = dmg / player.rageconversion * 2.5;
-                player.rage = Math.min(player.rage + gained, 100);
+                player.rage = Math.min(player.rage + gained, player.ragecap || 100);
+                if (dmg > 0 && player.auras.enrage && rng10k() < 3000) player.auras.enrage.use();
                 spellcheck = true;
                 if (player.auras.consumedrage && player.rage >= 60 && oldRage < 60)
                     player.auras.consumedrage.use();
@@ -532,7 +534,7 @@ class Simulation {
                         if (delayedspell instanceof Slam) {
                             slamstep = step + delayedspell.casttime;
                             if (player.freeslam) slamstep = step;
-                            player.timer = 1500;
+                            player.timer = delayedspell.gcd || 1500;
                             player.heroicdelay = 0;
                             player.nextswinghs = false;
                             next = 0;
@@ -619,7 +621,7 @@ class Simulation {
 
             // Determine when next step should happen
             if (!slamstep) {
-                if (!player.mh.timer || (!player.spelldelay && spellcheck) || (!player.heroicdelay && spellcheck)) { next = 0; continue; }
+                if (player.mh.timer <= 0 || (player.oh && player.oh.timer <= 0) || (!player.spelldelay && spellcheck) || (!player.heroicdelay && spellcheck)) { next = 0; continue; }
                 next = Math.min(player.mh.timer, player.oh ? player.oh.timer : 9999);
                 if (player.spelldelay && (delayedspell.maxdelay - player.spelldelay) < next) next = delayedspell.maxdelay - player.spelldelay + 1;
                 if (player.heroicdelay && (delayedheroic.maxdelay - player.heroicdelay) < next) next = delayedheroic.maxdelay - player.heroicdelay + 1;
@@ -631,6 +633,9 @@ class Simulation {
             if (player.timer && player.timer < next) next = player.timer;
             if (player.itemtimer && player.itemtimer < next) next = player.itemtimer;
             if (player.stancetimer && player.stancetimer < next) next = player.stancetimer;
+            if (player.spells.spearingstrike?.timer > 0 && player.spells.spearingstrike.timer < next) next = player.spells.spearingstrike.timer;
+            if (player.auras.enrage?.timer > step && player.auras.enrage.timer - step < next) next = player.auras.enrage.timer - step;
+            if (player.auras.sweepingstrikes?.cooldowntimer > step && player.auras.sweepingstrikes.cooldowntimer - step < next) next = player.auras.sweepingstrikes.cooldowntimer - step;
 
             // Auras with periodic ticks
             if (player.target.speed && (player.target.speed - (step % player.target.speed)) < next) next = player.target.speed - (step % player.target.speed);
@@ -687,8 +692,15 @@ class Simulation {
 
             step += next;
             if (step > this.maxsteps) break;
-            player.mh.step(next);
-            if (player.oh) player.oh.step(next);
+            if (!slamstep || delayedspell.swingmode !== 1) {
+                player.mh.step(next);
+                if (player.oh) player.oh.step(next);
+                if (slamstep && delayedspell.swingmode === 2) {
+                    player.mh.timer = Math.max(0, player.mh.timer);
+                    if (player.oh) player.oh.timer = Math.max(0, player.oh.timer);
+                }
+            }
+            if (player.bloodthrilltimer) player.bloodthrilltimer = Math.max(0, player.bloodthrilltimer - next);
 
             // Determine if a spell check should happen next step
             canSpellQueue = false;
@@ -700,6 +712,9 @@ class Simulation {
             if (player.heroicdelay) player.heroicdelay += next;
 
             // Spells used by player
+            if (player.spells.spearingstrike?.timer && !player.spells.spearingstrike.step(next) && !player.spelldelay) spellcheck = true;
+            if (player.auras.enrage?.timer) { player.auras.enrage.step(); spellcheck = true; }
+            if (player.auras.sweepingstrikes && player.auras.sweepingstrikes.cooldowntimer === step) spellcheck = true;
             if (player.spells.berserkerrage && player.spells.berserkerrage.timer && !player.spells.berserkerrage.step(next) && !player.spelldelay) spellcheck = true;
             if (player.spells.bloodthirst && player.spells.bloodthirst.timer && !player.spells.bloodthirst.step(next) && !player.spelldelay) spellcheck = true;
             if (player.spells.mortalstrike && player.spells.mortalstrike.timer && !player.spells.mortalstrike.step(next) && !player.spelldelay) spellcheck = true;
@@ -736,6 +751,7 @@ class Simulation {
         // Fight done
         player.endauras();
         player.logging = false;
+        if (player.auras.sweepingstrikes) this.idmg += player.auras.sweepingstrikes.idmg;
 
         if (player.auras.deepwounds) {
             this.idmg += player.auras.deepwounds.idmg;
