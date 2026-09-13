@@ -564,6 +564,7 @@ class Player {
         this.preporder = [];
         for (let spell of spells) {
             if (spell.mode && spell.mode !== this.mode) continue;
+            if (spell.talent && (!this.talents[spell.talent] || this.level < (spell.minlevel || 0))) continue;
             if (this.mode === 'forever') {
                 if (this.level < (spell.minlevel || 0) || this.level > (spell.maxlevel || 60)) continue;
                 const talent = talentsForever.flatMap(tree => tree.t).find(t => t.n === spell.name);

@@ -12,4 +12,6 @@ Fixtures cover Classic Era dual wield, Cleave, and after-swing Slam, plus WoW Fo
 
 Worker VM tests exercise actual source/dist scripts and catalogs. The native worker bridge also executes the real deployed glue and WASM ABI; this does not claim an interactive browser UI was tested.
 
+`test/sweeping-strikes.test.js` checks Classic talent/rotation gating, activation during an existing GCD, charge consumption, exact 20-second expiry, 30-second cooldown and fight reset. `sweeping-fixtures.js` adds JS/native partition coverage for Cleave, expiry without intervening attacks, and zero adjacent targets. Forever retains its separate timing rules.
+
 Benchmark output belongs to the current checkout/build and local machine. Compare identical fixture definitions, iteration counts, warmups, and rounds. It does not reuse source-project speedup claims.

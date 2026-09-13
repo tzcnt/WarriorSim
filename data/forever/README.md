@@ -82,7 +82,12 @@ rage-source caps, including refunds and initial rage.
 - Raging Blows: Whirlwind rolls each hand independently against each target, with one rage cost/cooldown. Off-hand damage uses the actual off-hand weapon. Cleave costs 2 less rage.
 - Spearing Strike: 40% normalized main-hand damage, or 120% against Giant/Dragonkin/mounted targets selected in Settings. A landed hit dismounts a mounted target. Uses ordinary melee hit/crit/refund rules.
 - Enrage: existing incoming damaging attacks roll a 30% chance for 2% Physical damage per rank for 12 seconds; reapplication refreshes it. Death Wish's Forever +5% incoming damage penalty applies to the existing damage/rage events.
-- Sweeping Strikes: 30 rage before Focused Rage, Battle Stance, 30-second cooldown, five copied melee hits to an adjacent target. Copies inherit the original hit's damage, generate no rage/procs, and are reported separately. The captured description supplies no duration, so the implementation retains unspent charges until consumed or combat ends.
+- Sweeping Strikes: 30 rage before Focused Rage, Battle Stance, 30-second cooldown, 1.5-second GCD, five copied melee hits to an adjacent target. Copies inherit the original hit's damage, generate no rage/procs, and are reported separately. The captured description supplies no duration, so the implementation retains unspent charges until consumed or combat ends.
+
+Classic also implements Sweeping Strikes using spell 12292 and the same copy logic.
+Its five charges expire after 20 seconds, and activation neither requires a free GCD
+nor starts or clears one, matching the [Classic spell data](https://www.wowhead.com/classic/spell=12292/sweeping-strikes).
+Both modes require the talent, an enabled rotation action, and Adjacent Mobs > 0.
 
 Off-hand rage scaling includes damage-derived swing rage and dodge compensation,
 but not flat procs such as Unbridled Wrath. Unbridled Wrath continues to trigger on

@@ -93,7 +93,7 @@ bool isAlwaysBase(AuraKind kind) {
 bool auraCanUse(PlayerState& player, AuraState& aura) {
     if (aura.kind == AuraKind::SweepingStrikes) {
         const double cost = aura.props.number("cost"_prop);
-        return !aura.timer && !player.timer && player.prop("adjacent"_prop) > 0 &&
+        return !aura.timer && (!aura.props.number("gcd"_prop) || !player.timer) && player.prop("adjacent"_prop) > 0 &&
             aura.cooldownTimer <= player.step && player.rage >= cost &&
             (player.isValidStance("battle") || player.talents.number("rageretained"_prop) >= cost);
     }
@@ -206,8 +206,8 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
     if (aura.kind == AuraKind::SweepingStrikes) {
         if (!player.isValidStance("battle")) player.switchStance("battle");
         player.rage -= aura.props.number("cost"_prop);
-        player.timer = 1500;
-        aura.timer = 1;
+        if (const double gcd = aura.props.number("gcd"_prop)) player.timer = gcd;
+        aura.timer = durationMs(aura) ? player.step + durationMs(aura) : 1;
         aura.stacks = 5;
         aura.starttimer = player.step;
         aura.cooldownTimer = player.step + cooldownMs(aura);
@@ -474,7 +474,13 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
 }
 
 bool auraStep(PlayerState& player, AuraState& aura) {
-    if (aura.kind == AuraKind::SweepingStrikes) return aura.timer != 0;
+    if (aura.kind == AuraKind::SweepingStrikes) {
+        if (durationMs(aura) && aura.timer && player.step >= aura.timer) {
+            expire(player, aura);
+            aura.stacks = 0;
+        }
+        return aura.timer != 0;
+    }
     if (aura.kind == AuraKind::Flurry || aura.kind == AuraKind::BattleStance ||
         aura.kind == AuraKind::DefensiveStance ||
         aura.kind == AuraKind::BerserkerStance) return true;

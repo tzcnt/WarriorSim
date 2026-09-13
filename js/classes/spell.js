@@ -799,25 +799,33 @@ class SweepingStrikes extends Aura {
         super(player, id, 'Sweeping Strikes');
         this.cost = 30 - player.ragecostbonus;
         this.cooldown = 30;
+        this.duration = player.mode === 'classic' ? 20 : 0;
+        this.gcd = player.mode === 'classic' ? 0 : 1500;
         this.cooldowntimer = 0;
         this.idmg = this.totaldmg = 0;
     }
     canUse() {
-        return !this.timer && !this.player.timer && this.player.adjacent > 0 &&
+        return !this.timer && (!this.gcd || !this.player.timer) && this.player.adjacent > 0 &&
             this.cooldowntimer <= step && this.player.rage >= this.cost &&
             (this.player.isValidStance('battle') || this.player.talents.rageretained >= this.cost);
     }
     use() {
         if (!this.player.isValidStance('battle')) this.player.switch('battle');
         this.player.rage -= this.cost;
-        this.player.timer = 1500;
-        this.timer = 1;
+        if (this.gcd) this.player.timer = this.gcd;
+        this.timer = this.duration ? step + this.duration * 1000 : 1;
         this.stacks = 5;
         this.starttimer = step;
         this.cooldowntimer = step + this.cooldown * 1000;
         this.maxdelay = rng(this.player.reactionmin, this.player.reactionmax);
     }
-    step() {} // The captured description specifies charges without a time limit.
+    step() {
+        // Forever's captured description specifies charges without a time limit.
+        if (this.duration && this.timer && step >= this.timer) {
+            this.uptime += this.timer - this.starttimer;
+            this.timer = this.stacks = 0;
+        }
+    }
     copy(damage) {
         this.idmg += damage;
         this.totaldmg += damage;

@@ -969,6 +969,19 @@ var spells = [
     expriority: 0,
 },
 
+// Sweeping Strikes (Classic)
+{
+    id: 12292,
+    name: 'Sweeping Strikes',
+    classname: 'SweepingStrikes',
+    iconname: 'ability_rogue_slicedice',
+    minlevel: 30,
+    mode: 'classic',
+    talent: 'sweepingstrikes',
+    aura: true,
+    active: false,
+},
+
 // Death Wish
 {
     id: 12328,

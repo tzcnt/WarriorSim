@@ -180,6 +180,8 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
                         if (choose(player_, delayedSpell, index, true)) break;
                 }
                 if (!delayedSpell) choose(player_, delayedSpell, "grilekfury"_action, false);
+                if (const auto* sweeping = player_.aura("sweepingstrikes"_action); !delayedSpell && sweeping && !sweeping->props.number("gcd"_prop))
+                    choose(player_, delayedSpell, "sweepingstrikes"_action, true);
 
                 if (!delayedSpell && !player_.timer) {
                     if (auto* value = player_.spell("berserkerrage"_action); value && value->props.boolean("zerkerpriority"_prop) &&
@@ -336,6 +338,8 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
         if (player_.stancetimer && player_.stancetimer < next) next = player_.stancetimer;
         if (const auto* enrage = player_.aura("enrage"_action); enrage && enrage->timer > player_.step)
             minPositive(enrage->timer - player_.step, next);
+        if (const auto* sweeping = player_.aura("sweepingstrikes"_action); sweeping && sweeping->props.number("duration"_prop) && sweeping->timer > player_.step)
+            minPositive(sweeping->timer - player_.step, next);
         if (const auto* sweeping = player_.aura("sweepingstrikes"_action); sweeping && sweeping->cooldownTimer > player_.step)
             minPositive(sweeping->cooldownTimer - player_.step, next);
         if (targetSpeed) minPositive(targetSpeed - positiveModulo(player_.step, targetSpeed), next);
@@ -392,6 +396,8 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
         if (auto* enrage = player_.aura("enrage"_action); enrage && enrage->timer) {
             (void)auraStep(player_, *enrage); spellcheck = true;
         }
+        if (auto* sweeping = player_.aura("sweepingstrikes"_action); sweeping && sweeping->props.number("duration"_prop) && sweeping->timer)
+            if (!auraStep(player_, *sweeping)) spellcheck = true;
         if (const auto* sweeping = player_.aura("sweepingstrikes"_action); sweeping && sweeping->cooldownTimer == player_.step) spellcheck = true;
         for (const int index : player_.configured.stepSpells) {
             auto& value = player_.spells[static_cast<std::size_t>(index)];

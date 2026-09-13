@@ -445,6 +445,7 @@ class Simulation {
                     else if (player.spells.gunaxe && player.spells.gunaxe.canUse()) { player.spelldelay = 1; delayedspell = player.spells.gunaxe; }
                     else if (player.auras.jujuflurry && player.auras.jujuflurry.canUse()) { player.spelldelay = 1; delayedspell = player.auras.jujuflurry; }
                     else if (player.spells.grilekfury && player.spells.grilekfury.canUse()) { player.spelldelay = 1; delayedspell = player.spells.grilekfury; }
+                    else if (player.auras.sweepingstrikes && !player.auras.sweepingstrikes.gcd && player.auras.sweepingstrikes.canUse()) { player.spelldelay = 1; delayedspell = player.auras.sweepingstrikes; }
 
                     else if (!player.timer && player.spells.berserkerrage && player.spells.berserkerrage.zerkerpriority && player.spells.berserkerrage.canUse()) { player.spelldelay = 1; delayedspell = player.spells.berserkerrage; }
                     else if (player.spells.bloodrage && player.spells.bloodrage.canUse()) { player.spelldelay = 1; delayedspell = player.spells.bloodrage; }
@@ -635,6 +636,7 @@ class Simulation {
             if (player.stancetimer && player.stancetimer < next) next = player.stancetimer;
             if (player.spells.spearingstrike?.timer > 0 && player.spells.spearingstrike.timer < next) next = player.spells.spearingstrike.timer;
             if (player.auras.enrage?.timer > step && player.auras.enrage.timer - step < next) next = player.auras.enrage.timer - step;
+            if (player.auras.sweepingstrikes?.duration && player.auras.sweepingstrikes.timer > step && player.auras.sweepingstrikes.timer - step < next) next = player.auras.sweepingstrikes.timer - step;
             if (player.auras.sweepingstrikes?.cooldowntimer > step && player.auras.sweepingstrikes.cooldowntimer - step < next) next = player.auras.sweepingstrikes.cooldowntimer - step;
 
             // Auras with periodic ticks
@@ -714,6 +716,10 @@ class Simulation {
             // Spells used by player
             if (player.spells.spearingstrike?.timer && !player.spells.spearingstrike.step(next) && !player.spelldelay) spellcheck = true;
             if (player.auras.enrage?.timer) { player.auras.enrage.step(); spellcheck = true; }
+            if (player.auras.sweepingstrikes?.duration && player.auras.sweepingstrikes.timer) {
+                player.auras.sweepingstrikes.step();
+                if (!player.auras.sweepingstrikes.timer) spellcheck = true;
+            }
             if (player.auras.sweepingstrikes && player.auras.sweepingstrikes.cooldowntimer === step) spellcheck = true;
             if (player.spells.berserkerrage && player.spells.berserkerrage.timer && !player.spells.berserkerrage.step(next) && !player.spelldelay) spellcheck = true;
             if (player.spells.bloodthirst && player.spells.bloodthirst.timer && !player.spells.bloodthirst.step(next) && !player.spelldelay) spellcheck = true;
