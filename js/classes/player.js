@@ -948,7 +948,8 @@ class Player {
     rollweapon(weapon) {
         let tmp = 0;
         let roll = rng10k();
-        tmp += Math.max(this.nextswinghs ? weapon.miss : weapon.dwmiss, 0) * 100;
+        // Only Classic removes the dual-wield miss penalty while a strike is queued.
+        tmp += Math.max(this.mode !== 'forever' && this.nextswinghs ? weapon.miss : weapon.dwmiss, 0) * 100;
         if (roll < tmp) return RESULT.MISS;
         tmp += weapon.dodge * 100;
         if (roll < tmp) return RESULT.DODGE;

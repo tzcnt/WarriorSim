@@ -19,6 +19,12 @@ Regression tests cover these fixes:
   The seed formula is `(seed + imul(iterationOffset + i, 0x9e3779b9)) >>> 0`;
   each fight initializes a Mulberry32 stream before resetting the player.
 
+`node --test test/queued-strikes.test.js` checks that Forever off-hand miss rolls
+are independent of queued Heroic Strike/Cleave, saved unqueue and Execute macro
+options are ignored, and those options are hidden in rotation details. Classic
+retains both mechanics and options. The fixtures also run through native parity
+and partition checks in `npm run test:wasm`.
+
 The integration tests construct real Classic players from `js/data/session.js`
 and the Classic catalogs. Fury and Cleave fixtures check repeatability and
 compare the entire combat report after uneven partitions with fresh players.

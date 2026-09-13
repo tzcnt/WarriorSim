@@ -1,6 +1,6 @@
 {
   "oracle": "destination JavaScript; no native execution",
-  "revision": "a048f62320f37c824862f32f0acc3f94b08e3bc0",
+  "revision": "cfb858cfd70bc1ac54a208f28452c224ba8ccbf7",
   "reports": {
     "classic-dw-fury": {
       "iterations": 20,
@@ -818,51 +818,52 @@
     },
     "forever-dw-fury": {
       "iterations": 20,
-      "totaldmg": 143816.89507300395,
+      "totaldmg": 149632.55896064357,
       "totalduration": 405.07,
       "mindps": 238.93822249601823,
-      "maxdps": 489.59948812882755,
-      "sumdps": 7123.569966398941,
-      "sumdps2": 2615200.4676329233,
+      "maxdps": 536.8791030242941,
+      "sumdps": 7416.7661370074475,
+      "sumdps2": 2844585.3831953276,
       "spread": {
         "239": 1,
         "280": 1,
-        "299": 1,
         "316": 1,
         "320": 1,
         "327": 1,
-        "329": 2,
+        "329": 1,
         "331": 1,
-        "334": 1,
-        "336": 1,
+        "342": 1,
         "346": 1,
         "362": 1,
         "368": 2,
-        "402": 1,
-        "424": 1,
-        "441": 1,
-        "483": 1,
-        "490": 1
+        "369": 1,
+        "392": 1,
+        "400": 1,
+        "418": 1,
+        "419": 1,
+        "464": 1,
+        "490": 1,
+        "537": 1
       },
       "player": {
         "auras": {
           "crusader1": {
             "name": "Crusader (MH)",
-            "uptime": 168732,
+            "uptime": 168112,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 0
           },
           "windfury": {
             "name": "Windfury",
-            "uptime": 104634,
+            "uptime": 110634,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 0
           },
           "crusader2": {
             "name": "Crusader (OH)",
-            "uptime": 122046,
+            "uptime": 120580,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 0
@@ -890,7 +891,7 @@
           },
           "flurry": {
             "name": "Flurry",
-            "uptime": 283240,
+            "uptime": 283889,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 0
@@ -904,7 +905,7 @@
           },
           "deepwounds": {
             "name": "Deep Wounds",
-            "uptime": 374874,
+            "uptime": 374254,
             "totaldmg": 3726.657857142857,
             "totalusedrage": 0,
             "cost": 0
@@ -949,14 +950,14 @@
           "heroicstrike": {
             "name": "Heroic Strike",
             "uptime": 0,
-            "totaldmg": 15736.84496226665,
+            "totaldmg": 15014.863262574108,
             "totalusedrage": 0,
             "cost": 12,
             "data": [
               22,
               0,
-              0,
-              11,
+              1,
+              10,
               0
             ]
           },
@@ -981,7 +982,7 @@
             "totalusedrage": 0,
             "cost": 15,
             "data": [
-              106,
+              107,
               0,
               12,
               0,
@@ -1005,14 +1006,14 @@
           "execute": {
             "name": "Execute",
             "uptime": 0,
-            "totaldmg": 16408.2483781279,
-            "totalusedrage": 333,
+            "totaldmg": 19901.606425702816,
+            "totalusedrage": 367,
             "cost": 15,
             "data": [
-              18,
+              15,
               0,
               0,
-              9,
+              13,
               0
             ]
           },
@@ -1033,11 +1034,11 @@
           "whirlwind": {
             "name": "Whirlwind",
             "uptime": 0,
-            "totaldmg": 8277.046905571002,
+            "totaldmg": 8650.627307765862,
             "totalusedrage": 0,
             "cost": 25,
             "data": [
-              7,
+              8,
               0,
               0,
               8,
@@ -1075,26 +1076,26 @@
         },
         "mh": {
           "name": "Vis'kag the Bloodletter",
-          "totaldmg": 50114.55786967364,
-          "totalprocdmg": 3600,
+          "totaldmg": 53280.14912784174,
+          "totalprocdmg": 3120,
           "data": [
-            22,
-            33,
-            10,
-            55,
-            82
+            21,
+            32,
+            11,
+            62,
+            80
           ]
         },
         "oh": {
           "name": "Stormstrike Hammer",
-          "totaldmg": 28105.313744586932,
+          "totaldmg": 28090.42962398119,
           "totalprocdmg": 0,
           "data": [
-            39,
-            6,
-            7,
+            35,
+            5,
+            8,
             46,
-            74
+            78
           ]
         }
       }
