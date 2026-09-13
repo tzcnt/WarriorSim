@@ -76,7 +76,7 @@ rage-source caps, including refunds and initial rage.
 
 - Bloodthirst: 35% AP + 30/40/50/60 at levels 40/48/54/60.
 - Shield Slam: 225–235 / 264–276 / 303–317 / 421–439 at those levels, plus block value once, with no AP coefficient.
-- Forever Slam without Improved Slam pauses weapon timers during casting. Either talent rank lets them advance, deferring due swings until cast completion. Cast time and GCD are 1500/1250/1000 ms at 0/1/2 ranks. Classic still resets timers at cast completion.
+- Forever Slam has a confirmed 15-second cooldown, starting at cast completion, at every talent rank. Without Improved Slam it pauses weapon timers during casting. Either talent rank lets them advance, deferring due swings until cast completion. Cast time and GCD are 1500/1250/1000 ms at 0/1/2 ranks. Classic has no cooldown and still resets timers at cast completion.
 - Bloodthrill: landed melee damage against the player's active Rend rolls 2% per rank for one six-second Overpower opportunity, with no ICD. It refreshes, does not stack, and is independent of the ordinary dodge window. Adjacent targets without Rend cannot trigger it.
 - Weaponmaster: crit/extra-attack effects use existing weapon specialization code; mace/staff bypass 3% armor per rank for that hand, after armor debuffs. The sword proc guard resets between fights in both Classic and Forever so batching does not change results.
 - Raging Blows: Whirlwind rolls each hand independently against each target, with one rage cost/cooldown. Off-hand damage uses the actual off-hand weapon. Cleave costs 2 less rage.

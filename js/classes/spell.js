@@ -489,7 +489,7 @@ class Slam extends Spell {
         this.gcd = 1500;
         if (player.mode === 'forever') {
             this.casttime = this.gcd = 1500 - player.talents.impslam * 250;
-            this.cooldown = 0;
+            this.cooldown = 15;
             this.swingmode = player.talents.impslam ? 2 : 1;
         }
         this.mhthreshold = 0;

@@ -215,6 +215,7 @@ for (const [mode, ranks, cast, firstSwing] of [['classic',0,1500,3500], ['foreve
         const slam = player.spells.slam;
         assert.equal(slam.casttime, cast);
         assert.equal(slam.gcd, mode === 'classic' ? 1500 : cast);
+        assert.equal(slam.cooldown, mode === 'forever' ? 15 : 0);
         run(`events = []; const originalReset = p.reset.bind(p); p.reset = rage => {
             originalReset(rage); p.stats.haste = 1; p.mh.speed = 2; p.mh.timer = 500;
             p.mh.proc1 = p.mh.proc2 = p.mh.windfury = undefined;
@@ -229,6 +230,34 @@ for (const [mode, ranks, cast, firstSwing] of [['classic',0,1500,3500], ['foreve
         const events = JSON.parse(run('JSON.stringify(events)'));
         assert.equal(events.find(e => e[0] === 'slam')[1], cast);
         assert.equal(events.find(e => e[0] === 'swing')[1], firstSwing);
+    });
+}
+
+for (const [mode, ranks] of [['classic',0], ['forever',0], ['forever',1], ['forever',2]]) {
+    test(`${mode} Slam ${ranks}: repeated casts respect the mode's cooldown`, () => {
+        const {engine, player, run, fixture} = setup(mode);
+        player.talents.impslam = ranks;
+        run(`p.spells = {stanceswitch: p.spells.stanceswitch, slam: new Slam(p,11605)};
+            Object.assign(p.spells.slam, {priority: 10, expriority: 10, minrage: 0, maincd: 0, afterswing: false});
+            p.preporder = []; p.auras = {}; p.sortSpells();
+            for (const weapon of [p.mh, p.oh].filter(Boolean)) weapon.proc1 = weapon.proc2 = weapon.windfury = null;
+            p.trinketproc1 = p.trinketproc2 = p.attackproc1 = p.attackproc2 = null;
+            p.reactionmin = p.reactionmax = 0;
+            p.target.speed = 1000; p.target.mindmg = p.target.maxdmg = 10000;
+            completions = [];
+            const originalUse = p.spells.slam.use.bind(p.spells.slam);
+            p.spells.slam.use = () => { completions.push(step); originalUse(); };`);
+        const sim = {...fixture.sim, iterations: 1, timesecsmin: 40, timesecsmax: 40, startrage: 100};
+        const spec = player.serializeSimulationSpec(sim);
+        assert.equal(spec.player.spells.find(s => s.key === 'slam').props.cooldown, mode === 'forever' ? 15 : 0);
+        engine.createSimulation(player, sim).startSync();
+        const completions = JSON.parse(run('JSON.stringify(completions)'));
+        const casttime = player.spells.slam.casttime;
+        assert.ok(completions.length >= 3);
+        assert.deepEqual(completions.slice(0,3), mode === 'forever' ?
+            [casttime, 15000 + 2 * casttime, 30000 + 3 * casttime] :
+            [casttime, 2 * casttime, 3 * casttime]);
+        if (mode === 'forever') assert.equal(completions.length, 3);
     });
 }
 
