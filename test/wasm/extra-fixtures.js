@@ -1,6 +1,8 @@
 'use strict';
 
 const {loadFixtures} = require('./reference-engine');
+const {foreverFixtures} = require('./forever-fixtures');
+const {sweepingFixtures} = require('./sweeping-fixtures');
 const {
     bloodrageCases, stanceCases, aliasCases, orderedProcs,
 } = require('./ability-proc-fixtures');
@@ -8,14 +10,6 @@ const {
 function extraFixtures() {
     const fixtures = loadFixtures();
     const base = name => structuredClone(fixtures.find(fixture => fixture.name === name));
-
-    const heroic = base('classic-dw-fury');
-    heroic.name = 'classic-heroic-bonus';
-    heroic.playerOverrides = {heroicbonus: true};
-
-    const cleave = base('classic-adjacent-cleave');
-    cleave.name = 'classic-cleave-not-heroic-bonus';
-    cleave.playerOverrides = {heroicbonus: true};
 
     const phantom = base('classic-dw-fury');
     phantom.name = 'classic-recursive-physical-phantom';
@@ -80,10 +74,36 @@ function extraFixtures() {
             maincdactive: true, maincd: 999, durationactive: true, duration: 4},
     };
 
+    const swordResets = ['classic', 'forever'].map(mode => {
+        const fixture = base('classic-dw-fury');
+        fixture.name = `${mode}-sword-proc-fight-reset`;
+        fixture.mode = mode;
+        fixture.buffs = [];
+        delete fixture.buffsAdd;
+        delete fixture.expect;
+        fixture.sim = {...fixture.sim, timesecsmin: 1, timesecsmax: 1, iterations: 8};
+        fixture.mutatePlayer = player => {
+            // Force one opening sword proc per fight. Its extra swing must not
+            // proc again at that timestamp, but the next fight must be eligible.
+            player.talents.swordproc = 100;
+            player.base.hit = 100;
+            player.target.dodge = 100;
+            player.oh = null;
+            Object.assign(player.mh, {type: 1, speed: 10, proc1: null, proc2: null, windfury: null});
+            player.trinketproc1 = player.trinketproc2 = null;
+            player.attackproc1 = player.attackproc2 = null;
+            player.spells = {stanceswitch: player.spells.stanceswitch};
+            player.auras = {};
+            player.preporder = [];
+            player.sortSpells();
+        };
+        return fixture;
+    });
+
     return [
-        heroic, cleave, phantom, suppression, long, trinkets,
+        phantom, suppression, long, trinkets,
         earthstrike, priority, clocks, gabbar, hamstring, ...bloodrageCases, ...stanceCases,
-        ...aliasCases, orderedProcs,
+        ...aliasCases, orderedProcs, ...foreverFixtures(), ...swordResets, ...sweepingFixtures(),
     ];
 }
 

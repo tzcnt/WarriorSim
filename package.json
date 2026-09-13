@@ -14,7 +14,7 @@
     "sass": "^1.104.1"
   },
   "scripts": {
-    "test": "node test/simulation-regressions.test.js && node --test test/wasm/reference.test.js test/wasm/extra-reference.test.js test/wasm/worker.test.js test/compute/*.test.js",
+    "test": "node test/simulation-regressions.test.js && node --test test/forever-talents.test.js test/sweeping-strikes.test.js test/wasm/reference.test.js test/wasm/extra-reference.test.js test/wasm/worker.test.js test/compute/*.test.js",
     "test:compute": "node --test test/compute/*.test.js",
     "compute:server": "node server/index.js",
     "compute:headless": "node compute/index.js",

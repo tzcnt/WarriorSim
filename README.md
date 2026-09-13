@@ -13,8 +13,9 @@ See [the setup guide](CONTRIBUTING.md) for details.
 
 Simulations run in WebAssembly, with a separate native engine in each browser worker.
 Classic Era (`classic.html`) and WoW Forever (`index.html`) keep their existing
-JavaScript character setup and catalogs. WoW Forever currently starts from the same
-baseline data as Classic Era, in its own catalogs, so the two can diverge. See [the native engine guide](wasm/README.md)
+JavaScript character setup and catalogs. WoW Forever uses its own talent tree and
+provisional combat rules; see [the Forever notes](data/forever/README.md) for
+assumptions and the retained defensive-model limitations. See [the native engine guide](wasm/README.md)
 for the resolved-spec interface, optimizations, and parity validation.
 
 **Share Compute** contributes idle browser workers and receives help with your

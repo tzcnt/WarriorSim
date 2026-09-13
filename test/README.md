@@ -13,7 +13,7 @@ Regression tests cover these fixes:
   so haste from the previous fight cannot affect it.
 - Merge maximum DPS and completion times using the largest worker values.
 - Sum Execute's excess rage across workers for damage-per-rage reporting.
-- Initialize and reset the free Shield Slam flag in the shared engine.
+- Charge Shield Slam's rage cost after a fight reset.
 - Support seeded random rolls, including glancing damage, with independent
   streams for each global iteration so RNG assignment is reproducible.
   The seed formula is `(seed + imul(iterationOffset + i, 0x9e3779b9)) >>> 0`;
@@ -36,8 +36,8 @@ try { node test/simulation-regressions.test.js }
 finally { Remove-Item Env:SIM_SOURCE_REF }
 ```
 
-This run is expected to exit with failure. Each regression test fails against
-the original code and passes with the fixes applied.
+This run is expected to exit with failure. It covers historical regressions;
+the current suite also checks behavior added after that checkout.
 
 ## Shared compute tests
 

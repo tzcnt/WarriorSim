@@ -51,8 +51,9 @@ SIM.SETTINGS = {
 
         view.talents.on('click', '.icon', function (e) {
             let talent = view.getTalent($(this));
-            let total = view.getTalentTotal($(this));
-            if (total < talent.y * 5) return;
+            e.preventDefault();
+            if (talent.c >= talent.m) return;
+            if (mode !== 'forever' && view.getTalentTotal($(this)) < talent.y * 5) return;
 
             let storage = JSON.parse(localStorage[mode + (globalThis.profileid || 0)]);
             let level = parseInt(storage.level);
@@ -63,14 +64,17 @@ SIM.SETTINGS = {
             let available = Math.max(level - 9 - count, 0);
             if (available <= 0) return;
 
-            talent.c = talent.c < talent.m ? talent.c + 1 : talent.m;
+            talent.c++;
+            if (mode === 'forever' && !validTalentBuild(talents, talents.map(tree => tree.t.map(t => t.c)), level)) {
+                talent.c--; return;
+            }
             $(this).attr('data-count', talent.c);
             if (talent.c >= talent.m) $(this).addClass('maxed');
             if (talent.enable)
                 $('.rotation [data-id="' + talent.enable + '"]').removeClass('hidden');
             if (talent.enablename)
                 $('.rotation [data-name="' + talent.enablename + '"]').removeClass('hidden');
-            $(this).find('a').attr('href', WEB_DB_URL + 'spell=' + talent.s[talent.c == 0 ? 0 : talent.c - 1]);
+            view.updateTalentTooltip($(this), talent);
             SIM.UI.updateSession();
             SIM.UI.updateSidebar();
             view.buildSpells();
@@ -82,16 +86,10 @@ SIM.SETTINGS = {
             if (talent.c < 1) return;
             talent.c--;
 
-            let valid = true;
-            let count = [];
-            let tree = $(this).parents('table').index() - 2;
-            for (let t of talents[tree].t)
-                count[t.y] = (count[t.y] || 0) + t.c;
-            for(let i = 0; i < count.length; i++)
-                count[i] += count[i-1] || 0;
-            for (let t of talents[tree].t)
-                if (t.c && t.y * 5 > count[t.y - 1])
-                    valid = false;
+            const storage = JSON.parse(localStorage[mode + (globalThis.profileid || 0)]);
+            const tree = talents[Number($(this).parents('table').attr('data-tree'))];
+            const valid = mode === 'forever' ? validTalentBuild(talents, talents.map(tree => tree.t.map(t => t.c)), storage.level) :
+                tree.t.every(t => !t.c || t.y === 0 || tree.t.reduce((sum, lower) => sum + (lower.y < t.y ? lower.c : 0), 0) >= t.y * 5);
             if (!valid) {
                 talent.c++;
                 return;
@@ -111,9 +109,10 @@ SIM.SETTINGS = {
                     if (spell.name == talent.enablename)
                         spell.active = false;
             }
-            $(this).find('a').attr('href', WEB_DB_URL + 'spell=' + talent.s[talent.c == 0 ? 0 : talent.c - 1]);
+            view.updateTalentTooltip($(this), talent);
             SIM.UI.updateSession();
             SIM.UI.updateSidebar();
+            view.buildSpells();
         });
 
         view.talents.on('click', '.js-talents-reset', function (e) {
@@ -218,10 +217,21 @@ SIM.SETTINGS = {
             SIM.UI.updateSidebar();
         });
 
-        view.fight.on('change', 'select[name="spellqueueing"]', function (e) {
+        view.fight.on('change', 'select[name="spellqueueing"], select[name="targetcreaturetype"]', function (e) {
             e.stopPropagation();
             SIM.UI.updateSession();
             SIM.UI.updateSidebar();
+        });
+
+        view.fight.on('change', 'input[name="level"]', function () {
+            if (mode === 'forever' && Number(this.value) >= 1 && Number(this.value) <= 60) {
+                const selected = normalizeForeverTalents(talentSelection(), FOREVER_TALENT_SCHEMA, this.value);
+                talents.forEach((tree, i) => tree.t.forEach((t, j) => { t.c = selected[i].t[j]; }));
+                view.buildTalents();
+                SIM.UI.updateSession();
+                SIM.UI.updateSidebar();
+                view.buildSpells();
+            }
         });
 
         view.fight.on('keyup', 'input[type="text"]', function (e) {
@@ -334,7 +344,7 @@ SIM.SETTINGS = {
             if (e.originalEvent && e.originalEvent.isTrusted && ($(this).data('id') == 'timetoendactive' || $(this).data('id') == 'timetostartactive')) {
                 spell.active = active;
             }
-            
+
             SIM.UI.updateSession();
         });
 
@@ -371,6 +381,7 @@ SIM.SETTINGS = {
         let buffs = '';
         let items = '';
         for (let spell of spells) {
+            if (spell.mode && spell.mode !== mode) continue;
 
             // race restriction
             if (spell.id == 26296 && storage.race !== "Troll") {
@@ -432,27 +443,17 @@ SIM.SETTINGS = {
                 }
             }
 
-            // Might set bonus
-            if (spell.itemblock) { 
-                let count = 0;
-                let items = [226499,226497,226494,226495,226493,226492,226498,226496,232251,232249,232254,232247,232252,232248,232250,232253];
-                for (let type in gear)
-                    for (let g of gear[type])
-                        if (g.selected && items.includes(g.id)) count++;
-                if (count < 4) {
-                    spell.active = false;
-                    continue;
-                }
-                spell.active = true;
-            }
-
             let div = $(`<div data-id="${spell.id}" data-name="${spell.name}" class="spell ${spell.active ? 'active' : ''}"><div class="icon">
             <img src="https://wow.zamimg.com/images/wow/icons/medium/${spell.iconname.toLowerCase()}.jpg " alt="${spell.name}">
             <a href="${WEB_DB_URL}${spell.item ? 'item' : 'spell'}=${spell.id}" class="wh-tooltip"></a>
             </div></div>`);
 
+            if (spell.localDescription) {
+                div.find('a').removeClass('wh-tooltip').attr('href', '#');
+                div.find('.icon').attr('title', spell.name + '\n' + spell.localDescription);
+            }
             if (spell.buff) buffs += div[0].outerHTML;
-            else if (spell.item || spell.itemblock) items += div[0].outerHTML;
+            else if (spell.item) items += div[0].outerHTML;
             else container.append(div);
 
         }
@@ -464,8 +465,6 @@ SIM.SETTINGS = {
             container.append($('<div class="label">Items</div>'));
             container.append(items);
         }
-        
-
 
     },
 
@@ -511,7 +510,7 @@ SIM.SETTINGS = {
                 <option value="10" ${spell.expriority == 10 ? 'selected' : ''}>Highest</option>
             </select></li>`);
 
-        if (typeof spell.timetoend === 'undefined' && !spell.noactiveoption)
+        if (typeof spell.timetoend === 'undefined')
             ul.append(`<li data-id="active" class="${spell.active ? 'active' : ''}">Enabled ${note ? ` - ${note}` : ''}</li>`);
         if (typeof spell.afterswing !== 'undefined') 
             ul.append(`<li data-id="afterswing" class="${spell.afterswing ? 'active' : ''}">Use only after a swing reset</li>`);
@@ -533,42 +532,25 @@ SIM.SETTINGS = {
             ul.append(`<li data-id="timetostartactive" data-group="timeto" class="${spell.timetostartactive ? 'active' : ''}">Use <input type="text" name="timetostart" value="${spell.timetostart}" data-numberonly="true" /> seconds from the start of the fight</li>`);
         if (spell.timetoend !== undefined)
             ul.append(`<li data-id="timetoendactive" data-group="timeto" class="${spell.timetoendactive ? 'active' : ''}">Use <input type="text" name="timetoend" value="${spell.timetoend}" data-numberonly="true" /> seconds from the end of the fight</li>`);
-        if (spell.priorityap !== undefined)
-            ul.append(`<li data-id="priorityapactive" class="${spell.priorityapactive ? 'active' : ''}">Don't use if Attack Power is higher than <input type="text" name="priorityap" value="${spell.priorityap}" data-numberonly="true" style="width: 25px" /></li>`);
-        if (spell.procblock !== undefined)
-            ul.append(`<li data-id="procblock" class="${spell.procblock ? 'active' : ''}">Don't use rage until it procs</li>`);
-        if (spell.rageblock !== undefined)
-            ul.append(`<li data-id="rageblockactive" class="${spell.rageblockactive ? 'active' : ''}">Don't use rage below <input type="text" name="rageblock" value="${spell.rageblock}" data-numberonly="true" /> rage</li>`);
+
         if (typeof spell.globals !== 'undefined') 
             ul.append(`<li data-id="globalsactive" class="${spell.globalsactive ? 'active' : ''}" data-group="usage">Only use on first <input type="text" name="globals" value="${spell.globals}" data-numberonly="true" /> globals</li>`);
-        if (spell.chargeblock !== undefined)
-            ul.append(`<li data-id="chargeblockactive" class="${spell.chargeblockactive ? 'active' : ''}">Don't use rage below <input type="text" name="chargeblock" value="${spell.chargeblock}" data-numberonly="true" /> CbR charges</li>`);
-        if (spell.erageblock !== undefined)
-            ul.append(`<div class="label">Execute Phase:</div><li data-id="erageblockactive" class="${spell.erageblockactive ? 'active' : ''}">Don't use rage below <input type="text" name="erageblock" value="${spell.erageblock}" data-numberonly="true" /> rage</li>`);
-        if (spell.echargeblock !== undefined)
-            ul.append(`<li data-id="echargeblockactive" class="${spell.echargeblockactive ? 'active' : ''}">Don't use rage below <input type="text" name="echargeblock" value="${spell.echargeblock}" data-numberonly="true" /> CbR charges</li>`);
-        if (spell.alwaysheads !== undefined)
-            ul.append(`<li data-id="alwaysheads" data-group="coinflip" class="${spell.alwaysheads ? 'active' : ''}">Always heads</li>`);
-        if (spell.alwaystails !== undefined)
-            ul.append(`<li data-id="alwaystails" data-group="coinflip" class="${spell.alwaystails ? 'active' : ''}">Always tails</li>`);
+
         if (spell.zerkerpriority !== undefined)
             ul.append(`<li data-id="zerkerpriority" class="${spell.zerkerpriority ? 'active' : ''}">Prioritize over Bloodrage</li>`);
         if (typeof spell.swingtimer !== 'undefined') 
             ul.append(`<li data-id="swingtimeractive" class="${spell.swingtimeractive ? 'active' : ''}">Don't use if swing timer longer than <input type="text" name="swingtimer" value="${spell.swingtimer}" data-numberonly="true" /> secs</li>`);
 
-
         details.css('visibility','hidden');
         details.append(ul);
         let height = details.height();
-        
+
         setTimeout(function() {
             details.css('visibility','');
             el.css('margin-bottom', height + 30 + 'px');
             details.css('top', el.position().top + 74 + 'px');
             details.addClass('visible');
         }, 200);
-        
-        
     },
 
     hideSpellDetails(el) {
@@ -576,7 +558,7 @@ SIM.SETTINGS = {
         let details = view.rotation.find('.details');
         details.removeClass('visible');
         el.css('margin-bottom', '0px');
-        
+
     },
 
     toggleArticle: function(label) {
@@ -595,7 +577,7 @@ SIM.SETTINGS = {
         view.buffs.append('<label class="active">Buffs</label>');
         let storage = JSON.parse(localStorage[mode + (globalThis.profileid || 0)]);
         let level = parseInt(storage.level);
-        let worldbuffs = '', consumes = '', other = '', armor = '', stances = '', skills = '';
+        let worldbuffs = '', consumes = '', other = '', armor = '', stances = '';
         for (let buff of buffs) {
 
             // level restrictions
@@ -617,7 +599,6 @@ SIM.SETTINGS = {
             }
 
             let tooltip = buff.id;
-            if (buff.id == 413479) tooltip = 412513;
 
             let wh = buff.spellid ? 'spell' : 'item';
             let active = buff.active ? 'active' : '';
@@ -632,10 +613,9 @@ SIM.SETTINGS = {
             else if (buff.consume) consumes += html;
             else if (buff.other) other += html;
             else if (buff.armor || buff.improvedexposed) armor += html;
-            else if (buff.skill) skills += html;
             else view.buffs.append(html);
         }
-        
+
         view.buffs.append('<div class="label">Consumables</div>');
         view.buffs.append(consumes);
         view.buffs.append('<div class="label">World Buffs</div>');
@@ -646,8 +626,6 @@ SIM.SETTINGS = {
         view.buffs.append(armor);
         view.buffs.append('<div class="label">Default Stance</div>');
         view.buffs.append(stances);
-        view.buffs.append('<div class="label">Skill Specialization</div>');
-        view.buffs.append(skills);
         SIM.UI.updateSession();
         SIM.UI.updateSidebar();
     },
@@ -656,32 +634,45 @@ SIM.SETTINGS = {
         var view = this;
         view.talents.find('table').remove();
         for (let tree of talents) {
-            let table = $('<table><tr><th colspan="4">' + tree.n + '</th></tr></table>');
+            let table = $('<table><tr><th colspan="4">' + tree.n + '</th></tr></table>').attr('data-tree', talents.indexOf(tree));
             for (let i = 0; i < 7; i++) table.prepend('<tr><td></td><td></td><td></td><td></td></tr>');
             for (let talent of tree.t) {
                 let div = $('<div class="icon" data-count="' + talent.c + '" data-x="' + talent.x + '" data-y="' + talent.y + '"></div>');
                 div.html('<img src="https://wow.zamimg.com/images/wow/icons/medium/' + talent.iconname.toLowerCase() + '.jpg" alt="' + talent.n + '" />');
                 if (talent.c >= talent.m) div.addClass('maxed');
                 div.append(`<a href="${WEB_DB_URL}spell=` + talent.s[talent.c == 0 ? 0 : talent.c - 1] + `" class="wh-tooltip"></a>`);
+                view.updateTalentTooltip(div, talent);
                 table.find('tr').eq(talent.y).children().eq(talent.x).append(div);
             }
             view.talents.append(table);
         }
     },
 
+    updateTalentTooltip: function (div, talent) {
+        if (talent.forever) {
+            const text = [talent.n + ' (' + talent.c + '/' + talent.m + ')',
+                talent.d[Math.max(0, talent.c - 1)], talent.c > 0 && talent.c < talent.m ? 'Next rank: ' + talent.d[talent.c] : '',
+                talent.forever.cost, talent.forever.reqText].filter(Boolean).join('\n\n');
+            div.attr('title', text).attr('aria-label', text);
+            div.find('a').removeClass('wh-tooltip').attr('href', '#');
+        } else {
+            div.find('a').attr('href', WEB_DB_URL + 'spell=' + talent.s[Math.max(0, talent.c - 1)]);
+        }
+    },
+
     getTalent: function (div) {
-        let tree = div.parents('table').index() - 1;
+        let tree = Number(div.parents('table').attr('data-tree'));
         let x = div.data('x');
         let y = div.data('y');
-        for (let talent of talents[tree - 1].t)
+        for (let talent of talents[tree].t)
             if (talent.x == x && talent.y == y)
                 return talent;
     },
 
     getTalentTotal: function (div) {
-        let tree = div.parents('table').index() - 1;
+        let tree = Number(div.parents('table').attr('data-tree'));
         let count = 0;
-        for (let talent of talents[tree - 1].t)
+        for (let talent of talents[tree].t)
             count += parseInt(talent.c);
         return count;
     }

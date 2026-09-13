@@ -145,6 +145,8 @@ function createMinifiedContext(fixture, FakeWorker, includeSession) {
         'data/enchants.min.js',
         'data/talents.min.js',
         'data/spells.min.js',
+        'data/talents_forever.min.js',
+        'talent-rules.min.js',
         'data/buffs.min.js',
         ...(includeSession ? [fixture.mode === 'classic' ? 'data/session.min.js' : 'data/session_forever.min.js'] : []),
         'data/levelstats.min.js',

@@ -414,26 +414,6 @@ two browser-protocol clients using actual deployed WASM workers over a real loca
 WebSocket coordinator. It requires built `wasm/dist` and `dist` assets. Background
 throttling and real internet speedups still require field testing.
 
-The following validation record predates the Season of Discovery removal;
-references to SoD describe the tabs and fixtures available at that time.
-
-Validation of this shared-compute port passed all 178 Node tests across the
-WASM, reference, worker, and compute suites, plus 20 source regressions (198 tests
-total). Another 20 regression checks passed against minified deployment assets.
-Actual browser checks passed local DPS and stat weights for both Classic and SoD,
-sharing in both directions with four active donor workers, immediate foreground
-role switching, cross-tab opt-out, and Classic gear ranking with every row
-completed and no errors or waiting rows.
-
-With the active bundle directory temporarily unavailable and its WASM URL
-returning HTTP 404, both local modes and both shared stat-weight operations still
-completed from retained assets; the SoD tab donated three workers during that
-check. The directory was restored and its WASM URL returned HTTP 200. These browser
-checks produced no console errors. After stopping the coordinator and static
-server, both already-open pages also completed fresh DPS runs with sharing enabled
-and displayed `Connecting · simulations run locally`, confirming browser fallback
-when the coordinator is unavailable.
-
 For a local browser preview, run `npm run compute:dev` and open
 `http://127.0.0.1:8787/index.html` (WoW Forever) or
 `http://127.0.0.1:8787/classic.html` (Classic Era) in two tabs. Enable sharing in both,

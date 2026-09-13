@@ -110,6 +110,14 @@ SIM.STATS = {
             }
         }
 
+        const sweeping = sim.player.auras.sweepingstrikes;
+        if (sweeping && sweeping.totaldmg) {
+            view.dmgdata.labels.push(sweeping.name);
+            data.push((sweeping.totaldmg / sim.totalduration).toFixed(2));
+            colors.push(view.colors[counter % view.colors.length]);
+            counter++;
+        }
+
         // DW
         if (sim.player.auras.deepwounds && sim.player.auras.deepwounds.totaldmg) {
             view.dmgdata.labels.push(sim.player.auras.deepwounds.name);
@@ -138,20 +146,6 @@ SIM.STATS = {
             data.push((sim.player.auras.rend.totaldmg / sim.totalduration).toFixed(2));
             colors.push(view.colors[counter % view.colors.length]);
         }
-
-        // weapon bleed
-        if (sim.player.auras.weaponbleedmh && sim.player.auras.weaponbleedmh.totaldmg) {
-            view.dmgdata.labels.push(sim.player.auras.weaponbleedmh.name);
-            data.push((sim.player.auras.weaponbleedmh.totaldmg / sim.totalduration).toFixed(2));
-            colors.push(view.colors[counter % view.colors.length]);
-        }
-        if (sim.player.auras.weaponbleedoh && sim.player.auras.weaponbleedoh.totaldmg) {
-            view.dmgdata.labels.push(sim.player.auras.weaponbleedoh.name);
-            data.push((sim.player.auras.weaponbleedoh.totaldmg / sim.totalduration).toFixed(2));
-            colors.push(view.colors[counter % view.colors.length]);
-        }
-
-
 
         view.dmgdata.datasets.push({
             data: data,
@@ -298,7 +292,6 @@ SIM.STATS = {
         view.table.empty();
         let html = '<table><thead><tr><th>Action</th><th>Hit %</th><th>Crit %</th><th>Miss %</th><th>Dodge %</th><th>Glance %</th><th>Uses</th><th>DPR</th><th>DPS</th></tr></thead><tbody>';
 
-
         let i = sim.iterations;
         let data = sim.player.mh.data;
         let total = data.reduce((a, b) => a + b, 0);
@@ -311,7 +304,7 @@ SIM.STATS = {
             dps = (sim.player.oh.totaldmg / sim.totalduration).toFixed(2);
             html += `<tr><td>Off Hand</td><td>${(data[0] / total * 100).toFixed(2)}</td><td>${(data[3] / total * 100).toFixed(2)}</td><td>${(data[1] / total * 100).toFixed(2)}</td><td>${(data[2] / total * 100).toFixed(2)}</td><td>${(data[4] / total * 100).toFixed(2)}</td><td>${(total / i).toFixed(2)}</td><td></td><td>${dps}</td></tr>`;
         }
-        
+
         for (let name in sim.player.spells) {
             let n = sim.player.spells[name].name;
             let data = sim.player.spells[name].data;
@@ -319,8 +312,6 @@ SIM.STATS = {
             if (!total) continue;
             let dps = (sim.player.spells[name].totaldmg / sim.totalduration).toFixed(2);
             let dpr = ((sim.player.spells[name].totaldmg / i) / (sim.player.spells[name].cost * (total / i))).toFixed(2);
-            if (name == "slam" && sim.player.bloodsurge)
-                dpr = Infinity;
             if (name == "execute")
                 dpr = ((sim.player.spells[name].totaldmg / i) / ((sim.player.spells[name].cost * (total / i)) + (sim.player.spells[name].totalusedrage / i))).toFixed(2);
             html += `<tr><td>${n}</td><td>${(data[0] / total * 100).toFixed(2)}</td><td>${(data[3] / total * 100).toFixed(2)}</td><td>${(data[1] / total * 100).toFixed(2)}</td><td>${(data[2] / total * 100).toFixed(2)}</td><td>${(data[4] / total * 100).toFixed(2)}</td><td>${(total / i).toFixed(2)}</td><td>${dpr}</td><td>${dps}</td></tr>`;
@@ -333,6 +324,13 @@ SIM.STATS = {
             let dps = (totaldmg / sim.totalduration).toFixed(2);
             let dpr = ((totaldmg / i) / (sim.player.auras.rend.cost * (total / i))).toFixed(2);
             html += `<tr><td>${sim.player.auras.rend.name}</td><td></td><td></td><td>${(data[1] / total * 100).toFixed(2)}</td><td>${(data[2] / total * 100).toFixed(2)}</td><td></td><td>${(total / i).toFixed(2)}</td><td>${dpr}</td><td>${dps}</td></tr>`;
+        }
+
+        const sweeping = sim.player.auras.sweepingstrikes;
+        if (sweeping && sweeping.totaldmg) {
+            const dps = (sweeping.totaldmg / sim.totalduration).toFixed(2);
+            // Copies have no separate attack outcomes or recorded activation count.
+            html += `<tr><td>${sweeping.name}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>${dps}</td></tr>`;
         }
 
         html += '</tbody></table>';

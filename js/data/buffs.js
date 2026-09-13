@@ -448,8 +448,6 @@ var buffs = [
       aq: true,
    },
 
-   
-
    // Consumes
    {
       id: 8410,
@@ -807,11 +805,8 @@ var buffs = [
       other: true,
       haste: 5
    },
- 
-   
-   
 
-   // Lower-level debuff ranks and weapon skill
+   // Armor debuffs
    {
       id: 7386,
       spellid: true,
@@ -1003,64 +998,4 @@ var buffs = [
       armor: 50,
       minlevel: 20,
    },
-   {
-      id: 442813,
-      name: "Increased Swords",
-      iconname: "ability_meleedamage",
-      spellid: true,
-      skill: true,
-      skill_1: 5
-   },
-   {
-      id: 442876,
-      name: "Increased Axes",
-      iconname: "inv_axe_03",
-      spellid: true,
-      skill: true,
-      skill_3: 5
-   },
-   {
-      id: 442881,
-      name: "Increased Maces",
-      iconname: "inv_hammer_01",
-      spellid: true,
-      skill: true,
-      skill_0: 5
-   },
-   {
-      id: 442887,
-      name: "Increased Daggers",
-      iconname: "inv_weapon_shortblade_05",
-      spellid: true,
-      skill: true,
-      skill_2: 5
-   },
-   {
-      id: 442890,
-      name: "Increased Fist",
-      iconname: "inv_misc_desecrated_plategloves",
-      spellid: true,
-      skill: true,
-      skill_4: 5
-   },
-   {
-      id: 442892,
-      name: "Increased Polearms",
-      iconname: "inv_staff_08",
-      spellid: true,
-      skill: true,
-      skill_5: 5,
-      skill_6: 5,
-   },
-   {
-      id: 459312,
-      name: "Defense Specialization",
-      iconname: "inv_shield_06",
-      spellid: true,
-      skill: true,
-      defense: 25,
-   },
-   
-   
-   
 ];

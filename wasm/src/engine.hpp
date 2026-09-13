@@ -28,8 +28,8 @@ enum class School : std::uint8_t { None = 0, Physical = 1, Holy = 2, Fire = 4, N
 enum class SpellKind : std::uint8_t {
     Spell, Bloodthirst, Whirlwind, Overpower, Execute, Bloodrage, HeroicStrike, Cleave,
     MortalStrike, SunderArmor, Hamstring, ThunderClap, BerserkerRage, RagePotion, Slam,
-    Fireball, GunAxe, BlademasterFury, ShieldSlam, TheMoltenCore, StanceSwitch,
-    GrilekFury
+    Fireball, ShieldSlam, StanceSwitch,
+    GrilekFury, SpearingStrike
 };
 
 enum class AuraKind : std::uint8_t {
@@ -37,12 +37,8 @@ enum class AuraKind : std::uint8_t {
     DeathWish, BattleStance, DefensiveStance, BerserkerStance, MightyRagePotion,
     BloodFury, Berserking, Empyrean, Eskhandar, Zeal, Annihilator, Rivenspike,
     Bonereaver, Destiny, Untamed, Pummeler, Windfury, Swarmguard, Flask, Slayer, Spider,
-    Earthstrike, Gabbar, PrimalBlessing, PrimalBlessing2, BloodrageAura, Zandalarian,
-    Avenger, BerserkerRageAura, BattleShout, Rend, VoidMadness, WeaponBleed,
-    GyromaticAcceleration, GneuroLogical, CoinFlip, SerpentAscension, VoodooFrenzy,
-    RoarGuardian, RelentlessStrength, WarriorsResolve, DemonTaintedBlood,
-    MoonstalkerFury, MagmadarsReturn, JujuFlurry, WrathWray, GrilekGuard,
-    ObsidianStrength, ObsidianHaste
+    Earthstrike, Gabbar, PrimalBlessing, BloodrageAura, Zandalarian,
+    Avenger, BerserkerRageAura, BattleShout, Rend, JujuFlurry, Enrage, SweepingStrikes
 };
 
 namespace detail {
@@ -224,26 +220,11 @@ enum class ProcStage : std::uint8_t {
     TrinketProc2Damage,
     TrinketProc2Extra,
     AttackProc1Damage,
-    AttackProc1Extra,
     AttackProc2Damage,
-    AttackProc2Extra,
     SwordSpec,
-    WailingExtra,
-    HakkariExtra,
-    TimewornExtra,
-    ObsidianStrength,
-    ObsidianHaste,
-    Bloodsurge,
-    SwordAndBoard,
-    VoodooFrenzy,
-    SuddenDeath,
-    FreshMeat,
-    SingleMinded,
     Windfury,
     Swarmguard,
     Zandalarian,
-    RelentlessStrength,
-    Shieldrender,
     Dragonbreath,
 };
 
@@ -270,7 +251,6 @@ struct WeaponState {
     double speed = 0;
     double normSpeed = 2.4;
     double crit = 0;
-    double arp = 0;
     double glanceChance = 0;
     double miss = 0;
     double dwmiss = 0;
@@ -324,7 +304,6 @@ struct AuraState {
     double mintime = 0;
     double cooldownTimer = 0;
     double nexttick = 0;
-    double tfbstep = -6000;
     bool firstuse = true;
     double uptime = 0;
     double totaldmg = 0;
@@ -383,7 +362,6 @@ struct ConfiguredActionLists {
     std::vector<int> queuedStrikes;
     std::vector<CachedPeriodicAura> periodicCandidates;
     std::vector<int> tickAuras;
-    std::vector<int> weaponBleeds;
     std::vector<int> timedSpells;
     std::vector<int> stepSpells;
     std::vector<int> periodicAuras;
@@ -431,25 +409,18 @@ struct PlayerState {
     double itemtimer = 0;
     double stancetimer = 0;
     double dodgetimer = 0;
-    double crittimer = 0;
     double spelldelay = 0;
     double heroicdelay = 0;
     int extraattacks = 0;
     int batchedextras = 0;
     double swordspecstep = std::numeric_limits<double>::quiet_NaN();
-    double wailingextrastep = std::numeric_limits<double>::quiet_NaN();
-    double hakkariextrastep = std::numeric_limits<double>::quiet_NaN();
-    double timewornstep = std::numeric_limits<double>::quiet_NaN();
-    double critdmgbonus = 0;
-    double mainspelldmg = 1;
     double armorReduction = 0;
-    double arpContribution = 0;
     double crit = 0;
     bool nextswinghs = false;
     bool nextswingcl = false;
-    bool freeslam = false;
-    bool freeshieldslam = false;
-    bool turtleMode = false;
+    bool foreverMode = false;
+    double bloodthrilltimer = 0;
+    double weaponArmorReduction(const WeaponState& weapon) const;
     std::string stance;
 
     [[nodiscard]] SpellState* spell(std::string_view key);
@@ -508,10 +479,7 @@ struct PlayerState {
     [[nodiscard]] double effectiveCrit(const WeaponState& weapon) const;
     [[nodiscard]] double dodgeChance(const WeaponState& weapon) const;
     [[nodiscard]] double getArmorReduction() const;
-    [[nodiscard]] double getArpContribution() const;
     void addRage(double dmg, Result result, WeaponState& weapon, const SpellState* spell);
-    void addRageMh(double dmg, Result result, WeaponState& weapon, const SpellState* spell);
-    void addRageOh(double dmg, Result result, WeaponState& weapon, const SpellState* spell);
     bool stepTimer(double amount);
     bool stepItemTimer(double amount);
     bool stepStanceTimer(double amount);
@@ -527,13 +495,13 @@ struct PlayerState {
     double cast(SpellState& spell, SpellState* delayedHeroic = nullptr, int adjacent = 0, double damageSoFar = 0);
     double castOh(SpellState& spell, int adjacent = 0, double damageSoFar = 0);
     double dealDamage(double dmg, Result result, WeaponState& weapon, SpellState* spell, bool adjacent);
-    void procCrit(bool offhand, int adjacent, SpellState* spell);
+    void procCrit(bool offhand, int adjacent);
     double procAttack(SpellState* spell, WeaponState& weapon, Result result, int adjacent, double damageSoFar);
     double phantomProc(WeaponState& weapon);
     double magicProc(const ProcState& proc);
     double physProc(double dmg);
     void switchStance(std::string_view value);
-    [[nodiscard]] bool isValidStance(std::string_view value, bool isRend = false) const;
+    [[nodiscard]] bool isValidStance(std::string_view value) const;
 };
 
 // Spell behavior. All functions stay in native code during an iteration.

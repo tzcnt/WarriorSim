@@ -87,22 +87,23 @@ const aliasCases = [
 
 const orderedProcs = bounded(adjacentCleave, 'classic-ordered-multi-procs', 0xC01DF00D, 12);
 orderedProcs.mutatePlayer = (player, engine) => {
-    const weaponFlip = engine.createAura(player, 'CoinFlip');
-    const trinketFlip = engine.createAura(player, 'CoinFlip');
-    const attackFlip = engine.createAura(player, 'CoinFlip');
-    player.auras.procweaponflip = weaponFlip;
-    player.auras.proctrinketflip = trinketFlip;
-    player.auras.procattackflip = attackFlip;
+    player.faeriefire = false; // Let each Annihilator activation roll spell resistance.
+    const weaponArmor = engine.createAura(player, 'Annihilator');
+    const trinketArmor = engine.createAura(player, 'Annihilator');
+    const attackArmor = engine.createAura(player, 'Annihilator');
+    player.auras.procweaponarmor = weaponArmor;
+    player.auras.proctrinketarmor = trinketArmor;
+    player.auras.procattackarmor = attackArmor;
 
     // The zero-chance slots are intentional: JavaScript still consumes their
     // trigger rolls before the later random procs in this chain.
-    player.mh.proc1 = {chance: 10000, magicdmg: 11, spell: weaponFlip};
+    player.mh.proc1 = {chance: 10000, magicdmg: 11, spell: weaponArmor};
     player.mh.proc2 = {chance: 0, magicdmg: 13};
     player.oh.proc1 = {chance: 0, extra: 1};
     player.oh.proc2 = {chance: 10000, magicdmg: 5};
-    player.trinketproc1 = {chance: 6500, magicdmg: 17, spell: trinketFlip};
+    player.trinketproc1 = {chance: 6500, magicdmg: 17, spell: trinketArmor};
     player.trinketproc2 = {chance: 3500, extra: 1, cooldown: 2300, usestep: 0};
-    player.attackproc1 = {chance: 10000, magicdmg: 19, spell: attackFlip};
+    player.attackproc1 = {chance: 10000, magicdmg: 19, spell: attackArmor};
     player.attackproc2 = {chance: 2600, extra: 1};
     player.base.hit -= 10;
     player.update();

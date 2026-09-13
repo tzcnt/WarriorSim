@@ -260,9 +260,7 @@ var session = {
             "classname": "Bloodrage",
             "iconname": "ability_racial_bloodrage",
             "active": true,
-            "buff": true,
-            "flagellation": true,
-            "consumedrage": true
+            "buff": true
         },
         {
             "id": "11597",
@@ -464,8 +462,6 @@ var session = {
             "iconname": "inv_sword_48",
             "minlevel": 24,
             "maxlevel": 31,
-            "priorityap": 2000,
-            "priorityapactive": 2000,
             "value1": 125,
             "value2": 3,
             "active": false
@@ -520,9 +516,7 @@ var session = {
             "classname": "BerserkerRage",
             "iconname": "spell_nature_ancestralguardian",
             "active": true,
-            "buff": true,
-            "flagellation": true,
-            "consumedrage": true
+            "buff": true
         },
         {
             "id": "1680",
@@ -572,7 +566,6 @@ var session = {
             "classname": "DeathWish",
             "iconname": "spell_shadow_deathpact",
             "timetoend": 31,
-            "crusaders": "0",
             "aura": true,
             "active": true,
             "buff": true,
@@ -608,7 +601,6 @@ var session = {
             "classname": "MightyRagePotion",
             "iconname": "inv_potion_41",
             "timetoend": 21,
-            "crusaders": "0",
             "aura": true,
             "minlevel": 46,
             "value1": 45,
@@ -664,6 +656,8 @@ var session = {
         "5",
         "6"
     ],
+    "talentSchema": "forever-v1",
+    "targetcreaturetype": "Other",
     "talents": [
         {
             "n": "Arms",
@@ -674,12 +668,11 @@ var session = {
                 0,
                 5,
                 0,
-                0,
                 1,
                 3,
                 0,
-                2,
                 0,
+                2,
                 0,
                 0,
                 0,
@@ -695,14 +688,15 @@ var session = {
                 5,
                 0,
                 5,
+                3,
                 0,
                 0,
-                0,
-                5,
-                5,
                 2,
                 5,
+                1,
+                5,
                 0,
+                1,
                 1,
                 0,
                 0,
@@ -713,6 +707,8 @@ var session = {
         {
             "n": "Protection",
             "t": [
+                0,
+                0,
                 0,
                 0,
                 0,

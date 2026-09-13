@@ -13,7 +13,6 @@ var WEAPONTYPE = {
     MACE_2H: 20,
     SWORD_2H: 21,
     AXE_2H: 23,
-    
 
 }
 
@@ -55,19 +54,8 @@ class Weapon {
             if (item.proc.coeff) this.proc1.coeff = parseInt(item.proc.coeff);
             if (item.proc.procgcd) this.proc1.gcd = item.proc.procgcd;
             if (item.proc.extra) this.proc1.extra = item.proc.extra;
-            if (item.proc.dmg && !item.proc.magic && !item.proc.tick && item.id != 231848) this.proc1.phantom = true;
+            if (item.proc.dmg && !item.proc.magic) this.proc1.phantom = true;
 
-            // dont need an aura, just add the dmg
-            if (item.proc.tick && !item.proc.bleed) {
-                let ticks = parseInt(item.proc.duration) / parseInt(item.proc.interval);
-                if (item.proc.magic) this.proc1.magicdmg = (item.proc.dmg || 0) + (item.proc.tick * ticks);
-                else this.proc1.physdmg = (item.proc.dmg || 0) + (item.proc.tick * ticks);
-            }
-            // bleeds need aura
-            if (item.proc.tick && item.proc.bleed) {
-                player.auras["weaponbleed" + (this.offhand ? 'oh' : 'mh')] = new WeaponBleed(player, 0, item.proc.duration, item.proc.interval, item.proc.tick, this.offhand);
-                this.proc1.spell = player.auras["weaponbleed" + (this.offhand ? 'oh' : 'mh')];
-            }
             // custom spells
             if (item.proc.spell) {
                 if (!player.auras[item.proc.spell.toLowerCase()]) {
@@ -121,16 +109,14 @@ class Weapon {
     }
     dmg(heroicstrike) {
         let dmg;
-        let mod = 1;
         dmg = rng(this.mindmg + this.bonusdmg, this.maxdmg + this.bonusdmg) + (this.player.stats.ap / 14) * this.speed + this.player.stats.moddmgdone;
         if (heroicstrike) dmg += heroicstrike.bonus;
-        if (heroicstrike && heroicstrike instanceof HeroicStrike && this.player.heroicbonus) mod = 1.25;
-        return dmg * this.modifier * this.player.stats.dmgmod * mod + this.player.stats.moddmgtaken;
+        return dmg * this.modifier * this.player.stats.dmgmod + this.player.stats.moddmgtaken;
     }
     avgdmg() {
         let dmg = ((this.mindmg + this.bonusdmg + this.maxdmg + this.bonusdmg)/2) + (this.player.stats.ap / 14) * this.normSpeed + this.player.stats.moddmgdone;
         dmg = dmg * this.modifier * this.player.stats.dmgmod + this.player.stats.moddmgtaken;
-        return dmg * (1 - this.player.armorReduction);
+        return dmg * (1 - this.player.weaponArmorReduction(this));
     }
     use() {
         this.timer = Math.round(this.speed * 1000 / this.player.stats.haste);

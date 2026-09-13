@@ -64,14 +64,6 @@ function mergeReports(SimulationWorkerParallel, first, second) {
     return result;
 }
 
-test('reset clears a free Shield Slam proc between fights', () => {
-    const {Player} = loadSimulation();
-    const player = makeResetPlayer(Player, {freeshieldslam: true});
-
-    player.reset(0);
-
-    assert.equal(player.freeshieldslam, false);
-});
 
 test('reset clears mutable spell state between fights', () => {
     const {Player} = loadSimulation();
@@ -109,7 +101,6 @@ test('reset clears mutable aura state between fights', () => {
         mintime: 700,
         nexttick: 1000,
         cooldowntimer: 6000,
-        tfbstep: 3000,
     };
     const player = makeResetPlayer(Player, {auras: {testaura: aura}});
 
@@ -124,7 +115,6 @@ test('reset clears mutable aura state between fights', () => {
         mintime: aura.mintime,
         nexttick: aura.nexttick,
         cooldowntimer: aura.cooldowntimer,
-        tfbstep: aura.tfbstep,
     }, {
         timer: 0,
         firstuse: true,
@@ -134,7 +124,6 @@ test('reset clears mutable aura state between fights', () => {
         mintime: 0,
         nexttick: 0,
         cooldowntimer: 0,
-        tfbstep: -6000,
     });
 });
 
@@ -258,16 +247,10 @@ test('unseeded rolls use Math.random after a seeded run', () => {
     assert.equal(api.simulationRandom(), 0.5);
 });
 
-test('new players initialize the shared Shield Slam proc flag', () => {
-    const api = loadSimulation(true);
-    assert.equal(createPlayer(api).freeshieldslam, false);
-});
 
-test('an unused Sword and Board proc cannot pay for Shield Slam in the next fight', () => {
+test('Shield Slam spends its rage cost after a fight reset', () => {
     const api = loadSimulation(true);
     const player = createPlayer(api);
-    // Resetting the flag must not hand the next fight a free Shield Slam.
-    player.freeshieldslam = true;
     player.reset(50);
     const spell = new api.ShieldSlam(player, 23922);
     const rageBefore = player.rage;

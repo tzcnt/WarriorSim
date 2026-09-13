@@ -12,10 +12,19 @@ const {
 for (const fixture of extraFixtures()) {
     test(`${fixture.name}: JavaScript reproducibility and partitions`, () => {
         const expected = runReference(fixture);
+        if (fixture.name.endsWith('sword-proc-fight-reset')) {
+            assert.equal(expected.player.mh.data.reduce((sum, count) => sum + count, 0),
+                fixture.sim.iterations * 2, 'each fight gets one opening swing and exactly one sword extra attack');
+        }
         assertNativeReports(runReference(fixture), expected, fixture.name);
         const partitions = fixture.sim.iterations === 3 ? [1, 2] : [1, 4, fixture.sim.iterations - 5];
         assertNativeReports(runPartitioned(fixture, partitions), expected, fixture.name);
         assert.ok(expected.totaldmg > 0);
+        for (const group of ['spells', 'auras'])
+            for (const key of (fixture.mode === 'forever' ? fixture.expect?.[group] : []) || []) {
+                const action = expected.player[group][key];
+                assert.ok(action && (action.totaldmg > 0 || action.uptime > 0), `${fixture.name}: ${key} is exercised`);
+            }
         if (fixture.name.includes('phantom')) assert.ok(expected.player.mh.totalprocdmg > 0);
         for (const [key, duration] of Object.entries({slayer: 20000, spider: 15000, earthstrike: 20000})) {
             if (expected.player.auras[key]) {
@@ -68,26 +77,12 @@ for (const mode of ['classic', 'forever']) {
     });
 }
 
-test('WoW Forever reproduces the Classic Era report for every configured baseline', () => {
+test('WoW Forever uses its own talents and differs from the Classic Era baseline', () => {
     for (const fixture of loadFixtures().filter(value => value.mode === 'classic')) {
-        assertNativeReports(runReference({...fixture, mode: 'forever'}), runReference(fixture), fixture.name);
+        assert.notEqual(runReference({...fixture, mode: 'forever'}).totaldmg, runReference(fixture).totaldmg, fixture.name);
     }
 });
 
-test('Heroic bonus changes Heroic Strike but leaves Cleave weapon damage unchanged', () => {
-    for (const name of ['classic-dw-fury', 'classic-adjacent-cleave']) {
-        const fixture = loadFixtures().find(value => value.name === name);
-        const player = createConfiguredPlayer(createReferenceEngine(fixture.mode), fixture);
-        player.mh.mindmg = player.mh.maxdmg = 100;
-        const action = player.spells.heroicstrike || player.spells.cleave;
-        player.heroicbonus = false;
-        const before = player.mh.dmg(action);
-        player.heroicbonus = true;
-        const after = player.mh.dmg(action);
-        if (name.includes('cleave')) assert.equal(after, before);
-        else assert.ok(after > before);
-    }
-});
 
 test('Classic OldDeepWounds schedules three-second ticks and inactive Flurry starts empty', () => {
     const fixture = loadFixtures()[0];
@@ -135,3 +130,17 @@ test('Hamstring inherits its own cooldown and ignores the main ability cooldown 
     assert.ok(action.totaldmg > 0, 'fixture must deal Hamstring damage');
     assert.ok(action.data.reduce((sum, count) => sum + count, 0) > 0, 'fixture must cast Hamstring');
 });
+
+for (const mode of ['classic', 'forever']) {
+    test(`${mode}: Imperial Plate grants its Classic four-piece DPS bonus`, () => {
+        const fixture = loadFixtures().find(value => value.mode === mode);
+        const player = createConfiguredPlayer(createReferenceEngine(mode), fixture);
+        player.items = [12424, 12426, 12425];
+        player.base = {ap: 0, hit: 0, str: 0};
+        player.addSets();
+        assert.deepEqual(player.base, {ap: 0, hit: 0, str: 0});
+        player.items.push(12422);
+        player.addSets();
+        assert.deepEqual(player.base, {ap: 28, hit: 0, str: 0});
+    });
+}

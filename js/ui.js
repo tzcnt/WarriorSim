@@ -568,9 +568,7 @@ SIM.UI = {
 
         for(let i = 0; i < spells.length; i++) {
             if (spells[i].item && spells[i].id == tr.data('id') && !spells[i].timetoendactive && !spells[i].timetostartactive) {
-                // Blademasters Fury
-                if (spells[i].id == 219223) spells[i].active = true;
-                else spells[i].timetoendactive = true;
+                spells[i].timetoendactive = true;
             }
         }
     },
@@ -749,10 +747,6 @@ SIM.UI = {
                     path = item.p;
                     let id = item.id.toString().split('|');
                     href = id[0];
-                    if (item.id == 23000399) href = "230003";
-                    if (item.id == 22839799) href = "228397";
-                    if (item.id == 22835099) href = "228350";
-                    if (item.id == 23024299) href = "230242";
                     if (ench) href += '?ench=' + ench;
                     if (id.length == 2) href += (ench ? '&' : '?') + 'rand=' + id[1];
                     empty = false;
@@ -788,7 +782,6 @@ SIM.UI = {
         obj.reactionmax = view.fight.find('input[name="reactionmax"]').val();
         obj.batching = view.fight.find('select[name="batching"]').val();
         obj.filter_strength = view.main.find('#filter_strength').hasClass('active');
-        obj.filter_timeworn = view.main.find('#filter_timeworn').hasClass('active');
         obj.filter_bear = view.main.find('#filter_bear').hasClass('active');
         obj.filter_tiger = view.main.find('#filter_tiger').hasClass('active');
         obj.filter_green = view.main.find('#filter_green').hasClass('active');
@@ -796,7 +789,6 @@ SIM.UI = {
         obj.filter_epic = view.main.find('#filter_epic').hasClass('active');
         obj.bleedreduction = view.fight.find('select[name="bleedreduction"]').val();
         obj.spellqueueing = view.fight.find('select[name="spellqueueing"]').val();
-        
 
         let _buffs = [], _rotation = [], _talents = [], _sources = [], _phases = [], _gear = {}, _enchant = {}, _resistance = {};
         view.buffs.find('.active').each(function () { _buffs.push($(this).attr('data-id')); });
@@ -837,6 +829,11 @@ SIM.UI = {
         obj.sources = _sources;
         obj.phases = _phases;
         obj.talents = _talents;
+        if (mode === 'forever') {
+            obj.talents = talentSelection();
+            obj.talentSchema = FOREVER_TALENT_SCHEMA;
+            obj.targetcreaturetype = view.fight.find('select[name="targetcreaturetype"]').val() || 'Other';
+        }
         obj.gear = _gear;
         obj.enchant = _enchant;
         obj.resistance = _resistance;
@@ -854,11 +851,16 @@ SIM.UI = {
         if (!localStorage[mode + profileid]) localStorage[mode + profileid] = JSON.stringify(session);
 
         let storage = JSON.parse(localStorage[mode + profileid]);
+        if (mode === 'forever') {
+            storage.talents = normalizeForeverTalents(storage.talents || session.talents,
+                storage.talents ? storage.talentSchema : session.talentSchema, storage.level || session.level);
+            storage.talentSchema = FOREVER_TALENT_SCHEMA;
+            localStorage[mode + profileid] = JSON.stringify(storage);
+        }
         if (!storage.level) storage.level = session.level;
         if (!storage.targetlevel) storage.targetlevel = session.targetlevel;
         if (!storage.profilename) storage.profilename = session.profilename;
         if (typeof storage.filter_strength == 'undefined') storage.filter_strength = true;
-        if (typeof storage.filter_timeworn == 'undefined') storage.filter_timeworn = true;
         if (typeof storage.filter_bear == 'undefined') storage.filter_bear = true;
         if (typeof storage.filter_tiger == 'undefined') storage.filter_tiger = true;
         if (typeof storage.filter_green == 'undefined') storage.filter_green = true;
@@ -867,7 +869,6 @@ SIM.UI = {
         globalThis.profilename = storage.profilename;
         globalThis.filter_strength = storage.filter_strength;
         globalThis.filter_bear = storage.filter_bear;
-        globalThis.filter_timeworn = storage.filter_timeworn;
         globalThis.filter_tiger = storage.filter_tiger;
         globalThis.filter_green = storage.filter_green;
         globalThis.filter_blue = storage.filter_blue;
@@ -894,6 +895,9 @@ SIM.UI = {
         }
 
         updateGlobals({
+            mode,
+            level: storage.level,
+            talentSchema: storage.talentSchema,
             talents: !storage.talents ? session.talents : storage.talents,
             buffs: !storage.buffs ? session.buffs : storage.buffs,
             rotation: !storage.rotation ? session.rotation : storage.rotation,
@@ -977,19 +981,13 @@ SIM.UI = {
                 (globalThis.filter_bear === false && item.name.toLowerCase().indexOf('of the bear') > -1) ||
                 (globalThis.filter_green === false && item.q == "2") ||
                 (globalThis.filter_blue === false && item.q == "3") ||
-                (globalThis.filter_epic === false && item.q == "4") ||
-                (globalThis.filter_timeworn === false && item.tw))) {
-                    if (globalThis.filter_timeworn === true && item.tw) {
-                        // show item
-                    }
-                    else {
-                        continue;
-                    }
+                (globalThis.filter_epic === false && item.q == "4"))) {
+                continue;
             }
 
             if (filter) {
                 if (filter == "All") {
-                    if (type == "offhand" && (storage.buffs.includes("71"))) { // Glad & Def Stance
+                    if (type == "offhand" && (storage.buffs.includes("71"))) { // Defensive Stance
                         if (item.type !== "Shield") continue;
                     }
                     else if (item.type == "Shield") continue;
@@ -1024,10 +1022,6 @@ SIM.UI = {
 
             let tooltip = item.id.toString().split('|')[0], rand = '';
             if (tooltip == 199211) tooltip = 19921;
-            if (tooltip == 23000399) tooltip = 230003;
-            if (tooltip == 22839799) tooltip = 228397;
-            if (tooltip == 22835099) tooltip = 228350;
-            if (tooltip == 23024299) tooltip = 230242;
             if (item.rand) rand = '?rand=' + item.rand;
 
             let resist = '';
@@ -1067,7 +1061,6 @@ SIM.UI = {
         view.tcontainer.append(`<div class="topgear">
             <div class="search"><input name="search" placeholder="Search" />${searchSVG}</div>
             <div class="filters">
-                <label id="filter_timeworn" class="${globalThis.filter_timeworn ? 'active' : ''}">Timeworn</label>
                 <label id="filter_strength" class="${globalThis.filter_strength ? 'active' : ''}">Of Strength</label>
                 <label id="filter_bear" class="${globalThis.filter_bear ? 'active' : ''}">Of the Bear</label>
                 <label id="filter_tiger" class="${globalThis.filter_tiger ? 'active' : ''}">Of the Tiger</label>
@@ -1150,14 +1143,8 @@ SIM.UI = {
                 (globalThis.filter_bear === false && item.name.toLowerCase().indexOf('of the bear') > -1) ||
                 (globalThis.filter_green === false && item.q == "2") ||
                 (globalThis.filter_blue === false && item.q == "3") ||
-                (globalThis.filter_epic === false && item.q == "4") ||
-                (globalThis.filter_timeworn === false && item.tw))) {
-                    if (globalThis.filter_timeworn === true && item.tw) {
-                        // show item
-                    }
-                    else {
-                        continue;
-                    }
+                (globalThis.filter_epic === false && item.q == "4"))) {
+                continue;
             }
 
             let source = (item.source || "").toLowerCase(), phase = item.phase;
@@ -1187,9 +1174,7 @@ SIM.UI = {
             let tooltip = item.id.toString().split('|')[0], rand = '';
             if (tooltip == 145541) tooltip = 14554;
             if (tooltip == 198981) tooltip = 19898;
-            if (tooltip == 2207381) tooltip = 220738;
 
-            
             if (item.rand) rand = '?rand=' + item.rand;
 
             let resist = '';
@@ -1226,7 +1211,6 @@ SIM.UI = {
         view.tcontainer.append(`<div class="topgear">
             <div class="search"><input name="search" placeholder="Search" />${searchSVG}</div>
             <div class="filters">
-                <label id="filter_timeworn" class="${globalThis.filter_timeworn ? 'active' : ''}">Timeworn</label>
                 <label id="filter_strength" class="${globalThis.filter_strength ? 'active' : ''}">Of Strength</label>
                 <label id="filter_bear" class="${globalThis.filter_bear ? 'active' : ''}">Of the Bear</label>
                 <label id="filter_tiger" class="${globalThis.filter_tiger ? 'active' : ''}">Of the Tiger</label>
@@ -1422,7 +1406,6 @@ SIM.UI = {
         $('.modal .btn-close').click(function() {
             $('.modal').hide();
         });
-        
 
     },
 

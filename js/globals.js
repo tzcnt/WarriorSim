@@ -26,6 +26,7 @@ function getGlobalsDelta() {
         talents: talents.map((tree) => {
             return {
                 t: tree.t.map((talent) => talent.c),
+                ...(globalThis.mode === 'forever' ? {keys: tree.t.map(t => t.forever.key)} : {}),
             };
         }),
         buffs: buffs
@@ -35,13 +36,17 @@ function getGlobalsDelta() {
         gear: _gear,
         enchant: _enchant,
         mode: globalThis.mode,
+        talentSchema: globalThis.mode === 'forever' ? FOREVER_TALENT_SCHEMA : undefined,
     }
 }
 
 function updateGlobals(params) {
-    for (let tree in params.talents)
-        for (let talent in params.talents[tree].t)
-            talents[tree].t[talent].c = params.talents[tree].t[talent];
+    if (typeof selectTalentRules === 'function') selectTalentRules(params.mode || (typeof mode !== 'undefined' ? mode : 'classic'));
+    const selected = typeof talentsForever !== 'undefined' && talents === talentsForever ?
+        normalizeForeverTalents(params.talents, params.talentSchema, params.level || 60) : params.talents;
+    for (let tree in talents)
+        for (let index in talents[tree].t)
+            talents[tree].t[index].c = selected?.[tree]?.t[index] || 0;
 
     for (let j of buffs) j.active = false;
     for (let i of params.buffs)

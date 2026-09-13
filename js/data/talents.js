@@ -264,6 +264,7 @@ var talents = [
          {
             i: 133,
             n: 'Sweeping Strikes',
+            enable: 12292,
             m: 1,
             s: [
                12292
