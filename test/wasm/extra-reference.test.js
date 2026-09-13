@@ -12,6 +12,10 @@ const {
 for (const fixture of extraFixtures()) {
     test(`${fixture.name}: JavaScript reproducibility and partitions`, () => {
         const expected = runReference(fixture);
+        if (fixture.name.endsWith('sword-proc-fight-reset')) {
+            assert.equal(expected.player.mh.data.reduce((sum, count) => sum + count, 0),
+                fixture.sim.iterations * 2, 'each fight gets one opening swing and exactly one sword extra attack');
+        }
         assertNativeReports(runReference(fixture), expected, fixture.name);
         const partitions = fixture.sim.iterations === 3 ? [1, 2] : [1, 4, fixture.sim.iterations - 5];
         assertNativeReports(runPartitioned(fixture, partitions), expected, fixture.name);

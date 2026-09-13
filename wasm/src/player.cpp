@@ -98,7 +98,7 @@ void activateProcReference(PlayerState& player, ProcState& proc) {
 } // namespace
 
 void PlayerState::reset(double startingRage) {
-    if (foreverMode) swordspecstep = -1;
+    swordspecstep = -1;
     rage = foreverMode ? std::min(startingRage, prop("ragecap"_prop, 100)) : startingRage;
     bloodthrilltimer = 0;
     props.set("mounted"_prop, target.props.string("creaturetype"_prop) == "Mounted");

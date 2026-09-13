@@ -612,7 +612,7 @@ class Player {
         this.base.skill_3 += this.mh.twohand ? this.base.skill_23 : this.base.skill_13;
     }
     reset(rage) {
-        if (this.mode === "forever") this.swordspecstep = -1;
+        this.swordspecstep = -1;
         this.mounted = this.target?.creaturetype === "Mounted";
         this.rage = this.mode === 'forever' ? Math.min(rage, this.ragecap) : rage;
         this.bloodthrilltimer = 0;
