@@ -28,6 +28,9 @@ if (-not (Test-Path -LiteralPath $terser)) {
     throw 'Terser was not found in the Emscripten SDK dependencies'
 }
 
+& $node (Join-Path $repoRoot 'node_modules\gulp\bin\gulp.js') --cwd $repoRoot static
+if ($LASTEXITCODE -ne 0) { throw 'Static asset build failed; run npm ci before building' }
+
 # Keep header indices in sync before compiling; reusing WASM must not change them.
 $keyArgs = @()
 if ($SkipWasmBuild) { $keyArgs += '--check' }
@@ -76,8 +79,9 @@ $wasmOut = Join-Path $repoRoot 'dist\wasm'
 New-Item -ItemType Directory -Force $wasmOut | Out-Null
 Copy-Item -LiteralPath (Join-Path $repoRoot 'wasm\dist\warriorsim.js') -Destination $wasmOut -Force
 Copy-Item -LiteralPath (Join-Path $repoRoot 'wasm\dist\warriorsim.wasm') -Destination $wasmOut -Force
+Copy-Item -LiteralPath (Join-Path $repoRoot 'wasm\package.json') -Destination $wasmOut -Force
 
 & $node (Join-Path $repoRoot 'scripts\compute-build.js')
 if ($LASTEXITCODE -ne 0) { throw 'Compute build identity generation failed' }
 
-Write-Host "Built JavaScript and WASM distribution assets in $($repoRoot)\dist"
+Write-Host "Built CSS, static assets, JavaScript, and WASM in $($repoRoot)\dist"

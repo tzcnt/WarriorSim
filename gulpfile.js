@@ -10,6 +10,12 @@ var childProcess = require('child_process');
 
 const libFiles = ['js/**/*.js', ...(fs.existsSync('lib') ? ['lib/*.mjs'] : [])];
 
+gulp.task("assets", function () {
+    return gulp
+        .src("assets/**/*", { encoding: false })
+        .pipe(gulp.dest("dist"));
+});
+
 gulp.task("js", function () {
     return gulp
         .src(libFiles)
@@ -47,6 +53,8 @@ gulp.task("sass", function () {
         .pipe(gulp.dest("dist/css"));
 });
 
+gulp.task("static", gulp.series(["assets", "sass"]));
+
 gulp.task("browser", function () {
     browser.init({
         server: {
@@ -57,4 +65,4 @@ gulp.task("browser", function () {
     gulp.watch("js/**/*.js", gulp.series(["js"]));
 });
 
-gulp.task("default", gulp.series(["sass", "js", "browser"]));
+gulp.task("default", gulp.series(["static", "js", "browser"]));

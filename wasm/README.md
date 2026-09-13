@@ -4,7 +4,10 @@ JavaScript constructs the player from this repository's unchanged Classic Era/Wo
 
 ## Build
 
-Run `./build-dist.sh` or `./build-dist.ps1` to do a complete rebuild of the deployment assets.
+After installing dependencies with `npm ci`, run `./build-dist.sh` (Linux/macOS)
+or `.\build-dist.bat` (Windows) from the repository root to rebuild all deployment
+assets. `dist/` is generated locally and is not tracked. See the
+[setup guide](../CONTRIBUTING.md) for prerequisites.
 
 This includes sub-calls to `scripts/generate-native-keys.js` and `./wasm/build.ps1` or `./wasm/build.sh`.
 

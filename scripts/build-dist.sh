@@ -50,6 +50,11 @@ if [ ! -f "$terser" ]; then
     exit 1
 fi
 
+if ! "$node" "$repoRoot/node_modules/gulp/bin/gulp.js" --cwd "$repoRoot" static; then
+    echo "Static asset build failed; run npm ci before building" >&2
+    exit 1
+fi
+
 # Keep header indices in sync before compiling; reusing WASM must not change them.
 keyArgs=("$scriptRoot/generate-native-keys.js")
 if [ "$skipWasmBuild" -ne 0 ]; then keyArgs+=(--check); fi
@@ -71,7 +76,7 @@ while IFS= read -r resolvedSource; do
         *) echo "JavaScript source is outside the repository source directory: $resolvedSource" >&2; exit 1 ;;
     esac
     relative="${resolvedSource#"$sourceRoot"/}"
-    # Vendored libraries ship pre-minified and are copied into dist/js by hand.
+    # Vendored libraries are copied from assets/js by Gulp's static task.
     case "$relative" in
         libs/*|vendor/*) continue ;;
     esac
@@ -93,10 +98,11 @@ wasmOut="$repoRoot/dist/wasm"
 mkdir -p "$wasmOut"
 cp -f "$repoRoot/wasm/dist/warriorsim.js" "$wasmOut/warriorsim.js"
 cp -f "$repoRoot/wasm/dist/warriorsim.wasm" "$wasmOut/warriorsim.wasm"
+cp -f "$repoRoot/wasm/package.json" "$wasmOut/package.json"
 
 if ! "$node" "$repoRoot/scripts/compute-build.js"; then
     echo "Compute build identity generation failed" >&2
     exit 1
 fi
 
-echo "Built JavaScript and WASM distribution assets in $repoRoot/dist"
+echo "Built CSS, static assets, JavaScript, and WASM in $repoRoot/dist"

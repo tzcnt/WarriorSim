@@ -6,7 +6,10 @@ https://fleetcode.com/WarriorSim/
 
 ## Self-hosting and Contributing
 
-[See here.](CONTRIBUTING.md)
+`dist/` is generated locally and is not tracked in Git. Install Node.js and the
+Emscripten SDK, run `npm ci`, then build with `./build-dist.sh` (Linux/macOS) or
+`.\build-dist.bat` (Windows) before serving the site. Rebuild after pulling updates.
+See [the setup guide](CONTRIBUTING.md) for details.
 
 Simulations run in WebAssembly, with a separate native engine in each browser worker.
 Classic Era (`classic.html`) and WoW Forever (`index.html`) keep their existing

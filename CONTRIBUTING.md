@@ -6,17 +6,23 @@ combat batches without JavaScript event callbacks or a JavaScript fallback.
 
 ## Build the browser assets
 
+`dist/` is generated output and is not tracked in Git. Build it on your machine
+after cloning and rebuild after pulling source changes. Do not commit generated
+JavaScript, CSS, WASM, or bundle manifests.
+
 Install a current Node.js runtime and the Emscripten SDK. Activate Emscripten in your
 shell, set `EMSDK` to its root, or put the SDK at `../emsdk` beside this repository.
-On Windows, run:
+From the repository root on Windows, run:
 
 ```powershell
-npm run dist
+npm ci
+.\build-dist.bat
 ```
 
 On Linux or macOS, run the shell equivalent:
 
 ```sh
+npm ci
 ./build-dist.sh
 ```
 
@@ -28,16 +34,17 @@ Emscripten glue on both platforms; the `.wasm` differs only in the path separato
 of source paths embedded in libc++abi assertion strings, which leaves the code
 section identical but does change the `buildId`.
 
-This builds the native Release module and minifies all application JavaScript with
-Emscripten's bundled Terser. Class and function names are preserved because action
-serialization uses constructor names. It writes both tabs' application
+This compiles `scss/style.scss`, copies the vendored libraries, theme, and images
+from `assets/`, builds the native Release module, and minifies all application
+JavaScript with Emscripten's bundled Terser. Class and function names are preserved
+because action serialization uses constructor names. It writes both tabs' application
 assets once, under `dist/js` and `dist/wasm`, then generates `dist/compute-build.json`
 with hashes of those files. Builds update these assets in place and remove the
 legacy duplicate `dist/bundle/` and `dist/bundle.tmp/` directories. Keep the resulting
-`dist/js`, `dist/wasm`, and manifest together after validating them. The checked-in
-CSS remains usable.
+`dist/` directory together after validating it, and include it when deploying the
+site. Edit `js/`, `scss/`, or `assets/` instead of generated files in `dist/`.
 Use `npm run wasm` (or `./wasm/build.sh`) to rebuild only the native module, or
-`powershell -NoProfile -File scripts/build-dist.ps1 -SkipWasmBuild` /
+`.\build-dist.bat -SkipWasmBuild` /
 `./build-dist.sh --skip-wasm-build` to reuse a native build that already matches the
 current source. Never publish mismatched JS/WASM assets. `dist/wasm/package.json`
 marks the deployed Emscripten glue as an ES module so Node can `import()` it; without
@@ -93,10 +100,9 @@ This preserves RNG assignment when the worker count changes; legacy proc timesta
 can still couple combat history across fights. See the native engine guide for
 these retained reset semantics and the scope of partition parity checks.
 
-## Optional CSS and legacy development server
+## CSS and development server
 
-The existing Gulp workflow requires the legacy `gulp-sass`/Node Sass toolchain.
-Install the project dependencies with a compatible Node version if changing SCSS,
-then use `npm run build:css` (CSS only), `npm run dist:full` (CSS plus JS/WASM), or
-`npm run dev` (Gulp development server). Build the WASM module before starting the
-legacy development server; its JavaScript watcher does not compile native changes.
+The Gulp workflow uses Dart Sass from the project dependencies installed by
+`npm ci`. Use `npm run build:css` to rebuild only CSS, or `npm run dev` to start
+the Gulp development server. Run a full distribution build before starting the
+development server; its JavaScript watcher does not compile native changes.
