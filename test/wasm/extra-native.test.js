@@ -29,7 +29,7 @@ for (const fixture of extraFixtures()) {
     });
 }
 
-for (const mode of ['classic', 'sod']) test(`${mode}: deployed worker and actual WASM ABI preserve full reports across batches`, async () => {
+for (const mode of ['classic', 'forever']) test(`${mode}: deployed worker and actual WASM ABI preserve full reports across batches`, async () => {
     const path = require('node:path');
     const {pathToFileURL} = require('node:url');
     const assert = require('node:assert/strict');
@@ -43,7 +43,7 @@ for (const mode of ['classic', 'sod']) test(`${mode}: deployed worker and actual
     const worker = createWorkerHarness(actualModule);
     await worker.run({
         player: [null, null, null, {...fixture.player, mode}],
-        globals: {...createState(engine, fixture), sod: mode === 'sod'},
+        globals: {...createState(engine, fixture), mode},
         sim, fullReport: true, batchSize: 3,
     });
     assert.equal(worker.messages.length, 3, 'two progress messages and one final report');

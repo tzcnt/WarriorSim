@@ -486,7 +486,6 @@ struct PlayerState {
     bool freeslam = false;
     bool freeshieldslam = false;
     bool turtleMode = false;
-    bool sodMode = false;
     std::string stance;
 
     [[nodiscard]] SpellState* spell(std::string_view key);

@@ -748,7 +748,6 @@ double PlayerState::procAttack(SpellState* ability, WeaponState& weapon, Result 
     if (ability && ability->kind == SpellKind::ThunderClap) return 0;
     if (ability && ability->kind == SpellKind::ShieldSlam) {
         if (result != Result::Miss && result != Result::Dodge) {
-            if (sodMode) if (auto* value = aura("defendersresolve"_action)) auraUse(*this, *value);
             if (weapon.windfuryAura != kNoRef && !auras[weapon.windfuryAura].timer && !damageSoFar && rng.tenK() < 2000)
                 auraUse(*this, auras[weapon.windfuryAura]);
         }

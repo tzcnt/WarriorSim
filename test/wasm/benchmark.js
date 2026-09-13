@@ -18,8 +18,7 @@ if (!Number.isInteger(requestedIterations) || requestedIterations < 1 ||
 
 const benchmarkNames = new Set([
     'classic-dw-fury',
-    'sod-default-twohand',
-    'sod-twohand-runes',
+    'forever-dw-fury',
     'classic-adjacent-cleave',
     'classic-twohand-proc-slam',
 ]);
@@ -98,11 +97,11 @@ async function main() {
 
     const shipped = loadFixtures().filter(value => benchmarkNames.has(value.name));
     const productionBase = shipped.find(value => value.name === 'classic-dw-fury');
-    const sodBase = shipped.find(value => value.name === 'sod-default-twohand');
+    const foreverBase = shipped.find(value => value.name === 'forever-dw-fury');
     const fixtures = [...shipped, {
-        ...sodBase,
-        name: 'sod-twohand-production-90-120s',
-        sim: {...sodBase.sim, timesecsmin: 90, timesecsmax: 120},
+        ...foreverBase,
+        name: 'forever-dw-production-90-120s',
+        sim: {...foreverBase.sim, timesecsmin: 90, timesecsmax: 120},
     }, {
         ...productionBase,
         name: 'classic-dw-production-90-120s',

@@ -56,7 +56,7 @@ function createHarness() {
             },
         },
         getGlobalsDelta() {
-            return {sod: false, testMarker: 42};
+            return {mode: 'classic', testMarker: 42};
         },
     });
     const source = fs.readFileSync(path.join(ROOT, 'js/classes/simulation.js'), 'utf8');
@@ -136,18 +136,17 @@ function createMinifiedContext(fixture, FakeWorker, includeSession) {
         clearTimeout,
         Worker: FakeWorker,
         crypto: {getRandomValues(array) { array[0] = 0xdecafbad; return array; }},
-        window: {location: {href: fixture.mode === 'sod' ? 'index.html' : 'classic.html'}},
+        window: {location: {href: fixture.mode === 'classic' ? 'classic.html' : 'index.html'}},
         mode: fixture.mode,
         $: jqueryConfigStub(values),
     });
     const sources = [
-        fixture.mode === 'sod' ? 'data/gear_sod.min.js' : 'data/gear.min.js',
+        fixture.mode === 'classic' ? 'data/gear.min.js' : 'data/gear_forever.min.js',
         'data/enchants.min.js',
         'data/talents.min.js',
         'data/spells.min.js',
         'data/buffs.min.js',
-        ...(fixture.mode === 'sod' ? ['data/runes.min.js'] : []),
-        ...(includeSession ? [fixture.mode === 'sod' ? 'data/session_sod.min.js' : 'data/session.min.js'] : []),
+        ...(includeSession ? [fixture.mode === 'classic' ? 'data/session.min.js' : 'data/session_forever.min.js'] : []),
         'data/levelstats.min.js',
         'classes/player.min.js',
         'classes/simulation.min.js',
@@ -167,7 +166,6 @@ function createMinifiedContext(fixture, FakeWorker, includeSession) {
                 rotation: session.rotation,
                 gear: session.gear,
                 enchant: session.enchant,
-                runes: session.runes || {},
                 resistances: session.resistance || {},
             };
         },
@@ -183,7 +181,7 @@ function createMinifiedContext(fixture, FakeWorker, includeSession) {
             return player.serializeSimulationSpec(request.sim);
         },
         sharedSpec(request) { return resolveSharedSimulationSpec(request); },
-        catalogs() { return JSON.stringify({spells, buffs, gear, runes: globalThis.runes}); },
+        catalogs() { return JSON.stringify({spells, buffs, gear}); },
     };`, context);
     return context;
 }
@@ -243,7 +241,7 @@ test('direct workers generate and forward one normalized seed without mutating i
     assert.equal(nativeRequest.sim.seed, 0xdecafbad);
     assert.equal(nativeRequest.sim.iterationOffset, 0);
     assert.equal(nativeRequest.sim.iterations, 3);
-    assert.deepEqual(plain(nativeRequest.globals), {sod: false, testMarker: 42});
+    assert.deepEqual(plain(nativeRequest.globals), {mode: 'classic', testMarker: 42});
     assert.equal(input.sim.seed, undefined);
     assert.equal(input.sim.iterationOffset, undefined);
 
@@ -254,7 +252,7 @@ test('direct workers generate and forward one normalized seed without mutating i
     assert.equal(FakeWorker.instances[0].terminateCount, 1);
 });
 
-for (const mode of ['classic', 'sod']) test(`deployed minified ${mode} setup preserves page mode and worker execution spec`, () => {
+for (const mode of ['classic', 'forever']) test(`deployed minified ${mode} setup preserves page mode and worker execution spec`, () => {
     class FakeWorker {
         static instances = [];
         constructor(url) { this.url = url; this.messages = []; FakeWorker.instances.push(this); }
@@ -276,7 +274,7 @@ for (const mode of ['classic', 'sod']) test(`deployed minified ${mode} setup pre
     const request = plain(FakeWorker.instances[0].messages[0]);
     assert.equal(FakeWorker.instances[0].url, './dist/js/sim-worker.min.js');
     assert.equal(request.player[3].mode, mode);
-    assert.equal(request.globals.sod, mode === 'sod');
+    assert.equal(request.globals.mode, mode);
 
     const worker = createMinifiedContext(fixture, FakeWorker, false);
     worker.__request = request;
@@ -429,7 +427,7 @@ test('built worker and all importScripts dependencies evaluate in one worker glo
     assert.equal(typeof context.self.onmessage, 'function');
 });
 
-for (const source of [true, false]) for (const mode of ['classic','sod']) test(`${source ? 'source' : 'dist'} worker executes ${mode} rule loading and uneven native batch route`,async()=>{
+for (const source of [true, false]) for (const mode of ['classic','forever']) test(`${source ? 'source' : 'dist'} worker executes ${mode} rule loading and uneven native batch route`,async()=>{
  const fixture=loadFixtures().find(f=>f.mode===mode),context=evaluateBuiltWorker(source);
  const engine=createReferenceEngine(mode),calls=[],messages=[];let destroyed=0;
  context.postMessage=value=>messages.push(plain(value));
@@ -439,17 +437,17 @@ for (const source of [true, false]) for (const mode of ['classic','sod']) test(`
   destroyEngine(handle){assert.equal(handle,7);destroyed++;},
  };
  vm.runInContext('loadWarriorSim = async () => globalThis.__native; globalThis.__run = run;',context);
- await context.__run({player:[null,null,null,{...fixture.player,mode}],sim:{...fixture.sim,iterations:5,iterationOffset:11},globals:{...createState(engine,fixture),sod:mode==='sod'},fullReport:true,batchSize:2});
+ await context.__run({player:[null,null,null,{...fixture.player,mode}],sim:{...fixture.sim,iterations:5,iterationOffset:11},globals:{...createState(engine,fixture),mode},fullReport:true,batchSize:2});
  assert.deepEqual(calls,[[2,11],[2,13],[1,15]]);assert.equal(destroyed,1);
  const final=messages.at(-1)[1];assert.equal(final.iterations,5);assert.ok(final.player.mh.totaldmg>0);
 });
 
-for (const mode of ['classic', 'sod']) test(`${mode} shared stat weights and item rows preserve page catalogs and match real local WASM`, {timeout: 20000}, async t => {
+for (const mode of ['classic', 'forever']) test(`${mode} shared stat weights and item rows preserve page catalogs and match real local WASM`, {timeout: 20000}, async t => {
     const {deployedWorkers, request: execute} = require('../compute/worker-harness');
     const {Worker, url} = deployedWorkers();
     t.after(() => Promise.all(Worker.all.map(worker => worker.terminate())));
     const fixture = structuredClone(loadFixtures().find(value =>
-        value.name === (mode === 'sod' ? 'sod-dw-runes' : 'classic-dw-fury')));
+        value.name === (mode === 'classic' ? 'classic-dw-fury' : 'forever-dw-fury')));
     fixture.buffsAdd = [...fixture.buffsAdd || [], 20906];
     fixture.rotation = {...fixture.rotation, 20130: {active: false, timetoendactive: false, timetostartactive: false}};
     const state = createState(createReferenceEngine(mode), fixture);
@@ -465,7 +463,7 @@ for (const mode of ['classic', 'sod']) test(`${mode} shared stat weights and ite
         ['item row', [20130, 'trinket1', 0]], ['base after item', [null, null, null]],
     ]) {
         const input = {player: [...args, {...plain(fixture.player), mode}], sim: plain(sim),
-            globals: {...plain(state), sod: mode === 'sod'}, fullReport: true};
+            globals: {...plain(state), mode}, fullReport: true};
         const before = JSON.stringify(input);
         const spec = plain(page.__minifiedApi.sharedSpec(input));
         assert.equal(JSON.stringify(input), before, `${name}: caller configuration is immutable`);

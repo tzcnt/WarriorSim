@@ -1,6 +1,6 @@
 # Shared compute coordinator
 
-Classic (`classic.html`) and Season of Discovery (`index.html`) share one
+Classic Era (`classic.html`) and WoW Forever (`index.html`) share one
 coordinator and application bundle. The resolved simulation spec selects the
 game mode; each bundle hash forms its own isolated participant pool.
 
@@ -100,7 +100,7 @@ shown, with the `files` list sorted lexically by path:
   format: 2,
   protocol: 3,
   specVersion: 1,
-  entrypoints: { classic: [ordered script paths], sod: [ordered script paths] },
+  entrypoints: { classic: [ordered script paths], forever: [ordered script paths] },
   files: [{ path: "js/...", sha256: "SHA-256 of that file's exact bytes" }, ...]
 }
 ```
@@ -432,7 +432,7 @@ and displayed `Connecting · simulations run locally`, confirming browser fallba
 when the coordinator is unavailable.
 
 For a local browser preview, run `npm run compute:dev` and open
-`http://127.0.0.1:8787/index.html` (SoD) or
-`http://127.0.0.1:8787/classic.html` (Classic) in two tabs. Enable sharing in both,
+`http://127.0.0.1:8787/index.html` (WoW Forever) or
+`http://127.0.0.1:8787/classic.html` (Classic Era) in two tabs. Enable sharing in both,
 then start a simulation in one. This development server serves only site assets, binds to
 loopback, and disables caching. Use the HTTPS proxy setup above for deployment.

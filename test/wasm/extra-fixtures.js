@@ -27,21 +27,15 @@ function extraFixtures() {
     suppression.player.target.level = 66;
     suppression.player.target.defense = 330;
 
-    const long = base('sod-default-twohand');
-    long.name = 'sod-long-on-use-orc';
+    const long = base('classic-dw-fury');
+    long.name = 'classic-long-on-use-orc';
     long.player.race = 'Orc';
     long.sim = {...long.sim, timesecsmin: 190, timesecsmax: 191, iterations: 3};
+    long.gear = {trinket1: [20130], trinket2: []};
     long.rotation = {
         20572: {active: true, timetostartactive: true, timetostart: 0},
         20130: {timetostartactive: true, timetostart: 0},
     };
-
-    const timeworn = base('sod-dw-runes');
-    timeworn.name = 'sod-timeworn-dodge';
-    Object.assign(timeworn.gear, {
-        finger1: [234034], finger2: [234035], head: [233522],
-        shoulder: [233496], chest: [233516],
-    });
 
     const trinkets = base('classic-dw-fury');
     trinkets.name = 'classic-long-slayer-spider';
@@ -87,7 +81,7 @@ function extraFixtures() {
     };
 
     return [
-        heroic, cleave, phantom, suppression, long, timeworn, trinkets,
+        heroic, cleave, phantom, suppression, long, trinkets,
         earthstrike, priority, clocks, gabbar, hamstring, ...bloodrageCases, ...stanceCases,
         ...aliasCases, orderedProcs, spicyDynamicProcs,
     ];

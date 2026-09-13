@@ -1,6 +1,6 @@
-# Native Classic and Season of Discovery simulation engine
+# Native Classic Era and WoW Forever simulation engine
 
-JavaScript constructs the player from this repository's unchanged Classic/SoD catalogs and serializes the resolved configuration once per worker. C++ owns the entire combat loop, RNG, attacks, spells, auras, procs, and report accumulation; there are no per-event JavaScript callbacks.
+JavaScript constructs the player from this repository's unchanged Classic Era/WoW Forever catalogs and serializes the resolved configuration once per worker. C++ owns the entire combat loop, RNG, attacks, spells, auras, procs, and report accumulation; there are no per-event JavaScript callbacks.
 
 ## Build
 
@@ -15,7 +15,7 @@ Each iteration uses Mulberry32 seeded by `seed + imul(globalIteration, 0x9e3779b
 ## Shared execution
 
 The optional [compute coordinator](../server/README.md) distributes resolved
-Classic or SoD execution specs to opted-in helpers running the same bundle hash.
+Classic Era or WoW Forever execution specs to opted-in helpers running the same bundle hash.
 A shared worker needs only its fixed worker code, WASM loader, and binary; it
 receives the complete resolved spec with the job. It never downloads executable
 code supplied by another participant. Each tab preloads and retains every manifest

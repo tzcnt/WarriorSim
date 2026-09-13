@@ -17,18 +17,13 @@ for (const fixture of extraFixtures()) {
         assertNativeReports(runPartitioned(fixture, partitions), expected, fixture.name);
         assert.ok(expected.totaldmg > 0);
         if (fixture.name.includes('phantom')) assert.ok(expected.player.mh.totalprocdmg > 0);
-        if (fixture.name.includes('timeworn')) {
-            const player = createConfiguredPlayer(createReferenceEngine(fixture.mode), fixture);
-            assert.ok(player.timeworn >= 3);
-            assert.ok(player.dodgetimeworn >= 3);
-        }
         for (const [key, duration] of Object.entries({slayer: 20000, spider: 15000, earthstrike: 20000})) {
             if (expected.player.auras[key]) {
                 assert.equal(expected.player.auras[key].uptime, duration * fixture.sim.iterations,
                     `${key} must expire after exactly one use per long fight`);
             }
         }
-        if (fixture.name === 'sod-long-on-use-orc') {
+        if (fixture.name === 'classic-long-on-use-orc') {
             assert.equal(expected.player.auras.bloodfury.uptime, 15000 * fixture.sim.iterations);
             assert.equal(expected.player.auras.flask.uptime, 60000 * fixture.sim.iterations);
         }

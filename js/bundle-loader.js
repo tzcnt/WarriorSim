@@ -25,7 +25,7 @@
         const byPath = new Map(files.map(file => [file.path, file.sha256]));
         if (byPath.size !== files.length) throw new Error('Duplicate simulation asset');
         const entrypoints = {};
-        for (const mode of ['classic', 'sod']) {
+        for (const mode of ['classic', 'forever']) {
             const list = manifest.entrypoints[mode];
             if (!Array.isArray(list) || !list.length || list.length > 128 ||
                 !list.every(file => byPath.has(file) && file.startsWith('js/'))) throw new Error('Invalid entrypoint');

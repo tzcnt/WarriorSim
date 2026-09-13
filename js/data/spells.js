@@ -814,25 +814,6 @@ var spells = [
     expriority: 0,
 },
 
-// Shockwave
-{
-    id: 440488,
-    name: 'Shockwave',
-    classname: 'Shockwave',
-    iconname: 'ability_warrior_shockwave',
-    minrage: 50,
-    minrageactive: false,
-    maxrage: 25,
-    maxrageactive: false,
-    maincd: 2,
-    maincdactive: false,
-    minlevel: 1,
-    active: false,
-    rune: true,
-    priority: 7,
-    expriority: 0,
-},
-
 // Bloodthirst
 {
     id: 23894,
@@ -1061,24 +1042,6 @@ var spells = [
     buff: true,
 },
 
-// Rejuv Potion
-{
-    id: 435973,
-    name: 'Mildly Irradiated Rejuvenation Potion',
-    classname: 'MildlyIrradiated',
-    iconname: 'inv_alchemy_elixir_03',
-    minlevel: 35,
-    maxlevel: 59,
-    timetoend: 16,
-    timetoendactive: false,
-    timetostart: 0,
-    timetostartactive: false,
-    active: true,
-    aura: true,
-    buff: true,
-    sod: true,
-},
-
 // Berserking
 {
     id: 26296,
@@ -1181,69 +1144,6 @@ var spells = [
     active: false,
     priority: 10,
     expriority: 10,
-},
-
-// Runes
-{
-    id: 402911,
-    name: 'Raging Blow',
-    classname: 'RagingBlow',
-    iconname: 'ability_hunter_swiftstrike',
-    rune: true,
-    priority: 4,
-    expriority: 0,
-},
-{
-    id: 425418,
-    name: 'Consumed by Rage',
-    classname: 'ConsumedRage',
-    iconname: 'spell_nature_shamanrage',
-    procblock: true,
-    rageblock: 70,
-    rageblockactive: true,
-    chargeblock: 4,
-    chargeblockactive: false,
-    erageblock: 80,
-    erageblockactive: false,
-    echargeblock: 4,
-    echargeblockactive: false,
-    aura: true,
-    buff: true,
-    rune: true,
-},
-{
-    id: 402927,
-    name: 'Victory Rush',
-    classname: 'VictoryRush',
-    iconname: 'ability_warrior_devastate',
-    rune: true,
-},
-{
-    id: 429765,
-    name: 'Quick Strike',
-    classname: 'QuickStrike',
-    iconname: 'inv_axe_03',
-    minrage: 0,
-    minrageactive: true,
-    maincd: 2,
-    maincdactive: false,
-    rune: true,
-    priority: 1,
-    expriority: 0,
-},
-{
-    id: 427070,
-    name: 'Rampage',
-    classname: 'Rampage',
-    iconname: 'ability_warrior_rampage',
-    timetoend: 31,
-    timetoendactive: false,
-    timetostart: 0,
-    timetostartactive: true,
-    active: false,
-    rune: true,
-    buff: true,
-    aura: true,
 },
 
 // Items

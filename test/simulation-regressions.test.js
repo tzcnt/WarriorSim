@@ -272,7 +272,7 @@ test('new players initialize the shared Shield Slam proc flag', () => {
 test('an unused Sword and Board proc cannot pay for Shield Slam in the next fight', () => {
     const api = loadSimulation(true);
     const player = createPlayer(api);
-    // This flag belongs to the shared SoD path; its reset does not enable a rune in Classic.
+    // Resetting the flag must not hand the next fight a free Shield Slam.
     player.freeshieldslam = true;
     player.reset(50);
     const spell = new api.ShieldSlam(player, 23922);

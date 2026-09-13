@@ -232,9 +232,8 @@ PlayerState readPlayer(const val& value) {
 
     out.rage = out.props.number("rage"_prop);
     const auto mode = out.props.string("mode"_prop);
-    if (mode != "classic" && mode != "sod") throw std::runtime_error("unsupported game mode: " + mode);
+    if (mode != "classic" && mode != "forever") throw std::runtime_error("unsupported game mode: " + mode);
     out.turtleMode = false;
-    out.sodMode = out.props.string("mode"_prop) == "sod";
     out.stance = out.props.string("stance"_prop, out.props.string("basestance"_prop, "battle"));
     out.critdmgbonus = out.props.number("critdmgbonus"_prop);
     out.mainspelldmg = out.props.number("mainspelldmg"_prop, 1);

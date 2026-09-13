@@ -411,7 +411,7 @@ class ThunderClap extends Spell {
     }
     dmg() {
         let dmg;
-        dmg = this.value1 + (this.player.mode == "sod" ? ~~(this.player.stats.ap * 0.05) : 0);
+        dmg = this.value1;
         if(this.player.furiousthunder)
             dmg *= 2;
         return dmg * this.player.stats.dmgmod;
@@ -427,52 +427,6 @@ class ThunderClap extends Spell {
         return !this.timer && !this.player.timer && this.cost <= this.player.rage &&
             (!this.minrage || this.player.rage >= this.minrage) &&
             (this.player.furiousthunder || this.player.isValidStance('battle'));
-    }
-}
-
-class VictoryRush extends Spell {
-    constructor(player, id) {
-        super(player, id, 'Victory Rush');
-        this.cost = 0;
-        this.stacks = 0;
-        this.weaponspell = false;
-    }
-    use() {
-        this.stacks++;
-        this.player.timer = 1500;
-        this.player.rage -= this.cost;
-        this.maxdelay = rng(this.player.reactionmin, this.player.reactionmax);
-    }
-    dmg() {
-        let dmg;
-        dmg = this.player.stats.ap * 0.45;
-        return dmg * this.player.stats.dmgmod;
-    }
-    canUse() {
-        return !this.player.timer && !this.stacks;
-    }
-}
-
-class RagingBlow extends Spell {
-    constructor(player, id) {
-        super(player, id, 'Raging Blow');
-        this.cost = 0;
-        this.cooldown = 8;
-    }
-    dmg() {
-        let dmg;
-        dmg = rng(this.player.mh.mindmg + this.player.mh.bonusdmg, this.player.mh.maxdmg + this.player.mh.bonusdmg);
-        dmg += (this.player.stats.ap / 14) * this.player.mh.normSpeed + this.player.stats.moddmgdone;
-        return dmg * this.player.stats.dmgmod;
-    }
-    canUse() {
-        return !this.timer && !this.player.timer && this.player.isEnraged();
-    }
-    reduce(spell) {
-        // Raging blow cooldown is reduced by 1 second when you use another melee ability while enraged.
-        if (this.timer && this.player.isEnraged() && spell && spell != this && spell.offensive) {
-            this.timer = Math.max(0, this.timer - 1000);
-        }
     }
 }
 
@@ -499,27 +453,6 @@ class BerserkerRage extends Spell {
     canUse() {
         return this.timer == 0 && !this.player.timer &&
             (!this.maxrage || this.player.isValidStance('zerk') || this.player.rage <= this.maxrage);
-    }
-}
-
-class QuickStrike extends Spell {
-    constructor(player, id) {
-        super(player, id, 'Quick Strike');
-        this.cost = 20 - player.talents.impheroicstrike - player.ragecostbonus;
-        this.cooldown = 0;
-    }
-    dmg() {
-        let dmg, mod = 1;
-        dmg = ~~rng(this.player.stats.ap * 0.25, this.player.stats.ap * 0.35) + this.player.stats.moddmgdone;
-        if (this.player.heroicbonus) mod = 1.25;
-        return dmg * this.player.stats.dmgmod * mod;
-    }
-    canUse() {
-        return !this.timer && !this.player.timer && this.cost <= this.player.rage && 
-            ((!this.minrage && !this.maincd) ||
-            (this.minrage && this.player.rage >= this.minrage) ||
-            (this.maincd && this.player.spells.bloodthirst && this.player.spells.bloodthirst.timer >= this.maincd) || 
-            (this.maincd && this.player.spells.mortalstrike && this.player.spells.mortalstrike.timer >= this.maincd));
     }
 }
 
@@ -692,35 +625,6 @@ class ShieldSlam extends Spell {
             && (this.player.freeshieldslam || this.player.rage >= this.minrage)
             && (!this.resolve || (this.player.auras.defendersresolve && !this.player.auras.defendersresolve.timer))
             && (!this.swordboard || this.player.freeshieldslam);
-    }
-}
-
-class Shockwave extends Spell {
-    constructor(player, id) {
-        super(player, id);
-        this.cost = 15 - player.ragecostbonus;
-        this.cooldown = player.shockwavecd ? 10 : 20;
-        this.canDodge = false;
-    }
-    dmg() {
-        let dmg = this.player.stats.ap / 2;
-        return dmg * this.player.stats.dmgmod;
-    }
-    use() {
-        if (!this.player.isValidStance('def')) this.player.switch('def');
-        this.player.timer = 1500;
-        this.player.rage -= this.cost;
-        this.timer = this.cooldown * 1000;
-        this.maxdelay = rng(this.player.reactionmin, this.player.reactionmax);
-    }
-    canUse() {
-        return this.player.shield && !this.timer && !this.player.timer && this.cost <= this.player.rage && 
-        (this.player.isValidStance('def') || this.player.talents.rageretained >= this.cost) &&
-        (!this.maxrage || this.player.isValidStance('def') || this.player.rage <= this.maxrage) &&
-        (!this.minrage || this.player.rage >= this.minrage) &&
-        (!this.maincd || 
-            (this.player.spells.bloodthirst && this.player.spells.bloodthirst.timer >= this.maincd) || 
-            (this.player.spells.mortalstrike && this.player.spells.mortalstrike.timer >= this.maincd));
     }
 }
 
@@ -941,8 +845,8 @@ class Recklessness extends Aura {
     constructor(player, id) {
         super(player, id);
         this.duration = 12;
-        this.stats = { crit: this.player.mode == "sod" ? 50 : 100 };
-        this.cooldown = this.player.mode == "sod" ? 300 : 1800;
+        this.stats = { crit: 100 };
+        this.cooldown = 1800;
     }
     use() {
         if (this.timer) this.uptime += (step - this.starttimer);
@@ -990,72 +894,6 @@ class Flurry extends Aura {
             this.player.updateHaste();
         }
         this.stacks = 3;
-        /* start-log */ if (this.player.logging) this.player.log(`${this.name} applied`); /* end-log */
-    }
-}
-
-class DeepWounds extends Aura {
-    constructor(player, id, adjacent) {
-        super(player, id, 'Deep Wounds' + (adjacent ? ' ' + adjacent : ''));
-        this.duration = 12;
-        this.idmg = 0;
-        this.totaldmg = 0;
-        this.saveddmg = 0;
-        this.ticksleft = 0;
-    }
-    tickdmg(offhand) {
-        let min;
-        let max;
-        if (!offhand) {
-            min = this.player.mh.mindmg + this.player.mh.bonusdmg + this.player.stats.moddmgdone + (this.player.stats.ap / 14) * this.player.mh.speed;
-            max = this.player.mh.maxdmg + this.player.mh.bonusdmg + this.player.stats.moddmgdone + (this.player.stats.ap / 14) * this.player.mh.speed;
-        }
-        else {
-            min = this.player.oh.mindmg + this.player.oh.bonusdmg + this.player.stats.moddmgdone + (this.player.stats.ap / 14) * this.player.oh.speed;
-            max = this.player.oh.maxdmg + this.player.oh.bonusdmg + this.player.stats.moddmgdone + (this.player.stats.ap / 14) * this.player.oh.speed;
-        }
-        let dmg = (min + max) / 2;
-        dmg *= (!offhand ? this.player.mh.modifier : this.player.oh.modifier) * this.player.stats.dmgmod * this.player.talents.deepwounds * this.player.bleedmod; 
-        return dmg;
-    }
-    step() {
-        while (step >= this.nexttick) {
-            this.player.stepauras(true);
-            let dmg = this.saveddmg / this.ticksleft;
-            this.saveddmg -= dmg;
-            //dmg *= this.player.mh.modifier * this.player.stats.dmgmod;
-            this.idmg += dmg;
-            this.totaldmg += dmg;
-            this.ticksleft--;
-
-            /* start-log */ if (this.player.logging) this.player.log(`${this.name} tick for ${dmg.toFixed(2)}`); /* end-log */
-
-            this.nexttick += 3000;
-        }
-
-        if (step >= this.timer) {
-            this.uptime += (this.timer - this.starttimer);
-            this.timer = 0;
-            this.nexttick = 0;
-            this.firstuse = false;
-            this.saveddmg = 0;
-            this.player.updateDmgMod();
-            /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
-        }
-    }
-    use(offhand) {
-        if (this.timer) this.uptime += (step - this.starttimer);
-        this.ticksleft = 4;
-        this.saveddmg += this.tickdmg(offhand);
-        if (!this.nexttick) {
-            this.nexttick = step + 3000;
-            this.timer = step + this.duration * 1000;
-        }
-        else {
-            this.timer = this.nexttick - 3000 + this.duration * 1000;
-        }
-        this.starttimer = step;
-        this.player.updateDmgMod();
         /* start-log */ if (this.player.logging) this.player.log(`${this.name} applied`); /* end-log */
     }
 }
@@ -1654,7 +1492,7 @@ class Earthstrike extends Aura {
     constructor(player, id) {
         super(player, id);
         this.duration = 20;
-        this.stats = { ap: this.player.mode == "sod" ? 328 : 280 };
+        this.stats = { ap: 280 };
     }
     use(a, prepull = 0) {
         this.player.itemtimer = this.duration * 1000 - prepull;
@@ -1673,7 +1511,7 @@ class Gabbar extends Aura {
         super(player, id);
         this.duration = 20;
         this.name = 'Jom Gabbar';
-        this.value = player.mode == "sod" ? 70 : 65;
+        this.value = 65;
         this.stats = { ap: this.value };
     }
     use(a, prepull = 0) {
@@ -1874,28 +1712,6 @@ class BattleShout extends Aura {
     }
     canUse() {
         return !this.timer && !this.player.timer && this.cost <= this.player.rage;
-    }
-}
-
-class ConsumedRage extends Aura {
-    constructor(player, id) {
-        super(player, id, 'Consumed by Rage');
-        this.duration = 12;
-    }
-    use() {
-        if (this.timer) this.uptime += (step - this.starttimer);
-        this.timer = step + this.duration * 1000;
-        this.starttimer = step;
-        /* start-log */ if (this.player.logging) this.player.log(`${this.name} applied`); /* end-log */
-    }
-    step() {
-        if (step >= this.timer) {
-            this.uptime += (this.timer - this.starttimer);
-            this.timer = 0;
-            this.firstuse = false;
-            this.player.updateDmgMod();
-            /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
-        }
     }
 }
 
@@ -2265,33 +2081,6 @@ class StrengthChampion extends Aura {
     }
 }
 
-class MildlyIrradiated extends Aura {
-    constructor(player, id) {
-        super(player, id, 'Mildly Irradiated');
-        this.duration = 15;
-        this.stats = { ap: 40 };
-    }
-    use(a, prepull = 0) {
-        if (this.timer) this.uptime += (step - this.starttimer);
-        this.timer = step + this.duration * 1000 - prepull;
-        this.starttimer = step - prepull;
-        this.player.updateAP();
-        /* start-log */ if (this.player.logging) this.player.log(`${this.name} applied`); /* end-log */
-    }
-    canUse() {
-        return this.firstuse && !this.timer && step >= this.usestep;
-    }
-    step() {
-        if (step >= this.timer) {
-            this.uptime += (this.timer - this.starttimer);
-            this.timer = 0;
-            this.firstuse = false;
-            this.player.updateAP();
-            /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
-        }
-    }
-}
-
 class GyromaticAcceleration extends Aura {
     constructor(player, id) {
         super(player, id, 'Gyromatic Acceleration');
@@ -2382,57 +2171,6 @@ class CoinFlip extends Aura {
     }
     canUse() {
         return this.firstuse && !this.timer && step >= this.usestep;
-    }
-}
-
-class Rampage extends Aura {
-    constructor(player, id) {
-        super(player, id);
-        this.duration = 30;
-        this.mult_stats = { apmod: 10 };
-        this.cooldown = 120;
-    }
-    use(a, prepull = 0) {
-        if (this.timer) this.uptime += (step - this.starttimer);
-        this.timer = step + this.duration * 1000 - prepull;
-        this.starttimer = step - prepull;
-        this.player.updateAP();
-        this.maxdelay = rng(this.player.reactionmin, this.player.reactionmax);
-        /* start-log */ if (this.player.logging) this.player.log(`${this.name} applied`); /* end-log */
-    }
-    canUse() {
-        return !this.timer && this.player.isEnraged() && step >= this.usestep;
-    }
-    step() {
-        if (step >= this.timer) {
-            this.uptime += (this.timer - this.starttimer);
-            this.timer = 0;
-            this.usestep = this.starttimer + (this.cooldown * 1000);
-            this.player.updateAP();
-            /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
-        }
-    }
-}
-
-class WreckingCrew extends Aura {
-    constructor(player, id) {
-        super(player, id, 'Wrecking Crew');
-        this.duration = 12;
-    }
-    use() {
-        if (this.timer) this.uptime += (step - this.starttimer);
-        this.timer = step + this.duration * 1000;
-        this.starttimer = step;
-        this.player.mainspelldmg = 1.1;
-        /* start-log */ if (this.player.logging) this.player.log(`${this.name} applied`); /* end-log */
-    }
-    step() {
-        if (step >= this.timer) {
-            this.uptime += (this.timer - this.starttimer);
-            this.timer = 0;
-            this.player.mainspelldmg = 1;
-            /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
-        }
     }
 }
 
@@ -2553,55 +2291,6 @@ class EchoesDread extends Aura {
         this.player.updateAP();
         this.player.updateHaste();
         /* start-log */ if (this.player.logging) this.player.log(`${this.name} applied`); /* end-log */
-    }
-}
-
-class FreshMeat extends Aura {
-    constructor(player, id) {
-        super(player, id, 'Fresh Meat');
-        this.duration = 12;
-        this.mult_stats = { dmgmod: 10 };
-    }
-    use() {
-        if (this.timer) this.uptime += (step - this.starttimer);
-        this.timer = step + this.duration * 1000;
-        this.starttimer = step;
-        this.player.updateDmgMod();
-        this.firstuse = false;
-        /* start-log */ if (this.player.logging) this.player.log(`${this.name} applied`); /* end-log */
-    }
-    step() {
-        if (step >= this.timer) {
-            this.uptime += (this.timer - this.starttimer);
-            this.timer = 0;
-            this.player.updateDmgMod();
-            /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
-        }
-    }
-}
-
-class SuddenDeath extends Aura {
-    constructor(player, id) {
-        super(player, id, 'Sudden Death');
-        this.duration = 10;
-    }
-    use() {
-        if (this.timer) this.uptime += (step - this.starttimer);
-        this.timer = step + this.duration * 1000;
-        this.starttimer = step;
-        /* start-log */ if (this.player.logging) this.player.log(`${this.name} applied`); /* end-log */
-    }
-    step() {
-        if (step >= this.timer) {
-            this.uptime += (this.timer - this.starttimer);
-            this.timer = 0;
-            /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
-        }
-    }
-    remove() {
-        this.uptime += (step - this.starttimer);
-        this.timer = 0;
-        /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
     }
 }
 
@@ -2761,33 +2450,6 @@ class MeltArmor extends Aura {
             this.uptime += (this.timer - this.starttimer);
             this.timer = 0;
             this.player.updateBonusDmg();
-            /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
-        }
-    }
-}
-
-class SingleMinded extends Aura {
-    constructor(player, id) {
-        super(player, id);
-        this.duration = 10;
-        this.stacks = 0;
-        this.mult_stats = { haste: 2 };
-    }
-    use() {
-        if (this.timer) this.uptime += (step - this.starttimer);
-        this.timer = step + this.duration * 1000;
-        this.starttimer = step;
-        this.stacks = Math.min(5, this.stacks + 1);
-        this.mult_stats = { haste: 2 * this.stacks };
-        this.player.updateHaste();
-        /* start-log */ if (this.player.logging) this.player.log(`${this.name} applied`); /* end-log */
-    }
-    step() {
-        if (step >= this.timer) {
-            this.uptime += (this.timer - this.starttimer);
-            this.timer = 0;
-            this.stacks = 0;
-            this.player.updateHaste();
             /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
         }
     }

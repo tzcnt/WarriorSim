@@ -138,10 +138,10 @@ async function main() {
         name: 'classic-dw-production-90-120s',
         sim: {...base.sim, timesecsmin: 90, timesecsmax: 120},
     };
-    const sod = loadFixtures().find(fixture => fixture.name === 'sod-default-twohand');
+    const forever = loadFixtures().find(fixture => fixture.name === 'forever-dw-fury');
     const profiles = [
-        {fixture: sod, iterations: shortIterations},
-        {fixture: {...sod, name:'sod-twohand-production-90-120s', sim:{...sod.sim,timesecsmin:90,timesecsmax:120}}, iterations:productionIterations},
+        {fixture: forever, iterations: shortIterations},
+        {fixture: {...forever, name:'forever-dw-production-90-120s', sim:{...forever.sim,timesecsmin:90,timesecsmax:120}}, iterations:productionIterations},
         {fixture: base, iterations: shortIterations},
         {fixture: production, iterations: productionIterations},
     ].filter(({fixture}) => requestedFixture === 'all' || fixture.name === requestedFixture);

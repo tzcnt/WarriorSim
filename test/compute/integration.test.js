@@ -86,10 +86,10 @@ test('real WASM reports validate and mixed chunks preserve all aggregate/player 
     }
 });
 
-for (const mode of ['classic', 'sod']) test(`${mode} browser clients execute deployed WASM workers through a live coordinator`, {timeout: 30000}, async t => {
+for (const mode of ['classic', 'forever']) test(`${mode} browser clients execute deployed WASM workers through a live coordinator`, {timeout: 30000}, async t => {
     const app = await serving(t);
     const {Worker: BrowserWorker, url, manifest: {buildId}} = deployedWorkers();
-    const fixture = loadFixtures().find(value => value.name === (mode === 'sod' ? 'sod-dw-runes' : 'classic-dw-fury'));
+    const fixture = loadFixtures().find(value => value.name === (mode === 'classic' ? 'classic-dw-fury' : 'forever-dw-fury'));
     class TestPlayer {
         constructor() { return createConfiguredPlayer(createReferenceEngine(fixture.mode), fixture); }
     }
@@ -174,7 +174,7 @@ test('a donated worker refreshes its native engine when a reused job ID has a di
     t.after(() => worker.terminate());
     const module = await loadNativeModule();
     const fixtures = loadFixtures();
-    for (const [mode, seed] of [['classic', 42], ['classic', 43], ['sod', 43]]) {
+    for (const [mode, seed] of [['classic', 42], ['classic', 43], ['forever', 43]]) {
         const fixture = fixtures.find(value => value.mode === mode);
         const sim = {...fixture.sim, seed, iterations: 17, iterationOffset: 11};
         const player = createConfiguredPlayer(createReferenceEngine(mode), fixture);

@@ -11,9 +11,8 @@ const common = ['libs/jquery-3.4.1', 'libs/jquery.tablesorter', 'libs/jquery.tab
 const entrypoints = {
     classic: [...common, 'data/gear', 'data/enchants', 'data/levelstats', 'data/buffs', 'data/spells',
         'data/talents', 'data/session', 'globals', 'settings', 'profiles', 'stats', 'ui'],
-    sod: [...common, 'data/gear_sod', 'data/runes', 'data/levelstats', 'data/buffs', 'data/enchants',
-        'data/spells', 'data/talents', 'data/session_sod', 'data/presets', 'globals', 'profiles',
-        'settings', 'stats', 'ui'],
+    forever: [...common, 'data/gear_forever', 'data/enchants', 'data/levelstats', 'data/buffs', 'data/spells',
+        'data/talents', 'data/session_forever', 'globals', 'settings', 'profiles', 'stats', 'ui'],
 };
 const scripts = mode => entrypoints[mode].map(name => `js/${name}.min.js`);
 
@@ -36,7 +35,7 @@ function buildBundle(root) {
     // Format 2 requires the preloaded asset runtime in pages and workers.
     // Fixed field ordering and lexical path ordering are part of the format.
     const descriptor = {format: 2, protocol: P.version, specVersion: 1,
-        entrypoints: {classic: scripts('classic'), sod: scripts('sod')},
+        entrypoints: {classic: scripts('classic'), forever: scripts('forever')},
         files: [...entries].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
             .map(([name, bytes]) => ({path: name, sha256: digest(bytes)}))};
     for (const list of Object.values(descriptor.entrypoints)) {

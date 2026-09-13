@@ -37,9 +37,12 @@ function loadWarriorSim() {
     return modulePromise;
 }
 
-function importRules(sod) {
-    if (sod) importScripts(...['js/data/gear_sod.min.js', 'js/data/runes.min.js'].map(simulationAssetUrl));
-    else importScripts(simulationAssetUrl('js/data/gear.min.js'));
+const CATALOGS = {classic: 'js/data/gear.min.js', forever: 'js/data/gear_forever.min.js'};
+
+function importRules(mode) {
+    const catalog = CATALOGS[mode];
+    if (!catalog) throw new Error(`Unknown simulator mode: ${mode}`);
+    importScripts(simulationAssetUrl(catalog));
 }
 
 function parseReport(value) {
@@ -91,7 +94,7 @@ async function run(params) {
             params.sim.seed > WORKER_MAX_SIMULATION_UINT32) {
             throw new Error('Simulation seed must be an unsigned 32-bit integer');
         }
-        importRules(params.globals.sod);
+        importRules(params.globals.mode);
         updateGlobals(params.globals);
 
         const player = new Player(...params.player);

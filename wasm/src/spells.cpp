@@ -559,8 +559,6 @@ double spellDamage(PlayerState& player, SpellState& spell, WeaponState* weapon) 
         return (20 + player.stats.number("ap"_prop) * .05) * dmgmod;
     case SpellKind::ThunderClap: {
         double damage = value(spell, "value1"_prop);
-        if (player.sodMode)
-            damage += static_cast<std::int32_t>(player.stats.number("ap"_prop) * .05);
         if (player.props.boolean("furiousthunder"_prop)) damage *= 2;
         return damage * dmgmod;
     }

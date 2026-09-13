@@ -8,7 +8,7 @@ const ROOT = path.resolve(__dirname, '..', '..');
 
 const MODE_SOURCES = {
  classic: ['js/data/gear.js','js/data/enchants.js','js/data/talents.js','js/data/spells.js','js/data/buffs.js','js/data/session.js'],
- sod: ['js/data/gear_sod.js','js/data/enchants.js','js/data/talents.js','js/data/spells.js','js/data/buffs.js','js/data/runes.js','js/data/session_sod.js'],
+ forever: ['js/data/gear_forever.js','js/data/enchants.js','js/data/talents.js','js/data/spells.js','js/data/buffs.js','js/data/session_forever.js'],
 };
 
 const ENGINE_SOURCES = [
@@ -48,7 +48,7 @@ function createReferenceEngine(mode, options = {}) {
         console: options.console || console,
         setTimeout,
         clearTimeout,
-        window: { location: { href: mode === 'sod' ? 'index.html' : 'classic.html' } },
+        window: { location: { href: mode === 'classic' ? 'classic.html' : 'index.html' } },
         $: jqueryStub,
         mode,
     });
@@ -172,7 +172,7 @@ function createDirectReferenceEngine(mode, options = {}) {
         options.console || console,
         setTimeout,
         clearTimeout,
-        {location: {href: mode === 'sod' ? 'index.html' : 'classic.html'}},
+        {location: {href: mode === 'classic' ? 'classic.html' : 'index.html'}},
         jqueryStub,
         mode,
     );
@@ -195,7 +195,6 @@ function createState(engine, fixture) {
         else state.rotation.push({ id: Number(id), ...changes });
     }
 
-    if (fixture.runes) state.runes = Object.fromEntries(Object.entries(fixture.runes).map(([slot, ids]) => [slot, ids.map(id => ({id, selected: true}))]));
     if (fixture.buffs) state.buffs = fixture.buffs;
     if (fixture.buffsRemove) {
         const removed = new Set(fixture.buffsRemove.map(String));
@@ -215,7 +214,6 @@ function createState(engine, fixture) {
         rotation: state.rotation,
         gear: state.gear,
         enchant: state.enchant,
-        runes: state.runes || {},
         resistances: state.resistances || state.resistance || {},
     };
 }

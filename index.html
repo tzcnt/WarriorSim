@@ -3,7 +3,7 @@
 
 <head>
   <meta name="viewport" content="width=device-width">
-  <title>Season of Discovery - Warrior DPS Sim</title>
+  <title>WoW Forever - Warrior DPS Sim</title>
 
   <link rel="icon" type="image/x-icon" href="/WarriorSim/favicon.ico">
   <link href="dist/css/theme.default.min.css" rel="stylesheet">
@@ -12,27 +12,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800&display=swap" rel="stylesheet">
 
-  <script>var mode = "sod";</script>
+  <script>var mode = "forever";</script>
   <script src="dist/js/bundle-loader.min.js"></script>
 
   <script>var whTooltips = { colorLinks: true, iconizeLinks: false, renameLinks: false, "hide": { "ilvl": false } };</script>
   <script src="https://wow.zamimg.com/widgets/power.js"></script>
-  <!-- 
-  TODO 
-  fight log btn
-  fix selected item losing dps
-  dynamic presets from text file
-  better bloodrage / berserker management?
-  more execute options?
-  new armor values
-
-
-  later:
-  sweeping strikes https://hilbert.wordpress.com/sweeping-strikes-guide/
-  item cooldowns
-  item times visualizer
-
--->
 
 </head>
 
@@ -48,8 +32,8 @@
       </label>
     </div>
     <div class="tabs">
-      <a href="classic.html" class="btn js-classic">Classic</a>
-      <a href="." class="btn js-sod active">Season of Discovery</a>
+      <a href="classic.html" class="btn js-classic">Classic Era</a>
+      <a href="." class="btn js-forever active">WoW Forever</a>
     </div>
 
     <div class="bg"></div>
@@ -83,10 +67,6 @@
           <span id="miss"></span>
         </li>
         <li>
-          <label>Dodge</label>
-          <span id="dodge"></span>
-        </li>
-        <li>
           <label>Crit</label>
           <span id="crit"></span>
         </li>
@@ -110,7 +90,7 @@
           <label>Arcane Resist</label>
           <span id="arcane-resist"></span>
         </li>
-        <li class="nature-resist">
+        <li class="nature-resist hidden">
           <label>Nature Resist</label>
           <span id="nature-resist"></span>
         </li>
@@ -118,7 +98,7 @@
           <label>Frost Resist</label>
           <span id="frost-resist"></span>
         </li>
-        <li class="fire-resist">
+        <li class="fire-resist hidden">
           <label>Fire Resist</label>
           <span id="fire-resist"></span>
         </li>
@@ -177,13 +157,11 @@
       <div class="manual"><a href="https://github.com/tzcnt/WarriorSim" target="_blank">Github</a></div>
       <div class="author">by tzcnt<br>original by Guybrush-Golemagg</div>
     </div>
-
   </section>
 
   <section class="profiles">
     <a href="#" class="btn-close"></a>
     <div class="wrapper">
-      <div class="presets"></div>
       <div class="container"></div>
     </div>
   </section>
@@ -203,13 +181,13 @@
         <ul>
           <li>
             <label>Level</label>
-            <input type="range" name="slider-level" min="1" max="60" value="25" class="slider">
-            <input type="text" name="level" value="25" data-numberonly="true">
+            <input type="range" name="slider-level" min="1" max="60" value="60" class="slider">
+            <input type="text" name="level" value="60" data-numberonly="true">
           </li>
           <li>
             <label>Target Level</label>
-            <input type="range" name="slider-targetlevel" min="1" max="63" value="28" class="slider">
-            <input type="text" name="targetlevel" value="28" data-numberonly="true">
+            <input type="range" name="slider-targetlevel" min="1" max="63" value="63" class="slider">
+            <input type="text" name="targetlevel" value="63" data-numberonly="true">
           </li>
           <li>
             <label>Race</label>
@@ -246,7 +224,7 @@
           </li>
           <li>
             <label>Target Magic Resistance</label>
-            <input type="text" name="targetresistance" value="10" data-numberonly="true">
+            <input type="text" name="targetresistance" value="24" data-numberonly="true">
           </li>
           <li>
             <label>Target Base Armor</a></label>
@@ -299,9 +277,9 @@
           <li>
             <label>Bleed Reduction</label>
             <select dir="rtl" name="bleedreduction">
+              <option value="1">None</option>
               <option value="0.8">20%</option>
               <option value="0">100%</option>
-              <option value="1">None</option>
             </select>
           </li>
           <li>
@@ -333,7 +311,7 @@
         </div>
       </article>
 
-      <article class="filter" style="display: none">
+      <article class="filter">
         <label class="active">Gear Filter</label>
         <ul class="sources">
           <li data-id="quest">Quest</li>
@@ -385,19 +363,13 @@
         <li data-id="other">Other</li>
         </ul>
         <ul class="phases">
-          <li data-id="1" class="active" data-sources="onyxia,mc">P1</li>
-          <li data-id="2" class="active" data-sources="">P2</li>
-          <li data-id="3" class="active" data-sources="bwl">P3</li>
-          <li data-id="4" class="active" data-sources="zg">P4</li>
+          <li data-id="1" data-sources="onyxia,mc">P1</li>
+          <li data-id="2" data-sources="">P2</li>
+          <li data-id="3" data-sources="bwl">P3</li>
+          <li data-id="4" data-sources="zg">P4</li>
           <li data-id="5" data-sources="aq20,aq40">P5</li>
           <li data-id="6" data-sources="naxx">P6</li>
         </ul>
-      </article>
-
-      <article class="runes">
-        <label class="active">Runes</label>
-        <div id="runes-area">
-        </div>
       </article>
 
     </div>
@@ -632,74 +604,6 @@
 
     <progress value="0" max="100"></progress>
   </section>
-
-  <div class="modal">
-    <div class="btn-close"></div>
-    <div class="wrapper">
-      <div class="row head">
-        <p>Rage</p>
-        <p>Time</p>
-        <p>Event</p>
-      </div>
-      <div class="table">
-        <div class="row">
-          <p>12</p>
-          <p>0s</p>
-          <p>attack!</p>
-        </div>
-        <div class="row">
-          <p>12</p>
-          <p>0s</p>
-          <p>attack!</p>
-        </div>
-        <div class="row">
-          <p>12</p>
-          <p>0s</p>
-          <p>attack!</p>
-        </div>
-        <div class="row">
-          <p>12</p>
-          <p>0s</p>
-          <p>attack!</p>
-        </div>
-        <div class="row">
-          <p>12</p>
-          <p>0s</p>
-          <p>attack!</p>
-        </div>
-        <div class="row">
-          <p>12</p>
-          <p>0s</p>
-          <p>attack!</p>
-        </div>
-        <div class="row">
-          <p>12</p>
-          <p>0s</p>
-          <p>attack!</p>
-        </div>
-        <div class="row">
-          <p>12</p>
-          <p>0s</p>
-          <p>attack!</p>
-        </div>
-        <div class="row">
-          <p>12</p>
-          <p>0s</p>
-          <p>attack!</p>
-        </div>
-        <div class="row">
-          <p>12</p>
-          <p>0s</p>
-          <p>attack!</p>
-        </div>
-        <div class="row">
-          <p>12</p>
-          <p>0s</p>
-          <p>attack!</p>
-        </div>
-      </div>
-    </div>
-  </div>
 
 
   <script>

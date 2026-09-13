@@ -1,7 +1,7 @@
 # Development and self-hosting
 
 The browser runs each simulation in WebAssembly. JavaScript resolves the selected
-Classic or Season of Discovery character once per worker; the native engine runs
+Classic Era or WoW Forever character once per worker; the native engine runs
 combat batches without JavaScript event callbacks or a JavaScript fallback.
 
 ## Build the browser assets
@@ -30,7 +30,7 @@ section identical but does change the `buildId`.
 
 This builds the native Release module and minifies all application JavaScript with
 Emscripten's bundled Terser. Class and function names are preserved because action
-serialization uses constructor names. It writes the Classic and SoD application
+serialization uses constructor names. It writes both tabs' application
 assets once, under `dist/js` and `dist/wasm`, then generates `dist/compute-build.json`
 with hashes of those files. Builds update these assets in place and remove the
 legacy duplicate `dist/bundle/` and `dist/bundle.tmp/` directories. Keep the resulting
@@ -45,7 +45,7 @@ it the deployed-artifact tests cannot load `dist/wasm/warriorsim.js`.
 
 Serve the repository through HTTP rather than opening an HTML file directly. For
 example, run `python -m http.server 8000`, then open `http://localhost:8000/classic.html`
-for Classic or `http://localhost:8000/index.html` for Season of Discovery. The server
+for Classic Era or `http://localhost:8000/index.html` for WoW Forever. The server
 must serve `.wasm` as `application/wasm`; module and worker files must be accessible
 from the same origin. Web Crypto requires HTTPS or a localhost origin. Both pages
 preload and verify the complete bundle before initializing, and retain all assets
@@ -63,8 +63,8 @@ npm ci --prefix server
 npm run compute:dev
 ```
 
-Open `http://127.0.0.1:8787/classic.html` for Classic or
-`http://127.0.0.1:8787/index.html` for SoD. Enable **Share Compute** in two tabs to
+Open `http://127.0.0.1:8787/classic.html` for Classic Era or
+`http://127.0.0.1:8787/index.html` for WoW Forever. Enable **Share Compute** in two tabs to
 exercise donations and foreground priority. Without a coordinator, simulations
 continue locally. The toggle must be enabled to receive or donate shared work.
 
