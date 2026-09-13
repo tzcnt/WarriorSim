@@ -157,7 +157,6 @@ PlayerState readPlayer(const val& value) {
         state.multStats = readBag(item["multStats"]);
         state.data.resize(static_cast<std::size_t>(std::max(0, state.props.integer("dataLength"_prop))), 0);
         state.useStep = state.props.number("usestep"_prop, std::numeric_limits<double>::quiet_NaN());
-        state.tfbstep = state.props.number("tfbstep"_prop, -6000);
         out.auraByKey.emplace(state.key, static_cast<int>(out.auras.size()));
         out.auras.push_back(std::move(state));
     }
@@ -777,13 +776,9 @@ void PlayerState::buildConfiguredActionLists() {
             add(ProcStage::ObsidianStrength, auraIndex("obsidianstrength"_action));
             add(ProcStage::ObsidianHaste, auraIndex("obsidianhaste"_action));
         }
-        if (flag("bloodsurge"_prop)) add(ProcStage::Bloodsurge);
         if (flag("swordboard"_prop))
             addAction(ProcStage::SwordAndBoard, spellIndex("shieldslam"_action));
         addAction(ProcStage::VoodooFrenzy, auraIndex("voodoofrenzy"_action));
-        addAction(ProcStage::SuddenDeath, auraIndex("suddendeath"_action));
-        if (flag("freshmeat"_prop))
-            addAction(ProcStage::FreshMeat, auraIndex("freshmeat"_action));
         addAction(ProcStage::SingleMinded, auraIndex("singleminded"_action));
         addAction(ProcStage::Windfury, weapon.windfuryAura);
         const int swarmguard = auraIndex("swarmguard"_action);

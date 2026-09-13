@@ -233,11 +233,8 @@ enum class ProcStage : std::uint8_t {
     TimewornExtra,
     ObsidianStrength,
     ObsidianHaste,
-    Bloodsurge,
     SwordAndBoard,
     VoodooFrenzy,
-    SuddenDeath,
-    FreshMeat,
     SingleMinded,
     Windfury,
     Swarmguard,
@@ -324,7 +321,6 @@ struct AuraState {
     double mintime = 0;
     double cooldownTimer = 0;
     double nexttick = 0;
-    double tfbstep = -6000;
     bool firstuse = true;
     double uptime = 0;
     double totaldmg = 0;
@@ -447,7 +443,6 @@ struct PlayerState {
     double crit = 0;
     bool nextswinghs = false;
     bool nextswingcl = false;
-    bool freeslam = false;
     bool freeshieldslam = false;
     bool turtleMode = false;
     bool foreverMode = false;
@@ -536,7 +531,7 @@ struct PlayerState {
     double magicProc(const ProcState& proc);
     double physProc(double dmg);
     void switchStance(std::string_view value);
-    [[nodiscard]] bool isValidStance(std::string_view value, bool isRend = false) const;
+    [[nodiscard]] bool isValidStance(std::string_view value) const;
 };
 
 // Spell behavior. All functions stay in native code during an iteration.

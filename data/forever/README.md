@@ -124,4 +124,4 @@ Arms, Iron Will to Fury, and Improved Thunder Clap to Protection. These changes
 are implemented for Forever while preserving Classic combat behavior.
 
 See [the implementation audit](IMPLEMENTATION.md) for mode-specific rules, selector
-moves, retained-flag mappings, engine gaps, and the accepted placeholder decisions.
+moves, runtime property mappings, engine gaps, and the accepted placeholder decisions.

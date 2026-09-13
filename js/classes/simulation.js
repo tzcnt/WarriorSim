@@ -506,7 +506,7 @@ class Simulation {
 
                 // Heroic Strike
                 if (spellcheck && !player.heroicdelay) {
-                    if (!player.spells.execute || (step < this.executestep && (!player.auras.suddendeath || !player.auras.suddendeath.timer))) {
+                    if (!player.spells.execute || step < this.executestep) {
                         // prevent using spells while waiting for consumed by rage proc
                         if (player.auras.consumedrage && player.auras.consumedrage.procblock && !player.auras.consumedrage.timer && player.rage < 60) { } 
                         else if (player.auras.consumedrage && player.auras.consumedrage.rageblock && player.rage < player.auras.consumedrage.rageblock) { } 
@@ -534,7 +534,6 @@ class Simulation {
                         // Start casting slam
                         if (delayedspell instanceof Slam) {
                             slamstep = step + delayedspell.casttime;
-                            if (player.freeslam) slamstep = step;
                             player.timer = delayedspell.gcd || 1500;
                             player.heroicdelay = 0;
                             player.nextswinghs = false;
@@ -582,7 +581,7 @@ class Simulation {
                 }
 
                 // Unqueue HS
-                if (!player.spells.execute || (step < this.executestep && (!player.auras.suddendeath || !player.auras.suddendeath.timer))) {
+                if (!player.spells.execute || step < this.executestep) {
                     if (player.spells.heroicstrike && player.spells.heroicstrike.unqueue && player.nextswinghs &&
                         player.rage < player.spells.heroicstrike.unqueue && player.mh.timer <= player.spells.heroicstrike.unqueuetimer) {
                         this.player.nextswinghs = false;
@@ -679,7 +678,7 @@ class Simulation {
             if (player.spells.slam && player.spells.slam.timer && player.spells.slam.timer < next) next = player.spells.slam.timer;
 
 
-            if (!player.spells.execute || (step < this.executestep && (!player.auras.suddendeath || !player.auras.suddendeath.timer))) {
+            if (!player.spells.execute || step < this.executestep) {
                 if (player.spells.heroicstrike && player.spells.heroicstrike.unqueue) {
                     let timeleft = Math.max(player.mh.timer - player.spells.heroicstrike.unqueuetimer);
                     if (timeleft > 0 && timeleft < next) next = timeleft;

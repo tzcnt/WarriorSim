@@ -108,7 +108,7 @@ void PlayerState::reset(double startingRage) {
     spelldelay = heroicdelay = 0;
     mh.timer = 0;
     extraattacks = batchedextras = 0;
-    nextswinghs = nextswingcl = freeslam = freeshieldslam = false;
+    nextswinghs = nextswingcl = freeshieldslam = false;
     for (auto& value : spells) {
         value.timer = 0;
         value.stacks = 0;
@@ -132,7 +132,6 @@ void PlayerState::reset(double startingRage) {
         value.mintime = 0;
         value.nexttick = 0;
         value.cooldownTimer = 0;
-        value.tfbstep = -6000;
         if (value.kind == AuraKind::SweepingStrikes || value.kind == AuraKind::OldDeepWounds ||
             value.kind == AuraKind::Rend ||
             value.kind == AuraKind::WeaponBleed) value.idmg = 0;
@@ -683,7 +682,6 @@ void PlayerState::procCrit(bool offhand, int adjacent, SpellState* ability) {
             if (auto* other = aura("deepwounds" + std::to_string(index))) auraUse(*this, *other, offhand);
         }
     }
-    if (auto* value = aura("wreckingcrew"_action)) auraUse(*this, *value);
     if (flag("overpowerrend"_prop) && ability && ability->kind == SpellKind::Overpower) {
         if (auto* value = aura("rend"_action); value && value->timer) {
             value->timer = value->nexttick - 3000 + value->props.number("duration"_prop) * 1000;
@@ -746,10 +744,6 @@ double PlayerState::procAttack(SpellState* ability, WeaponState& weapon, Result 
     if (result != Result::Miss && result != Result::Dodge) {
         if (ability && ability->kind == SpellKind::Execute) {
             rage = 0;
-            if (auto* sudden = aura("suddendeath"_action); sudden && sudden->timer) {
-                rage = 10;
-                auraRemove(*this, *sudden);
-            }
         }
         if (ability && ability->kind == SpellKind::Slam && flag("slammainreset"_prop)) {
             if (auto* value = spell("mortalstrike"_action)) value->timer = 0;
@@ -866,14 +860,6 @@ double PlayerState::procAttack(SpellState* ability, WeaponState& weapon, Result 
                     entry.action != kNoRef)
                     auraUse(*this, auras[static_cast<std::size_t>(entry.action)]);
                 break;
-            case ProcStage::Bloodsurge:
-                if (ability &&
-                    (ability->kind == SpellKind::Whirlwind ||
-                     ability->kind == SpellKind::Bloodthirst ||
-                     ability->kind == SpellKind::HeroicStrike) &&
-                    rng.tenK() < 3000)
-                    freeslam = true;
-                break;
             case ProcStage::SwordAndBoard:
                 if (ability && ability->kind == SpellKind::SunderArmor && rng.tenK() < 3000) {
                     freeshieldslam = true;
@@ -883,19 +869,6 @@ double PlayerState::procAttack(SpellState* ability, WeaponState& weapon, Result 
             case ProcStage::VoodooFrenzy:
                 if (rng.tenK() < 1500)
                     auraUse(*this, auras[static_cast<std::size_t>(entry.action)]);
-                break;
-            case ProcStage::SuddenDeath:
-                if (rng.tenK() < 1000)
-                    auraUse(*this, auras[static_cast<std::size_t>(entry.action)]);
-                break;
-            case ProcStage::FreshMeat:
-                if (ability &&
-                    (ability->kind == SpellKind::Bloodthirst ||
-                     ability->kind == SpellKind::MortalStrike ||
-                     ability->kind == SpellKind::ShieldSlam)) {
-                    auto& value = auras[static_cast<std::size_t>(entry.action)];
-                    if (value.firstuse || rng.tenK() < 1000) auraUse(*this, value);
-                }
                 break;
             case ProcStage::SingleMinded:
                 if (!ability) auraUse(*this, auras[static_cast<std::size_t>(entry.action)]);
@@ -964,9 +937,8 @@ void PlayerState::switchStance(std::string_view value) {
     updateAuras();
 }
 
-bool PlayerState::isValidStance(std::string_view value, bool isRend) const {
-    return stance == value ||
-        (isRend && stance == "zerk" && flag("bloodfrenzy"_prop));
+bool PlayerState::isValidStance(std::string_view value) const {
+    return stance == value;
 }
 
 } // namespace warriorsim

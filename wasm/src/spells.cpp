@@ -131,7 +131,7 @@ bool spellCanUse(PlayerState& player, SpellState& spell) {
         return player.timer == 0 && cost <= player.rage &&
             (!value(spell, "swingtimer"_prop) || player.mh.timer <= value(spell, "swingtimer"_prop)) &&
             (!minrage || player.rage >= minrage) &&
-            (player.step >= spell.executestep || active(player, "suddendeath"_action));
+            player.step >= spell.executestep;
 
     case SpellKind::Bloodrage:
         return spell.timer == 0 && player.step >= spell.useStep;
@@ -151,7 +151,7 @@ bool spellCanUse(PlayerState& player, SpellState& spell) {
     case SpellKind::ThunderClap:
         return spell.timer == 0 && player.timer == 0 && cost <= player.rage &&
             (!minrage || player.rage >= minrage) &&
-            (player.props.boolean("furiousthunder"_prop) || player.isValidStance("battle"));
+            player.isValidStance("battle");
 
     case SpellKind::BerserkerRage:
         return spell.timer == 0 && player.timer == 0 &&
@@ -163,8 +163,7 @@ bool spellCanUse(PlayerState& player, SpellState& spell) {
     case SpellKind::Slam: {
         return spell.timer == 0 && player.timer == 0 &&
             player.mh.timer >= value(spell, "mhthreshold"_prop) &&
-            (player.freeslam || cost <= player.rage) &&
-            (!player.props.boolean("bloodsurge"_prop) || player.freeslam) &&
+            cost <= player.rage &&
             (!minrage || player.rage >= minrage) && mainCooldownReady(player, spell);
     }
 
@@ -237,7 +236,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
         player.timer = 1500;
         player.rage -= cost;
         spell.usedrage = static_cast<std::int32_t>(player.rage);
-        spell.totalusedrage += spell.usedrage - (active(player, "suddendeath"_action) ? 10 : 0);
+        spell.totalusedrage += spell.usedrage;
         spell.timer = 1 - detail::jsRemainder(player.step, 1.0);
         spell.maxdelay = reactionDelay(player);
         return;
@@ -285,7 +284,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
     }
 
     case SpellKind::ThunderClap:
-        if (!player.isValidStance("battle") && !player.props.boolean("furiousthunder"_prop))
+        if (!player.isValidStance("battle"))
             player.switchStance("battle");
         useBase(player, spell);
         return;
@@ -313,15 +312,12 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
     }
 
     case SpellKind::Slam: {
-        const bool free = player.freeslam;
-        if (free) spell.offhandhit = true;
-        if (!free) player.rage -= cost;
+        player.rage -= cost;
         spell.maxdelay = reactionDelay(player);
-        if (value(spell, "casttime"_prop) && !free && !player.turtleMode && !value(spell, "swingmode"_prop)) {
+        if (value(spell, "casttime"_prop) && !player.turtleMode && !value(spell, "swingmode"_prop)) {
             useWeapon(player, player.mh);
             if (player.oh) useWeapon(player, *player.oh);
         }
-        player.freeslam = false;
         spell.timer = cooldown * 1000;
         return;
     }
@@ -409,21 +405,12 @@ double spellDamage(PlayerState& player, SpellState& spell, WeaponState* weapon) 
     case SpellKind::MortalStrike:
         return normalizedWeaponDamage(player, player.mh, value(spell, "value1"_prop)) *
                dmgmod * player.mainspelldmg;
-    case SpellKind::SunderArmor: {
-        if (!option(spell, "devastate"_prop)) return 0;
-        const double mod = 1.5 * (1 + .1 * (spell.stacks - 1));
-        const double average = (player.mh.mindmg + player.mh.maxdmg) / 2.0;
-        const double dps = (average + player.stats.number("ap"_prop) / 14.0 * player.mh.speed) /
-                           player.mh.speed;
-        return dps * mod * dmgmod;
-    }
+    case SpellKind::SunderArmor:
+        return 0;
     case SpellKind::Hamstring:
         return value(spell, "value1"_prop) * dmgmod;
-    case SpellKind::ThunderClap: {
-        double damage = value(spell, "value1"_prop);
-        if (player.props.boolean("furiousthunder"_prop)) damage *= 2;
-        return damage * dmgmod;
-    }
+    case SpellKind::ThunderClap:
+        return value(spell, "value1"_prop) * dmgmod;
     case SpellKind::Slam: {
         const WeaponState& use = weapon ? *weapon : player.mh;
         const double bonus = player.turtleMode ? 0 : value(spell, "value1"_prop);
@@ -466,4 +453,3 @@ void spellPrep(PlayerState&, SpellState& spell, int duration) {
 }
 
 } // namespace warriorsim
-

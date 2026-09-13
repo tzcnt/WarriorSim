@@ -42,7 +42,6 @@ class Player {
         this.batchedextras = 0;
         this.nextswinghs = false;
         this.nextswingcl = false;
-        this.freeslam = false;
         this.freeshieldslam = false;
         this.ragecostbonus = 0;
         this.ragecap = 100;
@@ -166,11 +165,6 @@ class Player {
         if (this.spells.bloodrage) this.auras.bloodrage = new BloodrageAura(this);
         if (this.spells.berserkerrage) this.auras.berserkerrage = new BerserkerRageAura(this);
         
-        if (this.basestance == 'def' && this.spells.sunderarmor && this.devastate && this.shield) {
-            this.spells.sunderarmor.devastate = true;
-            this.spells.sunderarmor.nocrit = false;
-        }
-
         if (this.items.includes(233490)) {
             this.auras.obsidianstrength = new ObsidianStrength(this);
             this.auras.obsidianhaste = new ObsidianHaste(this);
@@ -631,7 +625,6 @@ class Player {
         this.batchedextras = 0;
         this.nextswinghs = false;
         this.nextswingcl = false;
-        this.freeslam = false;
         this.freeshieldslam = false;
         for (let s in this.spells) {
             let spell = this.spells[s];
@@ -656,7 +649,6 @@ class Player {
             if (aura.mintime !== undefined) aura.mintime = 0;
             if (aura.nexttick) aura.nexttick = 0;
             if (aura.cooldowntimer) aura.cooldowntimer = 0;
-            if (aura.tfbstep) aura.tfbstep = -6000;
         }
         if (this.trinketproc1 && this.trinketproc1.usestep) this.trinketproc1.usestep = 0;
         if (this.trinketproc2 && this.trinketproc2.usestep) this.trinketproc2.usestep = 0;
@@ -1357,7 +1349,6 @@ class Player {
             if (!adjacent) this.auras.deepwounds.use(offhand);
             else this.auras['deepwounds' + (~~rng(1,adjacent) + 1)].use(offhand);
         }
-        if (this.auras.wreckingcrew) this.auras.wreckingcrew.use();
         if (this.overpowerrend && this.auras.rend && this.auras.rend.timer && spell instanceof Overpower) this.auras.rend.refresh();
     }
     procattack(spell, weapon, result, adjacent, damageSoFar) {
@@ -1377,10 +1368,6 @@ class Player {
         if (result != RESULT.MISS && result != RESULT.DODGE) {
             if (spell instanceof Execute) {
                 this.rage = 0;
-                if (this.auras.suddendeath && this.auras.suddendeath.timer) {
-                    this.rage = 10;
-                    this.auras.suddendeath.remove();
-                }
             }
             if (spell instanceof Slam && this.slammainreset) {
                 if (this.spells.mortalstrike) this.spells.mortalstrike.timer = 0;
@@ -1487,11 +1474,6 @@ class Player {
                 this.auras.obsidianhaste.use();
                 /* start-log */ if (this.logging) this.log(`${weapon.name} Haste proc`); /* end-log */
             }
-            // Blood Surge
-            if (this.bloodsurge && (spell instanceof Whirlwind || spell instanceof Bloodthirst || spell instanceof HeroicStrike) && rng10k() < 3000) {
-                this.freeslam = true;
-                /* start-log */ if (this.logging) this.log(`Blood Surge proc`); /* end-log */
-            }
             // Sword and Board
             if (this.swordboard && this.spells.shieldslam && (spell instanceof SunderArmor) && rng10k() < 3000) {
                 this.freeshieldslam = true;
@@ -1501,14 +1483,6 @@ class Player {
             // Voodoo Frenzy
             if (this.auras.voodoofrenzy && rng10k() < 1500) {
                 this.auras.voodoofrenzy.use();
-            }
-            // Sudden Death
-            if (this.auras.suddendeath && rng10k() < 1000) {
-                this.auras.suddendeath.use();
-            }
-            // Fresh Meat
-            if (this.freshmeat && (spell instanceof Bloodthirst || spell instanceof MortalStrike || spell instanceof ShieldSlam) && (this.auras.freshmeat.firstuse || rng10k() < 1000)) {
-                this.auras.freshmeat.use();
             }
             // Single Minded
             if (!spell && this.auras.singleminded) {
@@ -1725,8 +1699,7 @@ class Player {
         this.updateAuras();
         /* start-log */ if (this.logging) this.log(`Switched to ${stance} stance`); /* end-log */
     }
-    isValidStance(stance, isRend) {
-        return this.stance == stance ||
-            (isRend && this.stance == 'zerk' && this.bloodfrenzy);
+    isValidStance(stance) {
+        return this.stance == stance;
     }
 }

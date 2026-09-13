@@ -109,7 +109,6 @@ test('reset clears mutable aura state between fights', () => {
         mintime: 700,
         nexttick: 1000,
         cooldowntimer: 6000,
-        tfbstep: 3000,
     };
     const player = makeResetPlayer(Player, {auras: {testaura: aura}});
 
@@ -124,7 +123,6 @@ test('reset clears mutable aura state between fights', () => {
         mintime: aura.mintime,
         nexttick: aura.nexttick,
         cooldowntimer: aura.cooldowntimer,
-        tfbstep: aura.tfbstep,
     }, {
         timer: 0,
         firstuse: true,
@@ -134,7 +132,6 @@ test('reset clears mutable aura state between fights', () => {
         mintime: 0,
         nexttick: 0,
         cooldowntimer: 0,
-        tfbstep: -6000,
     });
 });
 

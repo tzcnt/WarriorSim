@@ -225,8 +225,7 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
 
             if (spellcheck && !player_.heroicdelay) {
                 const auto* execute = player_.spell("execute"_action);
-                const auto* sudden = player_.aura("suddendeath"_action);
-                if (!execute || (player_.step < executeStep && (!sudden || !sudden->timer))) {
+                if (!execute || player_.step < executeStep) {
                     if (!consumedRageBlocked(player_)) {
                         if (auto* heroic = player_.spell("heroicstrike"_action); heroic && spellCanUse(player_, *heroic)) {
                             player_.heroicdelay = 1; delayedHeroic = heroic;
@@ -246,7 +245,7 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
                     if (delayedSpell.spell && delayedSpell.spell->kind == SpellKind::Slam) {
                         auto& slam = *delayedSpell.spell;
                         const double casttime = slam.props.number("casttime"_prop);
-                        slamStep = player_.freeslam ? player_.step : player_.step + casttime;
+                        slamStep = player_.step + casttime;
                         player_.timer = slam.props.number("gcd"_prop, 1500);
                         player_.heroicdelay = 0;
                         player_.nextswinghs = false;
@@ -290,8 +289,7 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
             }
 
             const auto* execute = player_.spell("execute"_action);
-            const auto* sudden = player_.aura("suddendeath"_action);
-            if (!execute || (player_.step < executeStep && (!sudden || !sudden->timer))) {
+            if (!execute || player_.step < executeStep) {
                 for (const int index : player_.configured.queuedStrikes) {
                     auto* value = &player_.spells[static_cast<std::size_t>(index)];
                     if (value->props.number("unqueue"_prop) && player_.nextswinghs &&
@@ -358,8 +356,7 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
         for (const int index : player_.configured.timedSpells)
             spellTimerCandidate(player_, index, next);
         const auto* executeAtEvent = player_.spell("execute"_action);
-        const auto* suddenAtEvent = player_.aura("suddendeath"_action);
-        if (!executeAtEvent || (player_.step < executeStep && (!suddenAtEvent || !suddenAtEvent->timer))) {
+        if (!executeAtEvent || player_.step < executeStep) {
             for (const int index : player_.configured.queuedStrikes) {
                 const auto& value = player_.spells[static_cast<std::size_t>(index)];
                 if (value.props.number("unqueue"_prop)) {

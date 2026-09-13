@@ -127,30 +127,26 @@ Integration work around the grid is as important as the moves:
 - Enforce prerequisites and points in **lower rows** for both adding and removing points. Existing clicks check total points in the tree and ignore `r`; removal checks row totals but also ignores `r`.
 - Version/migrate saved talent selections, default `session_forever`, imported/shared profiles and worker deltas. They store ranks by array index. Applying the old arrays to these new trees assigns points to unrelated talents and can access out-of-range entries. Map moved/renamed talents by identity, clamp smaller rank limits and revalidate; explicitly reset/refund replacements and invalid dependents. Do not guess a Weaponmaster rank by summing four former specializations.
 
-**3. Retained flags: what actually maps**
+**3. Runtime properties and completed legacy cleanup**
 
-None of the twelve listed names is an unchanged, ready-to-enable Forever talent
-switch. Some retain useful plumbing. Others have only references left: the current
-tree has no `FreshMeat`, `WreckingCrew` or `SuddenDeath` JavaScript class/native aura
-kind, and `gladdmg`, `gladbloodrage`, `switchbonus` have no current implementation.
-Their earlier definitions were inspected in `35191ae^` to establish their meanings.
+The twelve deferred legacy player switches were not reused by the Forever
+implementation. Their dormant JavaScript/native branches, proc stages, generated
+keys, free-Slam state and old Rend proc clock have now been removed.
 
-| Retained name | Existing/historical meaning | Forever disposition |
-| --- | --- | --- |
-| `bloodsurge` | 30% proc from Whirlwind/Bloodthirst/Heroic Strike granting free instant Slam; also makes the rotation wait for free Slam and can add an off-hand hit. | **No match.** Improved Slam grants neither a free cast nor a proc. |
-| `devastate` | Converts Sunder Armor into a damaging, crit-capable attack with a shield/Defensive setup. | **No match.** Improved Sunder Armor is only a cost reduction; the snapshot does not grant Devastate. |
-| `tasteforblood` | Rend ticks activate Overpower for 9 seconds with a 6-second internal cooldown. | **Adapt the activation plumbing for Bloodthrill.** Roll `2r`% on eligible melee attacks against a target with the player's Rend; grant one Overpower opportunity lasting 6 seconds. No stated internal cooldown. Remove the old tick trigger for Forever and distinguish proc expiry from the ordinary 5-second dodge opportunity so one cannot shorten/overwrite the other incorrectly. Prefer a `bloodthrill` property. |
-| `freshmeat` | Outgoing core-ability hits proc a 12-second +10% Physical damage aura, guaranteed on first use then 10%. | **Reuse the historical aura shape for Enrage**, with `2r`% damage and 30% chance on incoming damaging attacks. Its old trigger is wrong. Not a Blood Craze mapping: Blood Craze heals. Prefer `enrage` as the action/key. |
-| `suddendeath` | 10% proc enabling Execute outside execute phase and retaining 10 rage afterward. | **No match.** Improved Execute changes cost; Boundless Rage changes capacity. |
-| `wreckingcrew` | Outgoing crits trigger a 12-second bonus to `mainspelldmg`, covering core abilities rather than all Physical damage. | **No direct match.** Wrong trigger and coverage for Enrage; Fresh Meat's general damage-aura shape is closer. |
-| `bloodfrenzy` | Current branches enhance Rend damage with base damage/AP and allow Rend in Berserker Stance; the historical rune description additionally discussed bleed-generated rage. | **No match.** Neither Improved Rend nor Bloodthrill grants those effects. The reused icon is not evidence of shared mechanics. |
-| `furiousthunder` | Double Thunder Clap damage and relax its stance restriction. | **No match.** Improved Thunder Clap changes only rage cost in this snapshot. |
-| `precisetiming` | Instant Slam with a 6-second cooldown. | **Related code location, incompatible behavior.** Improved Slam needs reduced cast/GCD and preserved swing time. Forever's subsequently confirmed cooldown is 15 seconds. Use explicit cast/GCD/cooldown/preserve-swing properties instead. |
-| `gladdmg` | Shield damage modifier historically gated by Gladiator Stance. | **Adapt for Bastion** as `2r`% damage whenever a shield is equipped, in any stance. Remove the Gladiator dependency and cover both physical and spell damage, including applicable proc paths. Prefer a shield-damage property or the existing `dmgshield` pattern. |
-| `gladbloodrage` | Historically reduced Bloodrage cooldown by 30 seconds in Gladiator Stance. | **No behavioral match.** Improved Bloodrage increases rage amounts, not cooldown. A new multiplier is clearer than repurposing this boolean. |
-| `switchbonus` | Historically constructed Battle/Berserker/Defensive Forecast buffs on stance changes. | **No match.** Improved Tactical Mastery uses retained rage; Vanguard changes Charge eligibility. Neither grants a stance-switch buff. |
+The supported mechanics use these explicit properties instead:
 
-Useful reuse outside the requested list:
+| Mechanic | Runtime implementation retained |
+| --- | --- |
+| Bloodthrill | `talents.bloodthrill` rolls on landed melee hits against active Rend; `bloodthrilltimer` tracks the six-second Overpower opportunity independently of dodges. |
+| Enrage | `talents.enrage` and `auras.enrage` supply the 12-second Physical damage buff, triggered by incoming damage. |
+| Bastion | `talents.bastion` modifies physical and spell damage while a shield is equipped. |
+| Improved Bloodrage | `talents.bloodragemod` scales initial rage and fractional periodic ticks. |
+| Improved Thunder Clap | `talents.impthunderclap` reduces rage cost. |
+| Slam | `talents.impslam`, cast time, GCD, cooldown and `swingmode` describe the mode-specific behavior. |
+| Improved Tactical Mastery | `talents.rageretained` supplies the stance-change rage limit. |
+
+Other shared runtime properties:
+
 
 - **Focused Rage → `ragecostbonus = r`.** Existing offensive constructors already subtract this field, including Rend. Set it before constructing actions, combine ability-specific reductions, and clamp total costs at zero where reductions can exceed cost. Preserve the distinction between offensive abilities and utility/self buffs.
 - **Weaponmaster → `axecrit`, `polearmcrit`, `swordproc`.** Preserve the extra-attack implementation and anti-self-proc guard where verified. Mace/staff percentage armor bypass still needs new semantics.

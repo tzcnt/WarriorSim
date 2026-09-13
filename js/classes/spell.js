@@ -195,7 +195,7 @@ class Execute extends Spell {
         this.player.timer = 1500;
         this.player.rage -= this.cost;
         this.usedrage = ~~this.player.rage;
-        this.totalusedrage += this.usedrage - (this.player.auras.suddendeath && this.player.auras.suddendeath.timer ? 10 : 0);
+        this.totalusedrage += this.usedrage;
         this.timer = 1 - (step % 1);
         this.maxdelay = rng(this.player.reactionmin, this.player.reactionmax);
     }
@@ -212,7 +212,7 @@ class Execute extends Spell {
         return !this.player.timer && this.cost <= this.player.rage && 
             (!this.swingtimer || this.player.mh.timer <= this.swingtimer) &&
             (!this.minrage || this.player.rage >= this.minrage) &&
-            (step >= this.executestep || (this.player.auras.suddendeath && this.player.auras.suddendeath.timer));
+            step >= this.executestep;
     }
 }
 
@@ -350,11 +350,7 @@ class SunderArmor extends Spell {
         this.maxdelay = rng(this.player.reactionmin, this.player.reactionmax);
     }
     dmg() {
-        if (!this.devastate) return 0;
-        let mod = 1.5 * (1 + 0.1 * (this.stacks - 1));
-        let dmg = (this.player.mh.mindmg + this.player.mh.maxdmg) / 2;
-        let dps = (dmg  + (this.player.stats.ap / 14) * this.player.mh.speed) / this.player.mh.speed;
-        return dps * mod * this.player.stats.dmgmod;
+        return 0;
     }
     canUse() {
         return !this.timer && !this.player.timer && this.cost <= this.player.rage && this.player.rage >= this.minrage &&
@@ -406,14 +402,10 @@ class ThunderClap extends Spell {
         this.cost = 20 - player.ragecostbonus - player.talents.impthunderclap;
     }
     dmg() {
-        let dmg;
-        dmg = this.value1;
-        if(this.player.furiousthunder)
-            dmg *= 2;
-        return dmg * this.player.stats.dmgmod;
+        return this.value1 * this.player.stats.dmgmod;
     }
     use() {
-        if (!this.player.isValidStance('battle') && !this.player.furiousthunder) this.player.switch('battle');
+        if (!this.player.isValidStance('battle')) this.player.switch('battle');
         this.player.timer = 1500;
         this.player.rage -= this.cost;
         this.timer = this.cooldown * 1000;
@@ -422,7 +414,7 @@ class ThunderClap extends Spell {
     canUse() {
         return !this.timer && !this.player.timer && this.cost <= this.player.rage &&
             (!this.minrage || this.player.rage >= this.minrage) &&
-            (this.player.furiousthunder || this.player.isValidStance('battle'));
+            this.player.isValidStance('battle');
     }
 }
 
@@ -483,8 +475,8 @@ class Slam extends Spell {
     constructor(player, id) {
         super(player, id);
         this.cost = 15 - player.ragecostbonus;
-        this.casttime = player.precisetiming ? 0 : (1500 - (player.talents.impslam * 100));
-        this.cooldown = player.precisetiming ? 6 : 0;
+        this.casttime = 1500 - player.talents.impslam * 100;
+        this.cooldown = 0;
         this.swingmode = 0; // Classic resets; Forever pauses (1) or advances (2).
         this.gcd = 1500;
         if (player.mode === 'forever') {
@@ -503,20 +495,17 @@ class Slam extends Spell {
         return dmg * this.player.stats.dmgmod * mod;
     }
     use() {
-        if (this.player.freeslam) this.offhandhit = true;
-        if (!this.player.freeslam) this.player.rage -= this.cost;
+        this.player.rage -= this.cost;
         this.maxdelay = rng(this.player.reactionmin, this.player.reactionmax);
-        if (this.casttime && !this.player.freeslam && !this.swingmode) {
+        if (this.casttime && !this.swingmode) {
             this.player.mh.use();
             if (this.player.oh) this.player.oh.use();
         }
-        this.player.freeslam = false;
         this.timer = this.cooldown * 1000;
         /* start-log */ if (this.player.logging) this.player.log(`${this.name} done casting`); /* end-log */
     }
     canUse() {
-        return !this.timer && !this.player.timer && this.player.mh.timer >= this.mhthreshold && (this.player.freeslam || this.cost <= this.player.rage) && 
-            (!this.player.bloodsurge || this.player.freeslam) &&
+        return !this.timer && !this.player.timer && this.player.mh.timer >= this.mhthreshold && this.cost <= this.player.rage &&
             (!this.minrage || this.player.rage >= this.minrage) &&
             (!this.maincd || 
                 (this.player.spells.bloodthirst && this.player.spells.bloodthirst.timer >= this.maincd) || 
@@ -1713,7 +1702,6 @@ class Rend extends Aura {
         this.canDodge = true;
         this.nocrit = true;
         this.dmgmod = 1 + this.player.talents.rendmod / 100;
-        this.tfbstep = -6000;
         this.offensive = true;
     }
     step() {
@@ -1731,12 +1719,6 @@ class Rend extends Aura {
                 /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
             }
 
-            // Taste for Blood
-            if (this.player.tasteforblood && (this.tfbstep + 6000) <= step) {
-                this.player.dodgetimer = 9000;
-                this.tfbstep = step;
-                /* start-log */ if (this.player.logging) this.player.log(`Taste of Blood applied`); /* end-log */
-            }
         }
 
         if (step >= this.timer) {
@@ -1761,16 +1743,13 @@ class Rend extends Aura {
         this.starttimer = step;
         this.stacks = this.value2;
 
-        if (!this.player.isValidStance('def', true) && !this.player.isValidStance('battle', true)) {
+        if (!this.player.isValidStance('def') && !this.player.isValidStance('battle')) {
             let stance = 'battle';
             this.player.switch(stance);
         }
 
         this.player.rage -= this.cost;
-        let basedmg = this.value1;
-        if (this.player.bloodfrenzy)
-            basedmg += this.value1 + ~~(this.player.stats.ap * 0.03 * this.value2);
-        let dmg = basedmg * this.player.stats.dmgmod * this.dmgmod * this.player.bleedmod;
+        let dmg = this.value1 * this.player.stats.dmgmod * this.dmgmod * this.player.bleedmod;
         this.tickdmg = dmg / this.value2;
 
         this.player.updateDmgMod();
@@ -1779,15 +1758,14 @@ class Rend extends Aura {
     }
     canUse() {
         return !this.timer && !this.player.timer && this.player.rage >= this.cost &&
-            (this.player.isValidStance('battle', true) || this.player.isValidStance('def', true) || this.player.talents.rageretained >= this.cost) && 
-            (!this.maxrage || this.player.isValidStance('battle', true) || this.player.isValidStance('def', true) || this.player.rage <= this.maxrage);
+            (this.player.isValidStance('battle') || this.player.isValidStance('def') || this.player.talents.rageretained >= this.cost) &&
+            (!this.maxrage || this.player.isValidStance('battle') || this.player.isValidStance('def') || this.player.rage <= this.maxrage);
     }
     end() {
         if (this.stacks)
             this.uptime += (step - this.starttimer);
         this.timer = 0;
         this.stacks = 0;
-        this.tfbstep = -6000;
         this.player.updateDmgMod();
     }
     refresh() {

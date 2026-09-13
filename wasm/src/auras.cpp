@@ -139,8 +139,8 @@ bool auraCanUse(PlayerState& player, AuraState& aura) {
         return !active(aura) && !player.timer && player.rage >= aura.props.number("cost"_prop);
     case AuraKind::Rend: {
         const double cost = aura.props.number("cost"_prop);
-        const bool stance = player.isValidStance("battle", true) ||
-            player.isValidStance("def", true);
+        const bool stance = player.isValidStance("battle") ||
+            player.isValidStance("def");
         return !active(aura) && !player.timer && player.rage >= cost &&
             (stance || player.talents.number("rageretained"_prop) >= cost) &&
             (!aura.props.number("maxrage"_prop) || stance || player.rage <= aura.props.number("maxrage"_prop));
@@ -191,7 +191,6 @@ void auraEnd(PlayerState& player, AuraState& aura) {
         player.updateBonusDmg();
         break;
     case AuraKind::Rend:
-        aura.tfbstep = -6000;
         player.updateDmgMod();
         break;
     case AuraKind::JujuFlurry:
@@ -388,16 +387,13 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         player.timer = 1500;
         aura.starttimer = player.step;
         aura.stacks = aura.props.integer("value2"_prop);
-        if (!player.isValidStance("def", true) && !player.isValidStance("battle", true)) {
+        if (!player.isValidStance("def") && !player.isValidStance("battle")) {
             player.switchStance("battle");
         }
         player.rage -= aura.props.number("cost"_prop);
         double baseDamage = aura.props.number("value1"_prop);
         const double value2 = aura.props.number("value2"_prop);
-        if (player.flag("bloodfrenzy"_prop)) {
-            baseDamage += aura.props.number("value1"_prop) +
-                std::trunc(player.stats.number("ap"_prop) * 0.03 * value2);
-        } else if (player.turtleMode) {
+        if (player.turtleMode) {
             baseDamage += std::trunc(player.stats.number("ap"_prop) * 0.05 * value2);
         }
         aura.props.set("tickdmg"_prop, baseDamage * player.stats.number("dmgmod"_prop, 1) *
@@ -512,10 +508,6 @@ bool auraStep(PlayerState& player, AuraState& aura) {
             aura.nexttick += 3000;
             --aura.stacks;
             if (!aura.stacks) aura.uptime += player.step - aura.starttimer;
-            if (player.flag("tasteforblood"_prop) && aura.tfbstep + 6000 <= player.step) {
-                player.dodgetimer = 9000;
-                aura.tfbstep = player.step;
-            }
         }
         if (player.step >= aura.timer) {
             aura.timer = 0;

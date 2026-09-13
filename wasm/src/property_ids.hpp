@@ -8,7 +8,7 @@
 
 namespace warriorsim::detail {
 
-inline constexpr std::size_t kDensePropertyCount = 178;
+inline constexpr std::size_t kDensePropertyCount = 171;
 inline constexpr std::array<std::string_view, kDensePropertyCount> kDensePropertyNames = {
     "abilitiescrit",
     "adjacent",
@@ -41,8 +41,6 @@ inline constexpr std::array<std::string_view, kDensePropertyCount> kDensePropert
     "bleedbonus",
     "bleedmod",
     "block",
-    "bloodfrenzy",
-    "bloodsurge",
     "bonus",
     "bonusdmg",
     "canDodge",
@@ -59,7 +57,6 @@ inline constexpr std::array<std::string_view, kDensePropertyCount> kDensePropert
     "deepwounds",
     "defense",
     "defenseType",
-    "devastate",
     "dmg",
     "dmgmod",
     "dodge",
@@ -74,8 +71,6 @@ inline constexpr std::array<std::string_view, kDensePropertyCount> kDensePropert
     "extracritrage",
     "extrarage",
     "faeriefire",
-    "freshmeat",
-    "furiousthunder",
     "gcd",
     "globals",
     "hakkariextra",
@@ -154,8 +149,6 @@ inline constexpr std::array<std::string_view, kDensePropertyCount> kDensePropert
     "swingtimer",
     "swordboard",
     "swordproc",
-    "tasteforblood",
-    "tfbstep",
     "tickdmg",
     "timer",
     "timetoend",
@@ -229,153 +222,146 @@ constexpr int propertyIndex(std::string_view value) {
     case propertyHash("bleedbonus"): return value == "bleedbonus" ? 28 : -1;
     case propertyHash("bleedmod"): return value == "bleedmod" ? 29 : -1;
     case propertyHash("block"): return value == "block" ? 30 : -1;
-    case propertyHash("bloodfrenzy"): return value == "bloodfrenzy" ? 31 : -1;
-    case propertyHash("bloodsurge"): return value == "bloodsurge" ? 32 : -1;
-    case propertyHash("bonus"): return value == "bonus" ? 33 : -1;
-    case propertyHash("bonusdmg"): return value == "bonusdmg" ? 34 : -1;
-    case propertyHash("canDodge"): return value == "canDodge" ? 35 : -1;
-    case propertyHash("castspeed"): return value == "castspeed" ? 36 : -1;
-    case propertyHash("casttime"): return value == "casttime" ? 37 : -1;
-    case propertyHash("chance"): return value == "chance" ? 38 : -1;
-    case propertyHash("chargeblock"): return value == "chargeblock" ? 39 : -1;
-    case propertyHash("coeff"): return value == "coeff" ? 40 : -1;
-    case propertyHash("cooldown"): return value == "cooldown" ? 41 : -1;
-    case propertyHash("cost"): return value == "cost" ? 42 : -1;
-    case propertyHash("crit"): return value == "crit" ? 43 : -1;
-    case propertyHash("critdmgbonus"): return value == "critdmgbonus" ? 44 : -1;
-    case propertyHash("dataLength"): return value == "dataLength" ? 45 : -1;
-    case propertyHash("deepwounds"): return value == "deepwounds" ? 46 : -1;
-    case propertyHash("defense"): return value == "defense" ? 47 : -1;
-    case propertyHash("defenseType"): return value == "defenseType" ? 48 : -1;
-    case propertyHash("devastate"): return value == "devastate" ? 49 : -1;
-    case propertyHash("dmg"): return value == "dmg" ? 50 : -1;
-    case propertyHash("dmgmod"): return value == "dmgmod" ? 51 : -1;
-    case propertyHash("dodge"): return value == "dodge" ? 52 : -1;
-    case propertyHash("dragonbreath"): return value == "dragonbreath" ? 53 : -1;
-    case propertyHash("dumpmod"): return value == "dumpmod" ? 54 : -1;
-    case propertyHash("duration"): return value == "duration" ? 55 : -1;
-    case propertyHash("enrage"): return value == "enrage" ? 56 : -1;
-    case propertyHash("exmacro"): return value == "exmacro" ? 57 : -1;
-    case propertyHash("expertise"): return value == "expertise" ? 58 : -1;
-    case propertyHash("exposed"): return value == "exposed" ? 59 : -1;
-    case propertyHash("extra"): return value == "extra" ? 60 : -1;
-    case propertyHash("extracritrage"): return value == "extracritrage" ? 61 : -1;
-    case propertyHash("extrarage"): return value == "extrarage" ? 62 : -1;
-    case propertyHash("faeriefire"): return value == "faeriefire" ? 63 : -1;
-    case propertyHash("freshmeat"): return value == "freshmeat" ? 64 : -1;
-    case propertyHash("furiousthunder"): return value == "furiousthunder" ? 65 : -1;
-    case propertyHash("gcd"): return value == "gcd" ? 66 : -1;
-    case propertyHash("globals"): return value == "globals" ? 67 : -1;
-    case propertyHash("hakkariextra"): return value == "hakkariextra" ? 68 : -1;
-    case propertyHash("haste"): return value == "haste" ? 69 : -1;
-    case propertyHash("heroicbonus"): return value == "heroicbonus" ? 70 : -1;
-    case propertyHash("hit"): return value == "hit" ? 71 : -1;
-    case propertyHash("homunculi"): return value == "homunculi" ? 72 : -1;
-    case propertyHash("id"): return value == "id" ? 73 : -1;
-    case propertyHash("impslam"): return value == "impslam" ? 74 : -1;
-    case propertyHash("interval"): return value == "interval" ? 75 : -1;
-    case propertyHash("item"): return value == "item" ? 76 : -1;
-    case propertyHash("level"): return value == "level" ? 77 : -1;
-    case propertyHash("macearp"): return value == "macearp" ? 78 : -1;
-    case propertyHash("magicdmg"): return value == "magicdmg" ? 79 : -1;
-    case propertyHash("maincd"): return value == "maincd" ? 80 : -1;
-    case propertyHash("mainspelldmg"): return value == "mainspelldmg" ? 81 : -1;
-    case propertyHash("maxdelay"): return value == "maxdelay" ? 82 : -1;
-    case propertyHash("maxdmg"): return value == "maxdmg" ? 83 : -1;
-    case propertyHash("maxrage"): return value == "maxrage" ? 84 : -1;
-    case propertyHash("mhthreshold"): return value == "mhthreshold" ? 85 : -1;
-    case propertyHash("mindmg"): return value == "mindmg" ? 86 : -1;
-    case propertyHash("minrage"): return value == "minrage" ? 87 : -1;
-    case propertyHash("misschance"): return value == "misschance" ? 88 : -1;
-    case propertyHash("mitigation"): return value == "mitigation" ? 89 : -1;
-    case propertyHash("moddmgdone"): return value == "moddmgdone" ? 90 : -1;
-    case propertyHash("moddmgtaken"): return value == "moddmgtaken" ? 91 : -1;
-    case propertyHash("mode"): return value == "mode" ? 92 : -1;
-    case propertyHash("modifier"): return value == "modifier" ? 93 : -1;
-    case propertyHash("name"): return value == "name" ? 94 : -1;
-    case propertyHash("nocrit"): return value == "nocrit" ? 95 : -1;
-    case propertyHash("noitemcd"): return value == "noitemcd" ? 96 : -1;
-    case propertyHash("normSpeed"): return value == "normSpeed" ? 97 : -1;
-    case propertyHash("offensive"): return value == "offensive" ? 98 : -1;
-    case propertyHash("offhand"): return value == "offhand" ? 99 : -1;
-    case propertyHash("offhit"): return value == "offhit" ? 100 : -1;
-    case propertyHash("overpowercrit"): return value == "overpowercrit" ? 101 : -1;
-    case propertyHash("overpowerrend"): return value == "overpowerrend" ? 102 : -1;
-    case propertyHash("phantom"): return value == "phantom" ? 103 : -1;
-    case propertyHash("physdmg"): return value == "physdmg" ? 104 : -1;
-    case propertyHash("procblock"): return value == "procblock" ? 105 : -1;
-    case propertyHash("rage"): return value == "rage" ? 106 : -1;
-    case propertyHash("rageblock"): return value == "rageblock" ? 107 : -1;
-    case propertyHash("ragecap"): return value == "ragecap" ? 108 : -1;
-    case propertyHash("rageconversion"): return value == "rageconversion" ? 109 : -1;
-    case propertyHash("ragemod"): return value == "ragemod" ? 110 : -1;
-    case propertyHash("rageretained"): return value == "rageretained" ? 111 : -1;
-    case propertyHash("reactionmax"): return value == "reactionmax" ? 112 : -1;
-    case propertyHash("reactionmin"): return value == "reactionmin" ? 113 : -1;
-    case propertyHash("refund"): return value == "refund" ? 114 : -1;
-    case propertyHash("school"): return value == "school" ? 115 : -1;
-    case propertyHash("shield"): return value == "shield" ? 116 : -1;
-    case propertyHash("skill_"): return value == "skill_" ? 117 : -1;
-    case propertyHash("skill_0"): return value == "skill_0" ? 118 : -1;
-    case propertyHash("skill_1"): return value == "skill_1" ? 119 : -1;
-    case propertyHash("skill_10"): return value == "skill_10" ? 120 : -1;
-    case propertyHash("skill_11"): return value == "skill_11" ? 121 : -1;
-    case propertyHash("skill_13"): return value == "skill_13" ? 122 : -1;
-    case propertyHash("skill_2"): return value == "skill_2" ? 123 : -1;
-    case propertyHash("skill_20"): return value == "skill_20" ? 124 : -1;
-    case propertyHash("skill_21"): return value == "skill_21" ? 125 : -1;
-    case propertyHash("skill_23"): return value == "skill_23" ? 126 : -1;
-    case propertyHash("skill_3"): return value == "skill_3" ? 127 : -1;
-    case propertyHash("skill_4"): return value == "skill_4" ? 128 : -1;
-    case propertyHash("skill_5"): return value == "skill_5" ? 129 : -1;
-    case propertyHash("skill_6"): return value == "skill_6" ? 130 : -1;
-    case propertyHash("skill_7"): return value == "skill_7" ? 131 : -1;
-    case propertyHash("slammainreset"): return value == "slammainreset" ? 132 : -1;
-    case propertyHash("speed"): return value == "speed" ? 133 : -1;
-    case propertyHash("spellcrit"): return value == "spellcrit" ? 134 : -1;
-    case propertyHash("spelldamage"): return value == "spelldamage" ? 135 : -1;
-    case propertyHash("spelldmgmod"): return value == "spelldmgmod" ? 136 : -1;
-    case propertyHash("spellqueueing"): return value == "spellqueueing" ? 137 : -1;
-    case propertyHash("stance"): return value == "stance" ? 138 : -1;
-    case propertyHash("str"): return value == "str" ? 139 : -1;
-    case propertyHash("strmod"): return value == "strmod" ? 140 : -1;
-    case propertyHash("swingtimer"): return value == "swingtimer" ? 141 : -1;
-    case propertyHash("swordboard"): return value == "swordboard" ? 142 : -1;
-    case propertyHash("swordproc"): return value == "swordproc" ? 143 : -1;
-    case propertyHash("tasteforblood"): return value == "tasteforblood" ? 144 : -1;
-    case propertyHash("tfbstep"): return value == "tfbstep" ? 145 : -1;
-    case propertyHash("tickdmg"): return value == "tickdmg" ? 146 : -1;
-    case propertyHash("timer"): return value == "timer" ? 147 : -1;
-    case propertyHash("timetoend"): return value == "timetoend" ? 148 : -1;
-    case propertyHash("timetostart"): return value == "timetostart" ? 149 : -1;
-    case propertyHash("timeworn"): return value == "timeworn" ? 150 : -1;
-    case propertyHash("twohand"): return value == "twohand" ? 151 : -1;
-    case propertyHash("type"): return value == "type" ? 152 : -1;
-    case propertyHash("umbridledwrath"): return value == "umbridledwrath" ? 153 : -1;
-    case propertyHash("unqueue"): return value == "unqueue" ? 154 : -1;
-    case propertyHash("unqueuetimer"): return value == "unqueuetimer" ? 155 : -1;
-    case propertyHash("useonly"): return value == "useonly" ? 156 : -1;
-    case propertyHash("usestep"): return value == "usestep" ? 157 : -1;
-    case propertyHash("vaelbuff"): return value == "vaelbuff" ? 158 : -1;
-    case propertyHash("value"): return value == "value" ? 159 : -1;
-    case propertyHash("value1"): return value == "value1" ? 160 : -1;
-    case propertyHash("value2"): return value == "value2" ? 161 : -1;
-    case propertyHash("wailingextra"): return value == "wailingextra" ? 162 : -1;
-    case propertyHash("weaponspell"): return value == "weaponspell" ? 163 : -1;
-    case propertyHash("zerkerpriority"): return value == "zerkerpriority" ? 164 : -1;
-    case propertyHash("afterswing"): return value == "afterswing" ? 165 : -1;
-    case propertyHash("dodgetimeworn"): return value == "dodgetimeworn" ? 166 : -1;
-    case propertyHash("apcoefficient"): return value == "apcoefficient" ? 167 : -1;
-    case propertyHash("blockcoefficient"): return value == "blockcoefficient" ? 168 : -1;
-    case propertyHash("bloodthrill"): return value == "bloodthrill" ? 169 : -1;
-    case propertyHash("creaturetype"): return value == "creaturetype" ? 170 : -1;
-    case propertyHash("flatbonus"): return value == "flatbonus" ? 171 : -1;
-    case propertyHash("mounted"): return value == "mounted" ? 172 : -1;
-    case propertyHash("offragebonus"): return value == "offragebonus" ? 173 : -1;
-    case propertyHash("ragingblows"): return value == "ragingblows" ? 174 : -1;
-    case propertyHash("swingmode"): return value == "swingmode" ? 175 : -1;
-    case propertyHash("tickrage"): return value == "tickrage" ? 176 : -1;
-    case propertyHash("weaponmasterarp"): return value == "weaponmasterarp" ? 177 : -1;
+    case propertyHash("bonus"): return value == "bonus" ? 31 : -1;
+    case propertyHash("bonusdmg"): return value == "bonusdmg" ? 32 : -1;
+    case propertyHash("canDodge"): return value == "canDodge" ? 33 : -1;
+    case propertyHash("castspeed"): return value == "castspeed" ? 34 : -1;
+    case propertyHash("casttime"): return value == "casttime" ? 35 : -1;
+    case propertyHash("chance"): return value == "chance" ? 36 : -1;
+    case propertyHash("chargeblock"): return value == "chargeblock" ? 37 : -1;
+    case propertyHash("coeff"): return value == "coeff" ? 38 : -1;
+    case propertyHash("cooldown"): return value == "cooldown" ? 39 : -1;
+    case propertyHash("cost"): return value == "cost" ? 40 : -1;
+    case propertyHash("crit"): return value == "crit" ? 41 : -1;
+    case propertyHash("critdmgbonus"): return value == "critdmgbonus" ? 42 : -1;
+    case propertyHash("dataLength"): return value == "dataLength" ? 43 : -1;
+    case propertyHash("deepwounds"): return value == "deepwounds" ? 44 : -1;
+    case propertyHash("defense"): return value == "defense" ? 45 : -1;
+    case propertyHash("defenseType"): return value == "defenseType" ? 46 : -1;
+    case propertyHash("dmg"): return value == "dmg" ? 47 : -1;
+    case propertyHash("dmgmod"): return value == "dmgmod" ? 48 : -1;
+    case propertyHash("dodge"): return value == "dodge" ? 49 : -1;
+    case propertyHash("dragonbreath"): return value == "dragonbreath" ? 50 : -1;
+    case propertyHash("dumpmod"): return value == "dumpmod" ? 51 : -1;
+    case propertyHash("duration"): return value == "duration" ? 52 : -1;
+    case propertyHash("enrage"): return value == "enrage" ? 53 : -1;
+    case propertyHash("exmacro"): return value == "exmacro" ? 54 : -1;
+    case propertyHash("expertise"): return value == "expertise" ? 55 : -1;
+    case propertyHash("exposed"): return value == "exposed" ? 56 : -1;
+    case propertyHash("extra"): return value == "extra" ? 57 : -1;
+    case propertyHash("extracritrage"): return value == "extracritrage" ? 58 : -1;
+    case propertyHash("extrarage"): return value == "extrarage" ? 59 : -1;
+    case propertyHash("faeriefire"): return value == "faeriefire" ? 60 : -1;
+    case propertyHash("gcd"): return value == "gcd" ? 61 : -1;
+    case propertyHash("globals"): return value == "globals" ? 62 : -1;
+    case propertyHash("hakkariextra"): return value == "hakkariextra" ? 63 : -1;
+    case propertyHash("haste"): return value == "haste" ? 64 : -1;
+    case propertyHash("heroicbonus"): return value == "heroicbonus" ? 65 : -1;
+    case propertyHash("hit"): return value == "hit" ? 66 : -1;
+    case propertyHash("homunculi"): return value == "homunculi" ? 67 : -1;
+    case propertyHash("id"): return value == "id" ? 68 : -1;
+    case propertyHash("impslam"): return value == "impslam" ? 69 : -1;
+    case propertyHash("interval"): return value == "interval" ? 70 : -1;
+    case propertyHash("item"): return value == "item" ? 71 : -1;
+    case propertyHash("level"): return value == "level" ? 72 : -1;
+    case propertyHash("macearp"): return value == "macearp" ? 73 : -1;
+    case propertyHash("magicdmg"): return value == "magicdmg" ? 74 : -1;
+    case propertyHash("maincd"): return value == "maincd" ? 75 : -1;
+    case propertyHash("mainspelldmg"): return value == "mainspelldmg" ? 76 : -1;
+    case propertyHash("maxdelay"): return value == "maxdelay" ? 77 : -1;
+    case propertyHash("maxdmg"): return value == "maxdmg" ? 78 : -1;
+    case propertyHash("maxrage"): return value == "maxrage" ? 79 : -1;
+    case propertyHash("mhthreshold"): return value == "mhthreshold" ? 80 : -1;
+    case propertyHash("mindmg"): return value == "mindmg" ? 81 : -1;
+    case propertyHash("minrage"): return value == "minrage" ? 82 : -1;
+    case propertyHash("misschance"): return value == "misschance" ? 83 : -1;
+    case propertyHash("mitigation"): return value == "mitigation" ? 84 : -1;
+    case propertyHash("moddmgdone"): return value == "moddmgdone" ? 85 : -1;
+    case propertyHash("moddmgtaken"): return value == "moddmgtaken" ? 86 : -1;
+    case propertyHash("mode"): return value == "mode" ? 87 : -1;
+    case propertyHash("modifier"): return value == "modifier" ? 88 : -1;
+    case propertyHash("name"): return value == "name" ? 89 : -1;
+    case propertyHash("nocrit"): return value == "nocrit" ? 90 : -1;
+    case propertyHash("noitemcd"): return value == "noitemcd" ? 91 : -1;
+    case propertyHash("normSpeed"): return value == "normSpeed" ? 92 : -1;
+    case propertyHash("offensive"): return value == "offensive" ? 93 : -1;
+    case propertyHash("offhand"): return value == "offhand" ? 94 : -1;
+    case propertyHash("offhit"): return value == "offhit" ? 95 : -1;
+    case propertyHash("overpowercrit"): return value == "overpowercrit" ? 96 : -1;
+    case propertyHash("overpowerrend"): return value == "overpowerrend" ? 97 : -1;
+    case propertyHash("phantom"): return value == "phantom" ? 98 : -1;
+    case propertyHash("physdmg"): return value == "physdmg" ? 99 : -1;
+    case propertyHash("procblock"): return value == "procblock" ? 100 : -1;
+    case propertyHash("rage"): return value == "rage" ? 101 : -1;
+    case propertyHash("rageblock"): return value == "rageblock" ? 102 : -1;
+    case propertyHash("ragecap"): return value == "ragecap" ? 103 : -1;
+    case propertyHash("rageconversion"): return value == "rageconversion" ? 104 : -1;
+    case propertyHash("ragemod"): return value == "ragemod" ? 105 : -1;
+    case propertyHash("rageretained"): return value == "rageretained" ? 106 : -1;
+    case propertyHash("reactionmax"): return value == "reactionmax" ? 107 : -1;
+    case propertyHash("reactionmin"): return value == "reactionmin" ? 108 : -1;
+    case propertyHash("refund"): return value == "refund" ? 109 : -1;
+    case propertyHash("school"): return value == "school" ? 110 : -1;
+    case propertyHash("shield"): return value == "shield" ? 111 : -1;
+    case propertyHash("skill_"): return value == "skill_" ? 112 : -1;
+    case propertyHash("skill_0"): return value == "skill_0" ? 113 : -1;
+    case propertyHash("skill_1"): return value == "skill_1" ? 114 : -1;
+    case propertyHash("skill_10"): return value == "skill_10" ? 115 : -1;
+    case propertyHash("skill_11"): return value == "skill_11" ? 116 : -1;
+    case propertyHash("skill_13"): return value == "skill_13" ? 117 : -1;
+    case propertyHash("skill_2"): return value == "skill_2" ? 118 : -1;
+    case propertyHash("skill_20"): return value == "skill_20" ? 119 : -1;
+    case propertyHash("skill_21"): return value == "skill_21" ? 120 : -1;
+    case propertyHash("skill_23"): return value == "skill_23" ? 121 : -1;
+    case propertyHash("skill_3"): return value == "skill_3" ? 122 : -1;
+    case propertyHash("skill_4"): return value == "skill_4" ? 123 : -1;
+    case propertyHash("skill_5"): return value == "skill_5" ? 124 : -1;
+    case propertyHash("skill_6"): return value == "skill_6" ? 125 : -1;
+    case propertyHash("skill_7"): return value == "skill_7" ? 126 : -1;
+    case propertyHash("slammainreset"): return value == "slammainreset" ? 127 : -1;
+    case propertyHash("speed"): return value == "speed" ? 128 : -1;
+    case propertyHash("spellcrit"): return value == "spellcrit" ? 129 : -1;
+    case propertyHash("spelldamage"): return value == "spelldamage" ? 130 : -1;
+    case propertyHash("spelldmgmod"): return value == "spelldmgmod" ? 131 : -1;
+    case propertyHash("spellqueueing"): return value == "spellqueueing" ? 132 : -1;
+    case propertyHash("stance"): return value == "stance" ? 133 : -1;
+    case propertyHash("str"): return value == "str" ? 134 : -1;
+    case propertyHash("strmod"): return value == "strmod" ? 135 : -1;
+    case propertyHash("swingtimer"): return value == "swingtimer" ? 136 : -1;
+    case propertyHash("swordboard"): return value == "swordboard" ? 137 : -1;
+    case propertyHash("swordproc"): return value == "swordproc" ? 138 : -1;
+    case propertyHash("tickdmg"): return value == "tickdmg" ? 139 : -1;
+    case propertyHash("timer"): return value == "timer" ? 140 : -1;
+    case propertyHash("timetoend"): return value == "timetoend" ? 141 : -1;
+    case propertyHash("timetostart"): return value == "timetostart" ? 142 : -1;
+    case propertyHash("timeworn"): return value == "timeworn" ? 143 : -1;
+    case propertyHash("twohand"): return value == "twohand" ? 144 : -1;
+    case propertyHash("type"): return value == "type" ? 145 : -1;
+    case propertyHash("umbridledwrath"): return value == "umbridledwrath" ? 146 : -1;
+    case propertyHash("unqueue"): return value == "unqueue" ? 147 : -1;
+    case propertyHash("unqueuetimer"): return value == "unqueuetimer" ? 148 : -1;
+    case propertyHash("useonly"): return value == "useonly" ? 149 : -1;
+    case propertyHash("usestep"): return value == "usestep" ? 150 : -1;
+    case propertyHash("vaelbuff"): return value == "vaelbuff" ? 151 : -1;
+    case propertyHash("value"): return value == "value" ? 152 : -1;
+    case propertyHash("value1"): return value == "value1" ? 153 : -1;
+    case propertyHash("value2"): return value == "value2" ? 154 : -1;
+    case propertyHash("wailingextra"): return value == "wailingextra" ? 155 : -1;
+    case propertyHash("weaponspell"): return value == "weaponspell" ? 156 : -1;
+    case propertyHash("zerkerpriority"): return value == "zerkerpriority" ? 157 : -1;
+    case propertyHash("afterswing"): return value == "afterswing" ? 158 : -1;
+    case propertyHash("dodgetimeworn"): return value == "dodgetimeworn" ? 159 : -1;
+    case propertyHash("apcoefficient"): return value == "apcoefficient" ? 160 : -1;
+    case propertyHash("blockcoefficient"): return value == "blockcoefficient" ? 161 : -1;
+    case propertyHash("bloodthrill"): return value == "bloodthrill" ? 162 : -1;
+    case propertyHash("creaturetype"): return value == "creaturetype" ? 163 : -1;
+    case propertyHash("flatbonus"): return value == "flatbonus" ? 164 : -1;
+    case propertyHash("mounted"): return value == "mounted" ? 165 : -1;
+    case propertyHash("offragebonus"): return value == "offragebonus" ? 166 : -1;
+    case propertyHash("ragingblows"): return value == "ragingblows" ? 167 : -1;
+    case propertyHash("swingmode"): return value == "swingmode" ? 168 : -1;
+    case propertyHash("tickrage"): return value == "tickrage" ? 169 : -1;
+    case propertyHash("weaponmasterarp"): return value == "weaponmasterarp" ? 170 : -1;
     default: return -1;
     }
 }

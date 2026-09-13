@@ -19,13 +19,21 @@ pending decisions have been superseded by this implementation:
   indices; `--check` verifies both tables, and C++ static assertions check them
   during builds. The property array remains curated, including live dynamic
   weapon skill slots and the live Classic `impslam` talent property.
-- Removed the `gladdmg`/`gladbloodrage` set-bonus stats, Shield Slam's obsolete
+- Removed the obsolete Gladiator set-bonus stats, Shield Slam's obsolete
   `resolve`/`swordboard` options, and the unused Slam `swingreset` option. The
-  separate player flag hooks, including `swordboard`, remain deferred as requested.
+  unrelated `swordboard` player hook remains deferred.
 - Removed rune/preset SCSS rules and rebuilt the CSS with the updated Sass
   toolchain. Rebuilt JavaScript, WASM, and the compute bundle identity too.
 - Marked the old SoD validation and benchmark documentation as historical while
   preserving its recorded results.
+
+### Follow-up after the Forever talent implementation
+
+The twelve deferred legacy player switches have now been removed from both
+engines, together with their orphaned proc stages, free-Slam state, Rend proc
+clock, and generated keys. Forever uses explicit talent properties and action
+state for its supported mechanics; see `data/forever/IMPLEMENTATION.md`.
+The current native tables contain 74 action names and 171 dense property names.
 
 ### Why the golden reports changed
 
@@ -137,11 +145,10 @@ Hategrips  WorgenMark  TowerForgeSetBonus  Shieldrender  MoltenEmberstone
 Modrag  UnrelentingStrikes
 ```
 
-Dead as of the SoD removal (8):
+Other historical SoD-only aura entries:
 
 ```
-DeepWounds  ConsumedRage  MildlyIrradiated  Rampage  WreckingCrew  FreshMeat
-SuddenDeath  SingleMinded
+DeepWounds  ConsumedRage  MildlyIrradiated  Rampage  SingleMinded
 ```
 
 `DeepWounds` is the Season of Discovery variant. Classic uses `OldDeepWounds`,
@@ -231,9 +238,9 @@ abilities that no longer exist. `addOrderedKey` skips keys it cannot resolve, so
 these are inert — but they are the clearest signal of the debt:
 
 ```
-rampage 3x   freshmeat 3x   suddendeath 3x   mildlyirradiated 3x
+rampage 3x   mildlyirradiated 3x
 singleminded 3x   echoesglad 3x   gladforecast 3x
-wreckingcrew 2x   consumedrage 2x   quickstrike 2x   ragingblow 2x
+consumedrage 2x   quickstrike 2x   ragingblow 2x
 shockwave 2x
 ```
 
@@ -246,23 +253,16 @@ These need a judgement call rather than a mechanical edit:
 
 - **`EchoesGlad` / `GladForecast`, and the whole stance-dance cluster.** Part 2
   removed Gladiator Stance, so these two auras can never be entered. They are
-  still constructed by the `switchdelay` / `switchbonus` set bonuses, and
+  were constructed by the old stance-switch set bonuses, and
   `BattleForecast` pairs with `GladForecast` explicitly
   (`auras.cpp`, `case AuraKind::GladForecast`). Removing them also makes
   `UnstoppableMight` (spell id 457820, `js/data/spells.js`), the `secondarystance`
   rotation option, and the `Unstoppable Might` item set inert. Decide whether the
   stance-swap machinery has a future in WoW Forever before deleting it.
-- **Player flags nothing assigns any more.** After the rune removal these are
-  read but never set, so every guarded branch is dead:
-  `bloodsurge`, `devastate`, `tasteforblood`, `freshmeat`, `suddendeath`,
-  `wreckingcrew`, `bloodfrenzy`, `furiousthunder`, `precisetiming`,
-  `gladdmg`, `gladbloodrage`, `switchbonus`. They are also the natural hook
-  points for re-adding abilities, which is why part 1 left them.
-- **Set-bonus stats with no reader.** `gladdmg` and `gladbloodrage` in
-  `js/data/enchants.js` lost their consumers in part 2. Note that "set whose
-  items are absent from the gear catalog" is *not* a proxy for "SoD set" — 43 of
-  59 sets have no item in the catalog, and most of those are ordinary Classic
-  sets whose items were never added.
+- **Deferred legacy player switches and obsolete Gladiator set-bonus stats.**
+  Cleanup is complete; the supported Forever talents use separate runtime
+  properties. Catalog omissions alone still do not establish whether an
+  unrelated item set is obsolete.
 - **Spell options that no longer do anything.** `js/data/spells.js` Shield Slam
   still carries `resolve: false` and `swordboard: false`; both were rune-only
   gates.
