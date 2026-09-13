@@ -9,7 +9,6 @@ SIM.SETTINGS = {
         view.buildSpells();
         view.buildBuffs();
         view.buildTalents();
-        view.buildRunes();
     },
 
     variables: function () {
@@ -20,7 +19,6 @@ SIM.SETTINGS = {
         view.rotation = view.body.find('article.rotation');
         view.talents = view.body.find('article.talents');
         view.filter = view.body.find('article.filter');
-        view.runes = view.body.find('article.runes');
         view.close = view.body.find('section.settings .btn-close');
         view.bg = view.body.find('section.sidebar .bg');
     },
@@ -181,12 +179,6 @@ SIM.SETTINGS = {
         view.talents.on('click', 'label', function (e) {
             var view = this;
             $(view.parentElement).find('table').toggleClass('hidden').end().find('#top').toggleClass('hidden top');
-            SIM.SETTINGS.toggleArticle(view);
-        });
-
-        view.runes.on('click', 'label', function (e) {
-            var view = this;
-            $(view.parentElement).find('div').toggleClass('hidden');
             SIM.SETTINGS.toggleArticle(view);
         });
 
@@ -380,11 +372,6 @@ SIM.SETTINGS = {
         let items = '';
         for (let spell of spells) {
 
-            if (spell.sod && mode !== "sod") {
-                spell.active = false;
-                continue;
-            }
-
             // race restriction
             if (spell.id == 26296 && storage.race !== "Troll") {
                 spell.active = false;
@@ -409,22 +396,6 @@ SIM.SETTINGS = {
                 for (let t of tree.t)
                     if (t.n == spell.name) talent = t;
             if (talent && talent.enable && talent.c == 0) {
-                spell.active = false;
-                continue;
-            }
-
-            // rune restrictions
-            let rune;
-            if (typeof runes !== 'undefined') {
-                for (let type in runes)
-                    for (let r of runes[type])
-                        if (r.enable == spell.id) rune = r;
-                if (rune && !rune.selected) {
-                    spell.active = false;
-                    continue;
-                }
-            }
-            else if (spell.rune) {
                 spell.active = false;
                 continue;
             }
@@ -582,33 +553,8 @@ SIM.SETTINGS = {
             ul.append(`<li data-id="alwaystails" data-group="coinflip" class="${spell.alwaystails ? 'active' : ''}">Always tails</li>`);
         if (spell.zerkerpriority !== undefined)
             ul.append(`<li data-id="zerkerpriority" class="${spell.zerkerpriority ? 'active' : ''}">Prioritize over Bloodrage</li>`);
-        if (typeof spell.resolve !== 'undefined') 
-            ul.append(`<li data-id="resolve" class="${spell.resolve ? 'active' : ''}">Only use if Defender's Resolve is not up</li>`);
-        if (typeof spell.swordboard !== 'undefined') 
-            ul.append(`<li data-id="swordboard" class="${spell.swordboard ? 'active' : ''}">Only use after a Sword & Board proc</li>`);
         if (typeof spell.swingtimer !== 'undefined') 
             ul.append(`<li data-id="swingtimeractive" class="${spell.swingtimeractive ? 'active' : ''}">Don't use if swing timer longer than <input type="text" name="swingtimer" value="${spell.swingtimer}" data-numberonly="true" /> secs</li>`);
-
-
-        // Might set
-        if (typeof spell.secondarystance !== 'undefined')
-            ul.append(`<li data-id="secondarystance" class="nobox active">Secondary stance <select name="secondarystance">
-                <option value="battle" ${spell.secondarystance == 'battle' ? 'selected' : ''}>Battle Stance</option>
-                <option value="def" ${spell.secondarystance == 'def' ? 'selected' : ''}>Defensive Stance</option>
-                <option value="zerk" ${spell.secondarystance == 'zerk' ? 'selected' : ''}>Berserker Stance</option>
-                <option value="glad" ${spell.secondarystance == 'glad' ? 'selected' : ''}>Gladiator Stance</option></option>
-            </select></li>`);
-
-        if (typeof spell.switchstart !== 'undefined')
-            ul.append(`<li data-id="switchstart" class="${spell.switchstart ? 'active' : ''}">Switch stance at fight start</li>`);
-        if (typeof spell.switchtimeactive !== 'undefined')
-            ul.append(`<li data-id="switchtimeactive" class="${spell.switchtimeactive ? 'active' : ''}">Switch if any Forecast shorter than <input type="text" name="switchtime" value="${spell.switchtime}" data-numberonly="true" /> secs AND rage below <input type="text" name="switchrage" value="${spell.switchrage}" data-numberonly="true" /></li>`);
-        if (typeof spell.switchoractive !== 'undefined')
-            ul.append(`<li data-id="switchoractive" class="${spell.switchoractive ? 'active' : ''}">Switch if any Forecast shorter than <input type="text" name="switchortime" value="${spell.switchortime}" data-numberonly="true" /> secs OR rage below <input type="text" name="switchorrage" value="${spell.switchorrage}" data-numberonly="true" /></li>`);
-        if (typeof spell.switchechoesactive !== 'undefined')
-            ul.append(`<li data-id="switchechoesactive" class="${spell.switchechoesactive ? 'active' : ''}">Switch if any Echoes shorter than <input type="text" name="switchechoestime" value="${spell.switchechoestime}" data-numberonly="true" /> secs and rage below <input type="text" name="switchechoesrage" value="${spell.switchechoesrage}" data-numberonly="true" /></li>`);
-        if (typeof spell.switchdefault !== 'undefined')
-            ul.append(`<li data-id="switchdefault" class="${spell.switchdefault ? 'active' : ''}">Switch back to default stance as soon as possible</li>`);
 
 
         details.css('visibility','hidden');
@@ -670,28 +616,6 @@ SIM.SETTINGS = {
                 continue;
             }
 
-            // sod restrictions
-            if (mode !== "sod" && buff.sod) {
-                buff.active = false;
-                continue;
-            }
-
-            // rune restrictions
-            let rune;
-            if (typeof runes !== 'undefined') {
-                for (let type in runes)
-                    for (let r of runes[type])
-                        if (r.enable == buff.id) rune = r;
-                if (rune && !rune.selected) {
-                    buff.active = false;
-                    continue;
-                }
-            }
-            else if (buff.rune) {
-                buff.active = false;
-                continue;
-            }
-
             let tooltip = buff.id;
             if (buff.id == 413479) tooltip = 412513;
 
@@ -742,67 +666,6 @@ SIM.SETTINGS = {
                 table.find('tr').eq(talent.y).children().eq(talent.x).append(div);
             }
             view.talents.append(table);
-        }
-    },
-
-    buildRunes: function () {
-        var view = this;
-        if (typeof runes === "undefined") return;
-        view.runes.find('#runes-area').empty();
-        for (let type in runes) {
-            for (let i in runes[type]) {
-                let rune = runes[type][i];
-                if (rune.enable && rune.selected) view.rotation.find('[data-id="' + rune.enable + '"]').removeClass('hidden');
-                if (rune.enable && !rune.selected) view.rotation.find('[data-id="' + rune.enable + '"]').addClass('hidden');
-
-                // Glad Stance
-                if (rune.selected && rune.gladstance) view.buffs.find('[data-id="' + rune.enable + '"]').removeClass('hidden');
-                if (!rune.selected && rune.gladstance) view.buffs.find('[data-id="' + rune.enable + '"]').addClass('hidden');
-            }
-        }
-        var type_of_runes = $('nav > ul > li').map(function() {
-            return $(this).data('type');
-          }).get();
-        for (let tree_name of type_of_runes) {
-            if (!runes.hasOwnProperty(tree_name)) {
-            } else {
-                let table = $('<table>');
-                let tbody = $('<tbody>');
-                let tree = $(`<tr name="${tree_name}">`)
-                for(let i = 0; i < runes[tree_name].length; i++) {
-                    let this_rune = runes[tree_name][i];
-                    let td = $('<td>');
-                    let rune_div = $(`<div data-id="${this_rune.id}" class="rune"></div>`);
-                    let sub_div = $(`<div class="icon ${this_rune.selected ? 'active' : ''}"></div>`);
-                    let tooltip = this_rune.id;
-                    if (tooltip == 413479) tooltip = 412513;
-                    sub_div.html(`<img src="https://wow.zamimg.com/images/wow/icons/medium/${this_rune.iconname}.jpg" alt="${this_rune.name}" />`);
-                    sub_div.append(`<a href="${WEB_DB_URL}spell=${tooltip}" class="wh-tooltip"></a>`);
-                    rune_div.append(sub_div);
-                    td.append(rune_div); 
-                    tree.append(td);
-                }
-                let tr = $('<tr>');
-                let tree_header = $(`<th style="text-align:left; padding-left: 4px;">${tree_name.toString().charAt(0).toUpperCase()}${tree_name.slice(1).toString().replace('1','')}</th>`)
-                tr.append(tree_header)
-                // if (tree_name == "legs")
-                //     tree.append('<td><div id="move" class="rune" style="position: absolute; z-index: 999; margin-top: -23px;"><div class="icon"><img src="https://wow.zamimg.com/images/wow/icons/medium/ability_warrior_titansgrip.jpg" alt="" /></div></div></td>');
-                
-                table.append(tr).append(tree);
-                tbody.append(table)
-                view.runes.find('#runes-area').append(tbody);
-
-                $("#move").mouseenter(function () {
-
-                    $(this).animate({
-                        top: Math.random() * 300
-                    }, 100);
-                    $(this).animate({
-                        left: Math.random() * 300
-                    }, 100);
-                
-                });
-            }
         }
     },
 

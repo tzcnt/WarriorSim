@@ -25,7 +25,7 @@ function workspace(t) {
     for (const name of ['js', 'wasm']) fs.cpSync(path.join(ROOT, 'dist', name), path.join(directory, 'dist', name), {recursive: true});
     return directory;
 }
-function load(root, supplied, mode = 'sod', options = {}) {
+function load(root, supplied, mode = 'forever', options = {}) {
     let hashes = 0, fetches = 0;
     const loaded = [], requested = [], blobs = new Map();
     class MemoryURL extends URL {
@@ -90,13 +90,13 @@ test('bundle identity covers code, WASM, content, and entrypoint order but exclu
     const files = first.files.map(file => file.path);
     for (const file of ['wasm/warriorsim.wasm', 'wasm/warriorsim.js', 'js/compute-worker.min.js',
         'js/compute-protocol.min.js', 'js/classes/player.min.js', 'js/classes/simulation.min.js',
-        'js/data/gear.min.js', 'js/data/gear_sod.min.js', 'js/data/runes.min.js', 'js/data/buffs.min.js', 'js/data/spells.min.js',
+        'js/data/gear.min.js', 'js/data/gear_forever.min.js', 'js/data/buffs.min.js', 'js/data/spells.min.js',
         'js/data/talents.min.js', 'js/data/enchants.min.js', 'js/data/levelstats.min.js']) assert.ok(files.includes(file), file);
     fs.mkdirSync(path.join(root, 'dist/css'));
     fs.writeFileSync(path.join(root, 'dist/css/style.css'), 'body {color: red}');
-    fs.utimesSync(path.join(root, 'dist/js/data/gear_sod.min.js'), new Date(), new Date());
+    fs.utimesSync(path.join(root, 'dist/js/data/gear_forever.min.js'), new Date(), new Date());
     assert.equal(buildBundle(root).buildId, first.buildId);
-    fs.appendFileSync(path.join(root, 'dist/js/data/gear_sod.min.js'), '\n// new content');
+    fs.appendFileSync(path.join(root, 'dist/js/data/gear_forever.min.js'), '\n// new content');
     const second = buildBundle(root);
     assert.notEqual(second.buildId, first.buildId);
     fs.appendFileSync(path.join(root, 'dist/wasm/warriorsim.wasm'), Buffer.from([0]));
@@ -165,9 +165,9 @@ test('each tab preloads the whole bundle once and executes real local/shared WAS
     // away entirely, inside this test's temporary workspace, to simulate deployment cleanup.
     const directory = path.join(root, 'dist');
     fs.renameSync(directory, directory + '.offline');
-    for (const sod of [true, false]) {
+    for (const mode of ['classic', 'forever']) {
         const {context} = await workerContext(oldTab, oldBundle, 'js/sim-worker.min.js');
-        vm.runInContext(`importRules(${sod})`, context);
+        vm.runInContext(`importRules('${mode}')`, context);
         assert.equal(vm.runInContext('WASM_MODULE_URL', context), oldBundle.url('wasm/warriorsim.js'));
         assert.equal(context.SIMULATOR_BUNDLE.url('wasm/warriorsim.wasm'), oldBundle.url('wasm/warriorsim.wasm'));
         assert.equal(typeof context.onmessage, 'function');
@@ -182,8 +182,8 @@ test('each tab preloads the whole bundle once and executes real local/shared WAS
     const Worker = createWorkerClass(retained);
     t.after(() => Promise.all(Worker.all.map(worker => worker.terminate())));
     const module = await loadNativeModule();
-    for (const mode of ['classic', 'sod']) {
-        const fixture = loadFixtures().find(value => value.name === (mode === 'sod' ? 'sod-dw-runes' : 'classic-dw-fury'));
+    for (const mode of ['classic', 'forever']) {
+        const fixture = loadFixtures().find(value => value.name === (mode === 'classic' ? 'classic-dw-fury' : 'forever-dw-fury'));
         const engine = createReferenceEngine(mode);
         const sim = {...fixture.sim, iterations: 17, iterationOffset: 23};
         const player = createConfiguredPlayer(engine, fixture);
@@ -191,7 +191,7 @@ test('each tab preloads the whole bundle once and executes real local/shared WAS
         const localWorker = new Worker(oldBundle.workerUrl('js/sim-worker.min.js'));
         const local = await request(localWorker, {
             player: [null, null, null, {...fixture.player, mode}], sim,
-            globals: {...createState(engine, fixture), sod: mode === 'sod'}, fullReport: true,
+            globals: {...createState(engine, fixture), mode}, fullReport: true,
         }, true);
         await localWorker.terminate();
         const sharedWorker = new Worker(oldBundle.workerUrl('js/compute-worker.min.js'));
@@ -214,18 +214,18 @@ test('each tab preloads the whole bundle once and executes real local/shared WAS
     assert.throws(() => oldBundle.workerUrl('js/ui.min.js'));
 });
 
-test('Classic and SoD preserve their original page script order and await the complete preload', t => {
+test('Classic Era and WoW Forever preserve their page script order and await the complete preload', t => {
     const {entrypoints} = buildBundle(workspace(t));
     const prefix = ['libs/jquery-3.4.1', 'libs/jquery.tablesorter', 'libs/jquery.tablesorter.widgets', 'libs/Chart',
         'classes/player', 'classes/simulation', 'compute-protocol', 'shared-compute', 'classes/spell', 'classes/weapon'];
     const expected = {
         classic: [...prefix, 'data/gear', 'data/enchants', 'data/levelstats', 'data/buffs', 'data/spells', 'data/talents',
             'data/session', 'globals', 'settings', 'profiles', 'stats', 'ui'],
-        sod: [...prefix, 'data/gear_sod', 'data/runes', 'data/levelstats', 'data/buffs', 'data/enchants', 'data/spells',
-            'data/talents', 'data/session_sod', 'data/presets', 'globals', 'profiles', 'settings', 'stats', 'ui'],
+        forever: [...prefix, 'data/gear_forever', 'data/enchants', 'data/levelstats', 'data/buffs', 'data/spells',
+            'data/talents', 'data/session_forever', 'globals', 'settings', 'profiles', 'stats', 'ui'],
     };
-    assert.deepEqual(Object.keys(entrypoints), ['classic', 'sod']);
-    for (const [mode, page] of [['classic', 'classic.html'], ['sod', 'index.html']]) {
+    assert.deepEqual(Object.keys(entrypoints), ['classic', 'forever']);
+    for (const [mode, page] of [['classic', 'classic.html'], ['forever', 'index.html']]) {
         assert.deepEqual(entrypoints[mode], expected[mode].map(file => `js/${file}.min.js`));
         const html = fs.readFileSync(path.join(ROOT, page), 'utf8');
         assert.match(html, new RegExp(`var mode = ["']${mode}["']`));
@@ -243,7 +243,7 @@ test('tampered manifests and changed asset bytes cannot start a mixed bundle', a
     await assert.rejects(legacy.context.simulatorReady, /Unsupported simulation bundle manifest/);
     assert.equal(legacy.loaded.length, 0);
     const wrong = structuredClone(manifest);
-    wrong.entrypoints.sod.reverse();
+    wrong.entrypoints.forever.reverse();
     const tampered = load(root, wrong);
     await assert.rejects(tampered.context.simulatorReady, /hash mismatch/);
     assert.equal(tampered.loaded.length, 0);
@@ -265,7 +265,7 @@ test('tampered manifests and changed asset bytes cannot start a mixed bundle', a
 test('missing assets block startup and script-load failures release retained bytes', async t => {
     const root = workspace(t);
     const manifest = buildBundle(root);
-    const failed = load(root, undefined, 'sod', {scriptFailure: true});
+    const failed = load(root, undefined, 'forever', {scriptFailure: true});
     await assert.rejects(failed.context.simulatorReady, /Could not load bundle asset/);
     assert.equal(failed.blobs.size, 0);
     const unused = path.join(root, 'dist/js/data/gear.min.js');

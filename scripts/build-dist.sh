@@ -12,7 +12,7 @@ usage() {
 Usage: scripts/build-dist.sh [-c|--configuration Release|Debug] [--skip-wasm-build]
 
   -c, --configuration   Release (default) or Debug; forwarded to wasm/build.sh.
-      --skip-wasm-build Reuse an existing wasm/dist build that already matches the source.
+      --skip-wasm-build Reuse an existing wasm/dist build matching the source; verify native key tables.
 EOF
 }
 
@@ -33,10 +33,6 @@ done
 scriptRoot="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repoRoot="$(dirname "$scriptRoot")"
 
-if [ "$skipWasmBuild" -eq 0 ]; then
-    "$repoRoot/wasm/build.sh" --configuration "$configuration"
-fi
-
 emsdkRoot="${EMSDK:-$(dirname "$repoRoot")/emsdk}"
 if [ -n "${EMSDK_NODE:-}" ] && [ -x "${EMSDK_NODE:-}" ]; then
     node="$EMSDK_NODE"
@@ -52,6 +48,18 @@ fi
 if [ ! -f "$terser" ]; then
     echo "Terser was not found in the Emscripten SDK dependencies" >&2
     exit 1
+fi
+
+# Keep header indices in sync before compiling; reusing WASM must not change them.
+keyArgs=("$scriptRoot/generate-native-keys.js")
+if [ "$skipWasmBuild" -ne 0 ]; then keyArgs+=(--check); fi
+if ! "$node" "${keyArgs[@]}"; then
+    echo "Native key generation/check failed; run a full distribution build to regenerate stale tables" >&2
+    exit 1
+fi
+
+if [ "$skipWasmBuild" -eq 0 ]; then
+    "$repoRoot/wasm/build.sh" --configuration "$configuration"
 fi
 
 sourceRoot="$repoRoot/js"

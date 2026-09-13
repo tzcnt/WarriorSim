@@ -1,0 +1,12 @@
+{
+  "name": "warriorsim-headless-compute",
+  "version": "1.0.0",
+  "private": true,
+  "engines": { "node": ">=20.3" },
+  "scripts": {
+    "start": "node index.js",
+    "install:browser": "PLAYWRIGHT_SKIP_BROWSER_GC=1 playwright install --no-shell chromium",
+    "test": "node --test *.test.js"
+  },
+  "dependencies": { "playwright": "1.63.0" }
+}

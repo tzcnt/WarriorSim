@@ -1,5 +1,5 @@
 # WarriorSim
-A webapp to simulate how 1.12/Classic and Season of Discovery DPS Warrior performs with different gear, buffs, rotations, and talents.
+A webapp to simulate how 1.12/Classic Era and WoW Forever DPS Warrior performs with different gear, buffs, rotations, and talents.
 
 Latest commit is up live here:
 https://fleetcode.com/WarriorSim/
@@ -9,8 +9,9 @@ https://fleetcode.com/WarriorSim/
 [See here.](CONTRIBUTING.md)
 
 Simulations run in WebAssembly, with a separate native engine in each browser worker.
-Classic (`classic.html`) and Season of Discovery (`index.html`) keep their existing
-JavaScript character setup and catalogs. See [the native engine guide](wasm/README.md)
+Classic Era (`classic.html`) and WoW Forever (`index.html`) keep their existing
+JavaScript character setup and catalogs. WoW Forever currently starts from the same
+baseline data as Classic Era, in its own catalogs, so the two can diverge. See [the native engine guide](wasm/README.md)
 for the resolved-spec interface, optimizations, and parity validation.
 
 **Share Compute** contributes idle browser workers and receives help with your
@@ -19,7 +20,7 @@ browser. The panel has a slider for your local threads (always used for your own
 and one for the threads you share, plus the threads everyone else is sharing; both
 sliders are remembered between visits. Starting a simulation
 immediately gives your own work priority; disabling sharing keeps execution
-local and dims the two sharing rows. Both Classic and SoD use the same optional
+local and dims the two sharing rows. Both tabs use the same optional
 [compute coordinator](server/README.md), with separate pools for each bundle hash.
 Each tab preloads and verifies its complete simulation bundle at startup, so later
 simulations keep working after deployment assets change. Public helper results

@@ -56,6 +56,20 @@ test('native API rejects unknown kinds and dangling action references', () => {
         /dangling normal action/);
 });
 
+test('native API rejects retired ability kinds', () => {
+    for (const [group, kinds] of [
+        ['auras', ['DeepWounds', 'ConsumedRage', 'EchoesGlad', 'GladForecast', 'Spicy']],
+        ['spells', ['UnstoppableMight', 'QuickStrike', 'RagingBlow', 'Shockwave']],
+    ]) {
+        for (const kind of kinds) {
+            const spec = executionSpec();
+            spec.player[group][0].kind = kind;
+            assert.match(errorText(() => wasmModule.createEngine(JSON.stringify(spec), 1)),
+                /unsupported (aura|spell) kind/, kind);
+        }
+    }
+});
+
 test('native API validates uint32 arguments and iteration range before execution', () => {
     const spec = executionSpec();
     assert.match(errorText(() => wasmModule.createEngine(JSON.stringify(spec), -1)),

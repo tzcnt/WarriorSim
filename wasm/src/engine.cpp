@@ -172,7 +172,6 @@ PlayerState readPlayer(const val& value) {
     requireStance("battlestance", AuraKind::BattleStance);
     requireStance("berserkerstance", AuraKind::BerserkerStance);
     requireStance("defensivestance", AuraKind::DefensiveStance);
-    requireStance("gladiatorstance", AuraKind::GladiatorStance);
 
     for (std::size_t i = 0; i < detail::kActionKeyCount; ++i) {
         const auto key = detail::kActionKeyNames[i];
@@ -232,9 +231,8 @@ PlayerState readPlayer(const val& value) {
 
     out.rage = out.props.number("rage"_prop);
     const auto mode = out.props.string("mode"_prop);
-    if (mode != "classic" && mode != "sod") throw std::runtime_error("unsupported game mode: " + mode);
+    if (mode != "classic" && mode != "forever") throw std::runtime_error("unsupported game mode: " + mode);
     out.turtleMode = false;
-    out.sodMode = out.props.string("mode"_prop) == "sod";
     out.stance = out.props.string("stance"_prop, out.props.string("basestance"_prop, "battle"));
     out.critdmgbonus = out.props.number("critdmgbonus"_prop);
     out.mainspelldmg = out.props.number("mainspelldmg"_prop, 1);
@@ -478,11 +476,11 @@ SpellKind parseSpellKind(std::string_view value) {
 #define SPELL_KIND(name) if (value == #name) return SpellKind::name
     SPELL_KIND(Spell); SPELL_KIND(Bloodthirst); SPELL_KIND(Whirlwind); SPELL_KIND(Overpower);
     SPELL_KIND(Execute); SPELL_KIND(Bloodrage); SPELL_KIND(HeroicStrike); SPELL_KIND(Cleave);
-    SPELL_KIND(MortalStrike); SPELL_KIND(SunderArmor); SPELL_KIND(Hamstring); SPELL_KIND(Pummel);
-    SPELL_KIND(ThunderClap); SPELL_KIND(VictoryRush); SPELL_KIND(RagingBlow); SPELL_KIND(MasterStrike);
-    SPELL_KIND(BerserkerRage); SPELL_KIND(QuickStrike); SPELL_KIND(RagePotion); SPELL_KIND(Slam);
+    SPELL_KIND(MortalStrike); SPELL_KIND(SunderArmor); SPELL_KIND(Hamstring);
+    SPELL_KIND(ThunderClap);
+    SPELL_KIND(BerserkerRage); SPELL_KIND(RagePotion); SPELL_KIND(Slam);
     SPELL_KIND(Fireball); SPELL_KIND(GunAxe); SPELL_KIND(BlademasterFury); SPELL_KIND(ShieldSlam);
-    SPELL_KIND(Shockwave); SPELL_KIND(TheMoltenCore); SPELL_KIND(UnstoppableMight);
+    SPELL_KIND(TheMoltenCore);
     SPELL_KIND(StanceSwitch); SPELL_KIND(GrilekFury);
 #undef SPELL_KIND
     throw std::runtime_error("unsupported spell kind: " + owned(value));
@@ -490,37 +488,30 @@ SpellKind parseSpellKind(std::string_view value) {
 
 AuraKind parseAuraKind(std::string_view value) {
 #define AURA_KIND(name) if (value == #name) return AuraKind::name
-    AURA_KIND(Aura); AURA_KIND(TwowEnrageAura); AURA_KIND(Recklessness); AURA_KIND(Flurry);
-    AURA_KIND(DeepWounds); AURA_KIND(OldDeepWounds); AURA_KIND(PotentVenoms); AURA_KIND(Crusader);
+    AURA_KIND(Aura); AURA_KIND(Recklessness); AURA_KIND(Flurry);
+    AURA_KIND(OldDeepWounds); AURA_KIND(Crusader);
     AURA_KIND(Cloudkeeper); AURA_KIND(Felstriker); AURA_KIND(DeathWish); AURA_KIND(BattleStance);
-    AURA_KIND(DefensiveStance); AURA_KIND(BerserkerStance); AURA_KIND(GladiatorStance);
-    AURA_KIND(MightyRagePotion); AURA_KIND(QuicknessPotion); AURA_KIND(Bloodlust);
-    AURA_KIND(Chastise); AURA_KIND(BloodFury); AURA_KIND(Berserking); AURA_KIND(Perception);
-    AURA_KIND(Empyrean); AURA_KIND(Eskhandar); AURA_KIND(Tempest); AURA_KIND(Zeal);
+    AURA_KIND(DefensiveStance); AURA_KIND(BerserkerStance); AURA_KIND(MightyRagePotion);
+    AURA_KIND(BloodFury); AURA_KIND(Berserking);
+    AURA_KIND(Empyrean); AURA_KIND(Eskhandar); AURA_KIND(Zeal);
     AURA_KIND(Annihilator); AURA_KIND(Rivenspike); AURA_KIND(Bonereaver); AURA_KIND(Destiny);
-    AURA_KIND(Untamed); AURA_KIND(Champion); AURA_KIND(ZandalariVigil); AURA_KIND(ForgottenOrder);
-    AURA_KIND(ElementiumChampion); AURA_KIND(Pummeler); AURA_KIND(Windfury); AURA_KIND(Swarmguard);
-    AURA_KIND(Hategrips); AURA_KIND(Flask); AURA_KIND(Slayer); AURA_KIND(WorgenMark);
+    AURA_KIND(Untamed);
+    AURA_KIND(Pummeler); AURA_KIND(Windfury); AURA_KIND(Swarmguard);
+    AURA_KIND(Flask); AURA_KIND(Slayer);
     AURA_KIND(Spider); AURA_KIND(Earthstrike); AURA_KIND(Gabbar); AURA_KIND(PrimalBlessing);
-    AURA_KIND(PrimalBlessing2); AURA_KIND(TowerForgeSetBonus); AURA_KIND(BloodrageAura);
+    AURA_KIND(PrimalBlessing2); AURA_KIND(BloodrageAura);
     AURA_KIND(Zandalarian); AURA_KIND(Avenger); AURA_KIND(BerserkerRageAura);
-    AURA_KIND(BattleShout); AURA_KIND(ConsumedRage); AURA_KIND(Rend); AURA_KIND(Vibroblade);
-    AURA_KIND(Ultrasonic); AURA_KIND(VoidMadness); AURA_KIND(WeaponBleed); AURA_KIND(Ragehammer);
-    AURA_KIND(BlisteringRagehammer); AURA_KIND(Jackhammer); AURA_KIND(LordGeneral);
-    AURA_KIND(Stoneslayer); AURA_KIND(CleaveArmor); AURA_KIND(StrengthChampion);
-    AURA_KIND(MildlyIrradiated); AURA_KIND(GyromaticAcceleration); AURA_KIND(Spicy);
-    AURA_KIND(GneuroLogical); AURA_KIND(CoinFlip); AURA_KIND(Rampage); AURA_KIND(WreckingCrew);
+    AURA_KIND(BattleShout); AURA_KIND(Rend);
+    AURA_KIND(VoidMadness); AURA_KIND(WeaponBleed);
+    AURA_KIND(GyromaticAcceleration);
+    AURA_KIND(GneuroLogical); AURA_KIND(CoinFlip);
     AURA_KIND(SerpentAscension); AURA_KIND(VoodooFrenzy); AURA_KIND(RoarGuardian);
-    AURA_KIND(RelentlessStrength); AURA_KIND(EchoesDread); AURA_KIND(FreshMeat);
-    AURA_KIND(SuddenDeath); AURA_KIND(WarriorsResolve); AURA_KIND(EchoesBattle);
-    AURA_KIND(EchoesZerk); AURA_KIND(EchoesDef); AURA_KIND(EchoesGlad);
-    AURA_KIND(BattleForecast); AURA_KIND(ZerkForecast); AURA_KIND(DefForecast);
-    AURA_KIND(GladForecast); AURA_KIND(DefendersResolve); AURA_KIND(MeltArmor);
-    AURA_KIND(SingleMinded); AURA_KIND(DemonTaintedBlood); AURA_KIND(MoonstalkerFury);
+    AURA_KIND(RelentlessStrength);
+    AURA_KIND(WarriorsResolve);
+    AURA_KIND(DemonTaintedBlood); AURA_KIND(MoonstalkerFury);
     AURA_KIND(MagmadarsReturn); AURA_KIND(JujuFlurry); AURA_KIND(WrathWray);
-    AURA_KIND(CrusaderZeal); AURA_KIND(GrilekGuard); AURA_KIND(ObsidianStrength);
-    AURA_KIND(ObsidianHaste); AURA_KIND(Shieldrender); AURA_KIND(MoltenEmberstone);
-    AURA_KIND(Modrag); AURA_KIND(UnrelentingStrikes);
+    AURA_KIND(GrilekGuard); AURA_KIND(ObsidianStrength);
+    AURA_KIND(ObsidianHaste);
 #undef AURA_KIND
     throw std::runtime_error("unsupported aura kind: " + owned(value));
 }
@@ -530,11 +521,11 @@ const char* spellKindName(SpellKind kind) {
 #define CASE(name) case SpellKind::name: return #name
         CASE(Spell); CASE(Bloodthirst); CASE(Whirlwind); CASE(Overpower); CASE(Execute);
         CASE(Bloodrage); CASE(HeroicStrike); CASE(Cleave); CASE(MortalStrike);
-        CASE(SunderArmor); CASE(Hamstring); CASE(Pummel); CASE(ThunderClap);
-        CASE(VictoryRush); CASE(RagingBlow); CASE(MasterStrike); CASE(BerserkerRage);
-        CASE(QuickStrike); CASE(RagePotion); CASE(Slam); CASE(Fireball); CASE(GunAxe);
-        CASE(BlademasterFury); CASE(ShieldSlam); CASE(Shockwave); CASE(TheMoltenCore);
-        CASE(UnstoppableMight); CASE(StanceSwitch); CASE(GrilekFury);
+        CASE(SunderArmor); CASE(Hamstring); CASE(ThunderClap);
+        CASE(BerserkerRage);
+        CASE(RagePotion); CASE(Slam); CASE(Fireball); CASE(GunAxe);
+        CASE(BlademasterFury); CASE(ShieldSlam); CASE(TheMoltenCore);
+        CASE(StanceSwitch); CASE(GrilekFury);
 #undef CASE
     }
     return "Unknown";
@@ -545,7 +536,6 @@ const char* auraKindName(AuraKind kind) {
     switch (kind) {
         case AuraKind::Aura: return "Aura";
         case AuraKind::Flurry: return "Flurry";
-        case AuraKind::DeepWounds: return "DeepWounds";
         case AuraKind::OldDeepWounds: return "OldDeepWounds";
         case AuraKind::Rend: return "Rend";
         default: return "AuraSubclass";
@@ -632,18 +622,7 @@ void PlayerState::buildConfiguredActionLists() {
     };
 
     configured.bloodrageSelection = spellIndex("bloodrage"_action);
-    configured.unstoppableMightSelection = spellIndex("unstoppablemight"_action);
-    if (configured.unstoppableMightSelection != kNoRef &&
-        spells[static_cast<std::size_t>(configured.unstoppableMightSelection)].kind ==
-            SpellKind::UnstoppableMight &&
-        auraIndex("echoesbattle"_action) == kNoRef)
-        configured.unstoppableMightSelection = kNoRef;
     configured.stanceSwitchSelection = spellIndex("stanceswitch"_action);
-    if (configured.stanceSwitchSelection != kNoRef &&
-        spells[static_cast<std::size_t>(configured.stanceSwitchSelection)].kind ==
-            SpellKind::StanceSwitch &&
-        spellIndex("unstoppablemight"_action) != kNoRef)
-        configured.stanceSwitchSelection = kNoRef;
 
     addOrderedProc(configured.stepAuras, mh.proc1);
     addOrderedProc(configured.stepAuras, mh.proc2);
@@ -652,18 +631,14 @@ void PlayerState::buildConfiguredActionLists() {
         addOrderedProc(configured.stepAuras, oh->proc2);
     }
     constexpr std::pair<detail::KnownAction, bool> stepNamed[] = {
-        {"mightyragepotion"_action, true}, {"mildlyirradiated"_action, true}, {"recklessness"_action, true}, {"deathwish"_action, true},
+        {"mightyragepotion"_action, true}, {"recklessness"_action, true}, {"deathwish"_action, true},
         {"cloudkeeper"_action, true}, {"voidmadness"_action, true}, {"gyromaticacceleration"_action, true},
         {"gneurological"_action, true}, {"coinflip"_action, false}, {"flask"_action, true},
         {"bloodfury"_action, true}, {"berserking"_action, true}, {"slayer"_action, true},
         {"spider"_action, true}, {"earthstrike"_action, true}, {"roarguardian"_action, true},
         {"pummeler"_action, true}, {"swarmguard"_action, true}, {"zandalarian"_action, true},
-        {"relentlessstrength"_action, true}, {"rampage"_action, false}, {"wreckingcrew"_action, false},
-        {"freshmeat"_action, false}, {"suddendeath"_action, false}, {"voodoofrenzy"_action, false},
-        {"battleshout"_action, false}, {"echoeszerk"_action, false}, {"echoesbattle"_action, false},
-        {"echoesdef"_action, false}, {"echoesglad"_action, false}, {"battleforecast"_action, false},
-        {"zerkforecast"_action, false}, {"defforecast"_action, false}, {"gladforecast"_action, false},
-        {"defendersresolve"_action, false}, {"singleminded"_action, false}, {"demontaintedblood"_action, false},
+        {"relentlessstrength"_action, true}, {"voodoofrenzy"_action, false},
+        {"battleshout"_action, false}, {"demontaintedblood"_action, false},
         {"wrathwray"_action, false}, {"moonstalkerfury"_action, false}, {"jujuflurry"_action, false},
         {"grilekguard"_action, false}, {"obsidianhaste"_action, false},
         {"obsidianstrength"_action, false}, };
@@ -678,13 +653,11 @@ void PlayerState::buildConfiguredActionLists() {
     addOrderedKey(configured.stepAuras, "deepwounds"_action, false, true);
     addOrderedKey(configured.stepAuras, "rend"_action, false, true);
     addOrderedKey(configured.stepAuras, "berserkerrage"_action);
-    addOrderedKey(configured.stepAuras, "consumedrage"_action);
     addOrderedKey(configured.stepAuras, "weaponbleedmh"_action);
     addOrderedKey(configured.stepAuras, "weaponbleedoh"_action);
     addOrderedKey(configured.stepAuras, "deepwounds2"_action, false, true, true);
     addOrderedKey(configured.stepAuras, "deepwounds3"_action, false, true, true);
     addOrderedKey(configured.stepAuras, "deepwounds4"_action, false, true, true);
-
 
     addOrderedProc(configured.endAuras, mh.proc1);
     addOrderedProc(configured.endAuras, mh.proc2);
@@ -693,17 +666,13 @@ void PlayerState::buildConfiguredActionLists() {
         addOrderedProc(configured.endAuras, oh->proc2);
     }
     constexpr std::pair<detail::KnownAction, bool> endNamed[] = {
-        {"mightyragepotion"_action, true}, {"mildlyirradiated"_action, true}, {"recklessness"_action, true}, {"deathwish"_action, true},
+        {"mightyragepotion"_action, true}, {"recklessness"_action, true}, {"deathwish"_action, true},
         {"cloudkeeper"_action, true}, {"voidmadness"_action, true}, {"gyromaticacceleration"_action, true},
         {"gneurological"_action, true}, {"coinflip"_action, false}, {"flask"_action, true},
         {"bloodfury"_action, true}, {"berserking"_action, true}, {"slayer"_action, true},
         {"spider"_action, true}, {"gabbar"_action, true}, {"earthstrike"_action, true}, {"roarguardian"_action, true}, {"pummeler"_action, true}, {"swarmguard"_action, true},
-        {"zandalarian"_action, true}, {"relentlessstrength"_action, true}, {"rampage"_action, false},
-        {"wreckingcrew"_action, false}, {"freshmeat"_action, false}, {"suddendeath"_action, false},
-        {"voodoofrenzy"_action, false}, {"battleshout"_action, false}, {"echoeszerk"_action, false},
-        {"echoesbattle"_action, false}, {"echoesdef"_action, false}, {"echoesglad"_action, false},
-        {"battleforecast"_action, false}, {"zerkforecast"_action, false}, {"defforecast"_action, false},
-        {"gladforecast"_action, false}, {"defendersresolve"_action, false}, {"singleminded"_action, false},
+        {"zandalarian"_action, true}, {"relentlessstrength"_action, true},
+        {"voodoofrenzy"_action, false}, {"battleshout"_action, false},
         {"moonstalkerfury"_action, false}, {"demontaintedblood"_action, false}, {"wrathwray"_action, false},
         {"jujuflurry"_action, false}, {"grilekguard"_action, false},
         {"obsidianhaste"_action, false}, {"obsidianstrength"_action, false}, };
@@ -723,14 +692,13 @@ void PlayerState::buildConfiguredActionLists() {
 
     addOrderedKey(configured.endAuras, "rend"_action);
     addOrderedKey(configured.endAuras, "berserkerrage"_action);
-    addOrderedKey(configured.endAuras, "consumedrage"_action);
     addOrderedKey(configured.endAuras, "weaponbleedmh"_action);
     addOrderedKey(configured.endAuras, "weaponbleedoh"_action);
 
     addAuras(configured.noGcdAuras, {"swarmguard"_action, "mightyragepotion"_action});
     addSpells(configured.noGcdSpells, {"ragepotion"_action, "fireball"_action, "gunaxe"_action});
-    addAuras(configured.moreNoGcdAuras, {"mildlyirradiated"_action, "jujuflurry"_action});
-    addAuras(configured.onUseAuras, {"rampage"_action, "cloudkeeper"_action, "voidmadness"_action, "gyromaticacceleration"_action,
+    addAuras(configured.moreNoGcdAuras, {"jujuflurry"_action});
+    addAuras(configured.onUseAuras, {"cloudkeeper"_action, "voidmadness"_action, "gyromaticacceleration"_action,
         "gneurological"_action, "coinflip"_action, "pummeler"_action, "slayer"_action,
         "spider"_action, "gabbar"_action, "earthstrike"_action, "roarguardian"_action, "zandalarian"_action, "relentlessstrength"_action,
         "demontaintedblood"_action, "wrathwray"_action, "moonstalkerfury"_action,
@@ -747,15 +715,12 @@ void PlayerState::buildConfiguredActionLists() {
     addAuras(configured.tickAuras, {"deepwounds"_action, "deepwounds2"_action, "deepwounds3"_action, "deepwounds4"_action});
     addAuras(configured.weaponBleeds, {"weaponbleedmh"_action, "weaponbleedoh"_action});
     addSpells(configured.timedSpells, {"bloodthirst"_action, "mortalstrike"_action,
-        "shieldslam"_action, "quickstrike"_action, "ragingblow"_action, "whirlwind"_action,
-        "shockwave"_action, "blademasterfury"_action, "bloodrage"_action, "ragepotion"_action,
+        "shieldslam"_action, "whirlwind"_action,
+        "blademasterfury"_action, "bloodrage"_action, "ragepotion"_action,
         "overpower"_action, "execute"_action, "slam"_action});
-    addAuras(configured.absoluteAuras, {"zerkforecast"_action, "battleforecast"_action,
-        "defforecast"_action, "gladforecast"_action, "echoeszerk"_action,
-        "echoesbattle"_action, "echoesdef"_action, "echoesglad"_action});
-    addSpells(configured.stepSpells, {"ragingblow"_action, "berserkerrage"_action,
-        "bloodthirst"_action, "mortalstrike"_action, "shieldslam"_action, "quickstrike"_action,
-        "whirlwind"_action, "shockwave"_action, "blademasterfury"_action, "bloodrage"_action,
+    addSpells(configured.stepSpells, {"berserkerrage"_action,
+        "bloodthirst"_action, "mortalstrike"_action, "shieldslam"_action,
+        "whirlwind"_action, "blademasterfury"_action, "bloodrage"_action,
         "ragepotion"_action, "overpower"_action, "execute"_action,
         "hamstring"_action, "thunderclap"_action, "sunderarmor"_action,
         "slam"_action});
@@ -768,17 +733,15 @@ void PlayerState::buildConfiguredActionLists() {
     addSpells(configured.finalSpells, {"fireball"_action, "gunaxe"_action,
         "themoltencore"_action});
 
-    const bool canInstallAttackProcs = std::any_of(auras.begin(), auras.end(),
-        [](const AuraState& aura) { return aura.kind == AuraKind::Spicy; });
     const auto buildProcPlan = [&](WeaponState& weapon) {
         weapon.procPlan.clear();
         const auto add = [&](ProcStage stage, int action = kNoRef,
-                             int secondaryAction = kNoRef, double chance = 0) {
-            weapon.procPlan.push_back({stage, action, secondaryAction, chance});
+                             double chance = 0) {
+            weapon.procPlan.push_back({stage, action, chance});
         };
         const auto addAction = [&](ProcStage stage, int action,
-                                   int secondaryAction = kNoRef, double chance = 0) {
-            if (action != kNoRef) add(stage, action, secondaryAction, chance);
+                                   double chance = 0) {
+            if (action != kNoRef) add(stage, action, chance);
         };
         if (weapon.proc1)
             add(weapon.proc1->extraValue != 0 ? ProcStage::WeaponProc1Extra :
@@ -790,19 +753,19 @@ void PlayerState::buildConfiguredActionLists() {
         if (trinketproc2)
             add(trinketproc2->extraValue != 0 ? ProcStage::TrinketProc2Extra :
                                                ProcStage::TrinketProc2Damage);
-        if (attackproc1 || canInstallAttackProcs)
+        if (attackproc1)
             add(ProcStage::AttackProc1Damage);
-        if (attackproc2 || canInstallAttackProcs)
+        if (attackproc2)
             add(ProcStage::AttackProc2Damage);
 
         const double swordProc = talents.number("swordproc"_prop);
         if (swordProc != 0 && weapon.type == 1)
-            add(ProcStage::SwordSpec, kNoRef, kNoRef, swordProc * 100);
+            add(ProcStage::SwordSpec, kNoRef, swordProc * 100);
         if (flag("wailingextra"_prop)) add(ProcStage::WailingExtra);
         if (flag("hakkariextra"_prop)) add(ProcStage::HakkariExtra);
         const double timeworn = props.number("timeworn"_prop);
         if (timeworn != 0)
-            add(ProcStage::TimewornExtra, kNoRef, kNoRef, timeworn * 100);
+            add(ProcStage::TimewornExtra, kNoRef, timeworn * 100);
         if (weapon.id == 233490 && weapon.proc1) {
             add(ProcStage::ObsidianStrength, auraIndex("obsidianstrength"_action));
             add(ProcStage::ObsidianHaste, auraIndex("obsidianhaste"_action));
@@ -817,7 +780,7 @@ void PlayerState::buildConfiguredActionLists() {
         addAction(ProcStage::SingleMinded, auraIndex("singleminded"_action));
         addAction(ProcStage::Windfury, weapon.windfuryAura);
         const int swarmguard = auraIndex("swarmguard"_action);
-        addAction(ProcStage::Swarmguard, swarmguard, kNoRef,
+        addAction(ProcStage::Swarmguard, swarmguard,
                   swarmguard == kNoRef ? 0 :
                       auras[static_cast<std::size_t>(swarmguard)].props.number("chance"_prop));
         addAction(ProcStage::Zandalarian, auraIndex("zandalarian"_action));
@@ -827,7 +790,6 @@ void PlayerState::buildConfiguredActionLists() {
     buildProcPlan(mh);
     if (oh) buildProcPlan(*oh);
     configured.procTailFlurry = auraIndex("flurry"_action);
-    configured.procTailUnrelentingStrikes = kNoRef;
 }
 
 Engine::Engine(PlayerState player, SimConfig sim, std::uint32_t seed)

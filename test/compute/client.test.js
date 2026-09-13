@@ -91,7 +91,7 @@ test('turning sharing off keeps current local workers and completes all missing 
 });
 
 test('the UI runner uses ordinary local workers while sharing is disabled', t => {
-    const {api, FakeWorker, FakeSocket} = harness({getGlobalsDelta: () => ({sod: false})});
+    const {api, FakeWorker, FakeSocket} = harness({getGlobalsDelta: () => ({mode: 'classic'})});
     const client = new api.SharedComputeClient({url: 'ws://test/compute', buildId: BUILD, slots: 2});
     api.setClient(client);
     const run = api.createSimulationRunner(2, () => {}, () => {}, assert.fail);
@@ -209,7 +209,7 @@ test('ending a UI batch resumes pull only after its last simulation finishes', t
 });
 
 test('configurations outside sharing bounds stay in push mode throughout the local fallback', t => {
-    const {api, FakeWorker, FakeSocket} = harness({getGlobalsDelta: () => ({sod: true})});
+    const {api, FakeWorker, FakeSocket} = harness({getGlobalsDelta: () => ({mode: 'forever'})});
     const client = new api.SharedComputeClient({url: 'ws://test/compute', buildId: BUILD, slots: 1});
     t.after(() => { for (const run of client.runs.values()) run.cancel(); client.setEnabled(false); });
     client.setEnabled(true);

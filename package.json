@@ -9,13 +9,15 @@
     "gulp-concat": "^2.6.1",
     "gulp-cssnano": "^2.1.3",
     "gulp-minify": "^3.1.0",
-    "gulp-sass": "^4.1.0",
-    "gulp-uglify": "^3.0.2"
+    "gulp-sass": "^6.0.1",
+    "gulp-uglify": "^3.0.2",
+    "sass": "^1.104.1"
   },
   "scripts": {
     "test": "node test/simulation-regressions.test.js && node --test test/wasm/reference.test.js test/wasm/extra-reference.test.js test/wasm/worker.test.js test/compute/*.test.js",
     "test:compute": "node --test test/compute/*.test.js",
     "compute:server": "node server/index.js",
+    "compute:headless": "node compute/index.js",
     "compute:dev": "node server/dev.js",
     "compute:build": "node scripts/compute-build.js",
     "dist": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-dist.ps1",

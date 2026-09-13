@@ -107,8 +107,6 @@ test('reset clears mutable aura state between fights', () => {
         starttimer: 450,
         maxdelay: 999,
         mintime: 700,
-        ticksleft: 4,
-        saveddmg: 120,
         nexttick: 1000,
         cooldowntimer: 6000,
         tfbstep: 3000,
@@ -124,8 +122,6 @@ test('reset clears mutable aura state between fights', () => {
         starttimer: aura.starttimer,
         maxdelay: aura.maxdelay,
         mintime: aura.mintime,
-        ticksleft: aura.ticksleft,
-        saveddmg: aura.saveddmg,
         nexttick: aura.nexttick,
         cooldowntimer: aura.cooldowntimer,
         tfbstep: aura.tfbstep,
@@ -136,8 +132,6 @@ test('reset clears mutable aura state between fights', () => {
         starttimer: 0,
         maxdelay: player.reactionmin,
         mintime: 0,
-        ticksleft: 0,
-        saveddmg: 0,
         nexttick: 0,
         cooldowntimer: 0,
         tfbstep: -6000,
@@ -272,7 +266,7 @@ test('new players initialize the shared Shield Slam proc flag', () => {
 test('an unused Sword and Board proc cannot pay for Shield Slam in the next fight', () => {
     const api = loadSimulation(true);
     const player = createPlayer(api);
-    // This flag belongs to the shared SoD path; its reset does not enable a rune in Classic.
+    // Resetting the flag must not hand the next fight a free Shield Slam.
     player.freeshieldslam = true;
     player.reset(50);
     const spell = new api.ShieldSlam(player, 23922);

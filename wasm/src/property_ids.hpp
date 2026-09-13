@@ -1,12 +1,14 @@
 #pragma once
 
+// Edit the name array, then run node scripts/generate-native-keys.js.
+// Keep dynamically accessed properties such as the live weapon skill slots.
 #include <array>
 #include <cstdint>
 #include <string_view>
 
 namespace warriorsim::detail {
 
-inline constexpr std::size_t kDensePropertyCount = 215;
+inline constexpr std::size_t kDensePropertyCount = 167;
 inline constexpr std::array<std::string_view, kDensePropertyCount> kDensePropertyNames = {
     "abilitiescrit",
     "adjacent",
@@ -77,7 +79,6 @@ inline constexpr std::array<std::string_view, kDensePropertyCount> kDensePropert
     "gcd",
     "globals",
     "hakkariextra",
-    "hasFlurry",
     "haste",
     "heroicbonus",
     "hit",
@@ -124,78 +125,33 @@ inline constexpr std::array<std::string_view, kDensePropertyCount> kDensePropert
     "reactionmax",
     "reactionmin",
     "refund",
-    "resolve",
     "school",
-    "secondarystance",
     "shield",
     "skill_",
     "skill_0",
     "skill_1",
     "skill_10",
     "skill_11",
-    "skill_12",
     "skill_13",
-    "skill_14",
-    "skill_15",
-    "skill_16",
-    "skill_17",
-    "skill_18",
-    "skill_19",
     "skill_2",
     "skill_20",
     "skill_21",
-    "skill_22",
     "skill_23",
-    "skill_24",
-    "skill_25",
-    "skill_26",
-    "skill_27",
-    "skill_28",
-    "skill_29",
     "skill_3",
-    "skill_30",
-    "skill_31",
-    "skill_32",
-    "skill_33",
-    "skill_34",
-    "skill_35",
-    "skill_36",
-    "skill_37",
-    "skill_38",
-    "skill_39",
     "skill_4",
-    "skill_40",
     "skill_5",
     "skill_6",
     "skill_7",
-    "skill_8",
-    "skill_9",
     "slammainreset",
     "speed",
     "spellcrit",
     "spelldamage",
     "spelldmgmod",
     "spellqueueing",
-    "spicy",
     "stance",
     "str",
     "strmod",
-    "swingpercent",
     "swingtimer",
-    "swingtimerless",
-    "switchdefault",
-    "switchdelay",
-    "switchechoesactive",
-    "switchechoesrage",
-    "switchechoestime",
-    "switchoractive",
-    "switchorrage",
-    "switchortime",
-    "switchrage",
-    "switchstart",
-    "switchtime",
-    "switchtimeactive",
-    "switchto",
     "swordboard",
     "swordproc",
     "tasteforblood",
@@ -218,10 +174,8 @@ inline constexpr std::array<std::string_view, kDensePropertyCount> kDensePropert
     "value2",
     "wailingextra",
     "weaponspell",
-    "wwcd",
     "zerkerpriority",
     "afterswing",
-    "swingreset",
     "dodgetimeworn",
 };
 
@@ -302,155 +256,113 @@ constexpr int propertyIndex(std::string_view value) {
     case propertyHash("gcd"): return value == "gcd" ? 66 : -1;
     case propertyHash("globals"): return value == "globals" ? 67 : -1;
     case propertyHash("hakkariextra"): return value == "hakkariextra" ? 68 : -1;
-    case propertyHash("hasFlurry"): return value == "hasFlurry" ? 69 : -1;
-    case propertyHash("haste"): return value == "haste" ? 70 : -1;
-    case propertyHash("heroicbonus"): return value == "heroicbonus" ? 71 : -1;
-    case propertyHash("hit"): return value == "hit" ? 72 : -1;
-    case propertyHash("homunculi"): return value == "homunculi" ? 73 : -1;
-    case propertyHash("id"): return value == "id" ? 74 : -1;
-    case propertyHash("impslam"): return value == "impslam" ? 75 : -1;
-    case propertyHash("interval"): return value == "interval" ? 76 : -1;
-    case propertyHash("item"): return value == "item" ? 77 : -1;
-    case propertyHash("level"): return value == "level" ? 78 : -1;
-    case propertyHash("macearp"): return value == "macearp" ? 79 : -1;
-    case propertyHash("magicdmg"): return value == "magicdmg" ? 80 : -1;
-    case propertyHash("maincd"): return value == "maincd" ? 81 : -1;
-    case propertyHash("mainspelldmg"): return value == "mainspelldmg" ? 82 : -1;
-    case propertyHash("maxdelay"): return value == "maxdelay" ? 83 : -1;
-    case propertyHash("maxdmg"): return value == "maxdmg" ? 84 : -1;
-    case propertyHash("maxrage"): return value == "maxrage" ? 85 : -1;
-    case propertyHash("mhthreshold"): return value == "mhthreshold" ? 86 : -1;
-    case propertyHash("mindmg"): return value == "mindmg" ? 87 : -1;
-    case propertyHash("minrage"): return value == "minrage" ? 88 : -1;
-    case propertyHash("misschance"): return value == "misschance" ? 89 : -1;
-    case propertyHash("mitigation"): return value == "mitigation" ? 90 : -1;
-    case propertyHash("moddmgdone"): return value == "moddmgdone" ? 91 : -1;
-    case propertyHash("moddmgtaken"): return value == "moddmgtaken" ? 92 : -1;
-    case propertyHash("mode"): return value == "mode" ? 93 : -1;
-    case propertyHash("modifier"): return value == "modifier" ? 94 : -1;
-    case propertyHash("name"): return value == "name" ? 95 : -1;
-    case propertyHash("nocrit"): return value == "nocrit" ? 96 : -1;
-    case propertyHash("noitemcd"): return value == "noitemcd" ? 97 : -1;
-    case propertyHash("normSpeed"): return value == "normSpeed" ? 98 : -1;
-    case propertyHash("offensive"): return value == "offensive" ? 99 : -1;
-    case propertyHash("offhand"): return value == "offhand" ? 100 : -1;
-    case propertyHash("offhit"): return value == "offhit" ? 101 : -1;
-    case propertyHash("overpowercrit"): return value == "overpowercrit" ? 102 : -1;
-    case propertyHash("overpowerrend"): return value == "overpowerrend" ? 103 : -1;
-    case propertyHash("phantom"): return value == "phantom" ? 104 : -1;
-    case propertyHash("physdmg"): return value == "physdmg" ? 105 : -1;
-    case propertyHash("procblock"): return value == "procblock" ? 106 : -1;
-    case propertyHash("rage"): return value == "rage" ? 107 : -1;
-    case propertyHash("rageblock"): return value == "rageblock" ? 108 : -1;
-    case propertyHash("ragecap"): return value == "ragecap" ? 109 : -1;
-    case propertyHash("rageconversion"): return value == "rageconversion" ? 110 : -1;
-    case propertyHash("ragemod"): return value == "ragemod" ? 111 : -1;
-    case propertyHash("rageretained"): return value == "rageretained" ? 112 : -1;
-    case propertyHash("reactionmax"): return value == "reactionmax" ? 113 : -1;
-    case propertyHash("reactionmin"): return value == "reactionmin" ? 114 : -1;
-    case propertyHash("refund"): return value == "refund" ? 115 : -1;
-    case propertyHash("resolve"): return value == "resolve" ? 116 : -1;
-    case propertyHash("school"): return value == "school" ? 117 : -1;
-    case propertyHash("secondarystance"): return value == "secondarystance" ? 118 : -1;
-    case propertyHash("shield"): return value == "shield" ? 119 : -1;
-    case propertyHash("skill_"): return value == "skill_" ? 120 : -1;
-    case propertyHash("skill_0"): return value == "skill_0" ? 121 : -1;
-    case propertyHash("skill_1"): return value == "skill_1" ? 122 : -1;
-    case propertyHash("skill_10"): return value == "skill_10" ? 123 : -1;
-    case propertyHash("skill_11"): return value == "skill_11" ? 124 : -1;
-    case propertyHash("skill_12"): return value == "skill_12" ? 125 : -1;
-    case propertyHash("skill_13"): return value == "skill_13" ? 126 : -1;
-    case propertyHash("skill_14"): return value == "skill_14" ? 127 : -1;
-    case propertyHash("skill_15"): return value == "skill_15" ? 128 : -1;
-    case propertyHash("skill_16"): return value == "skill_16" ? 129 : -1;
-    case propertyHash("skill_17"): return value == "skill_17" ? 130 : -1;
-    case propertyHash("skill_18"): return value == "skill_18" ? 131 : -1;
-    case propertyHash("skill_19"): return value == "skill_19" ? 132 : -1;
-    case propertyHash("skill_2"): return value == "skill_2" ? 133 : -1;
-    case propertyHash("skill_20"): return value == "skill_20" ? 134 : -1;
-    case propertyHash("skill_21"): return value == "skill_21" ? 135 : -1;
-    case propertyHash("skill_22"): return value == "skill_22" ? 136 : -1;
-    case propertyHash("skill_23"): return value == "skill_23" ? 137 : -1;
-    case propertyHash("skill_24"): return value == "skill_24" ? 138 : -1;
-    case propertyHash("skill_25"): return value == "skill_25" ? 139 : -1;
-    case propertyHash("skill_26"): return value == "skill_26" ? 140 : -1;
-    case propertyHash("skill_27"): return value == "skill_27" ? 141 : -1;
-    case propertyHash("skill_28"): return value == "skill_28" ? 142 : -1;
-    case propertyHash("skill_29"): return value == "skill_29" ? 143 : -1;
-    case propertyHash("skill_3"): return value == "skill_3" ? 144 : -1;
-    case propertyHash("skill_30"): return value == "skill_30" ? 145 : -1;
-    case propertyHash("skill_31"): return value == "skill_31" ? 146 : -1;
-    case propertyHash("skill_32"): return value == "skill_32" ? 147 : -1;
-    case propertyHash("skill_33"): return value == "skill_33" ? 148 : -1;
-    case propertyHash("skill_34"): return value == "skill_34" ? 149 : -1;
-    case propertyHash("skill_35"): return value == "skill_35" ? 150 : -1;
-    case propertyHash("skill_36"): return value == "skill_36" ? 151 : -1;
-    case propertyHash("skill_37"): return value == "skill_37" ? 152 : -1;
-    case propertyHash("skill_38"): return value == "skill_38" ? 153 : -1;
-    case propertyHash("skill_39"): return value == "skill_39" ? 154 : -1;
-    case propertyHash("skill_4"): return value == "skill_4" ? 155 : -1;
-    case propertyHash("skill_40"): return value == "skill_40" ? 156 : -1;
-    case propertyHash("skill_5"): return value == "skill_5" ? 157 : -1;
-    case propertyHash("skill_6"): return value == "skill_6" ? 158 : -1;
-    case propertyHash("skill_7"): return value == "skill_7" ? 159 : -1;
-    case propertyHash("skill_8"): return value == "skill_8" ? 160 : -1;
-    case propertyHash("skill_9"): return value == "skill_9" ? 161 : -1;
-    case propertyHash("slammainreset"): return value == "slammainreset" ? 162 : -1;
-    case propertyHash("speed"): return value == "speed" ? 163 : -1;
-    case propertyHash("spellcrit"): return value == "spellcrit" ? 164 : -1;
-    case propertyHash("spelldamage"): return value == "spelldamage" ? 165 : -1;
-    case propertyHash("spelldmgmod"): return value == "spelldmgmod" ? 166 : -1;
-    case propertyHash("spellqueueing"): return value == "spellqueueing" ? 167 : -1;
-    case propertyHash("spicy"): return value == "spicy" ? 168 : -1;
-    case propertyHash("stance"): return value == "stance" ? 169 : -1;
-    case propertyHash("str"): return value == "str" ? 170 : -1;
-    case propertyHash("strmod"): return value == "strmod" ? 171 : -1;
-    case propertyHash("swingpercent"): return value == "swingpercent" ? 172 : -1;
-    case propertyHash("swingtimer"): return value == "swingtimer" ? 173 : -1;
-    case propertyHash("swingtimerless"): return value == "swingtimerless" ? 174 : -1;
-    case propertyHash("switchdefault"): return value == "switchdefault" ? 175 : -1;
-    case propertyHash("switchdelay"): return value == "switchdelay" ? 176 : -1;
-    case propertyHash("switchechoesactive"): return value == "switchechoesactive" ? 177 : -1;
-    case propertyHash("switchechoesrage"): return value == "switchechoesrage" ? 178 : -1;
-    case propertyHash("switchechoestime"): return value == "switchechoestime" ? 179 : -1;
-    case propertyHash("switchoractive"): return value == "switchoractive" ? 180 : -1;
-    case propertyHash("switchorrage"): return value == "switchorrage" ? 181 : -1;
-    case propertyHash("switchortime"): return value == "switchortime" ? 182 : -1;
-    case propertyHash("switchrage"): return value == "switchrage" ? 183 : -1;
-    case propertyHash("switchstart"): return value == "switchstart" ? 184 : -1;
-    case propertyHash("switchtime"): return value == "switchtime" ? 185 : -1;
-    case propertyHash("switchtimeactive"): return value == "switchtimeactive" ? 186 : -1;
-    case propertyHash("switchto"): return value == "switchto" ? 187 : -1;
-    case propertyHash("swordboard"): return value == "swordboard" ? 188 : -1;
-    case propertyHash("swordproc"): return value == "swordproc" ? 189 : -1;
-    case propertyHash("tasteforblood"): return value == "tasteforblood" ? 190 : -1;
-    case propertyHash("tfbstep"): return value == "tfbstep" ? 191 : -1;
-    case propertyHash("tickdmg"): return value == "tickdmg" ? 192 : -1;
-    case propertyHash("timer"): return value == "timer" ? 193 : -1;
-    case propertyHash("timetoend"): return value == "timetoend" ? 194 : -1;
-    case propertyHash("timetostart"): return value == "timetostart" ? 195 : -1;
-    case propertyHash("timeworn"): return value == "timeworn" ? 196 : -1;
-    case propertyHash("twohand"): return value == "twohand" ? 197 : -1;
-    case propertyHash("type"): return value == "type" ? 198 : -1;
-    case propertyHash("umbridledwrath"): return value == "umbridledwrath" ? 199 : -1;
-    case propertyHash("unqueue"): return value == "unqueue" ? 200 : -1;
-    case propertyHash("unqueuetimer"): return value == "unqueuetimer" ? 201 : -1;
-    case propertyHash("useonly"): return value == "useonly" ? 202 : -1;
-    case propertyHash("usestep"): return value == "usestep" ? 203 : -1;
-    case propertyHash("vaelbuff"): return value == "vaelbuff" ? 204 : -1;
-    case propertyHash("value"): return value == "value" ? 205 : -1;
-    case propertyHash("value1"): return value == "value1" ? 206 : -1;
-    case propertyHash("value2"): return value == "value2" ? 207 : -1;
-    case propertyHash("wailingextra"): return value == "wailingextra" ? 208 : -1;
-    case propertyHash("weaponspell"): return value == "weaponspell" ? 209 : -1;
-    case propertyHash("wwcd"): return value == "wwcd" ? 210 : -1;
-    case propertyHash("zerkerpriority"): return value == "zerkerpriority" ? 211 : -1;
-    case propertyHash("afterswing"): return value == "afterswing" ? 212 : -1;
-    case propertyHash("swingreset"): return value == "swingreset" ? 213 : -1;
-    case propertyHash("dodgetimeworn"): return value == "dodgetimeworn" ? 214 : -1;
+    case propertyHash("haste"): return value == "haste" ? 69 : -1;
+    case propertyHash("heroicbonus"): return value == "heroicbonus" ? 70 : -1;
+    case propertyHash("hit"): return value == "hit" ? 71 : -1;
+    case propertyHash("homunculi"): return value == "homunculi" ? 72 : -1;
+    case propertyHash("id"): return value == "id" ? 73 : -1;
+    case propertyHash("impslam"): return value == "impslam" ? 74 : -1;
+    case propertyHash("interval"): return value == "interval" ? 75 : -1;
+    case propertyHash("item"): return value == "item" ? 76 : -1;
+    case propertyHash("level"): return value == "level" ? 77 : -1;
+    case propertyHash("macearp"): return value == "macearp" ? 78 : -1;
+    case propertyHash("magicdmg"): return value == "magicdmg" ? 79 : -1;
+    case propertyHash("maincd"): return value == "maincd" ? 80 : -1;
+    case propertyHash("mainspelldmg"): return value == "mainspelldmg" ? 81 : -1;
+    case propertyHash("maxdelay"): return value == "maxdelay" ? 82 : -1;
+    case propertyHash("maxdmg"): return value == "maxdmg" ? 83 : -1;
+    case propertyHash("maxrage"): return value == "maxrage" ? 84 : -1;
+    case propertyHash("mhthreshold"): return value == "mhthreshold" ? 85 : -1;
+    case propertyHash("mindmg"): return value == "mindmg" ? 86 : -1;
+    case propertyHash("minrage"): return value == "minrage" ? 87 : -1;
+    case propertyHash("misschance"): return value == "misschance" ? 88 : -1;
+    case propertyHash("mitigation"): return value == "mitigation" ? 89 : -1;
+    case propertyHash("moddmgdone"): return value == "moddmgdone" ? 90 : -1;
+    case propertyHash("moddmgtaken"): return value == "moddmgtaken" ? 91 : -1;
+    case propertyHash("mode"): return value == "mode" ? 92 : -1;
+    case propertyHash("modifier"): return value == "modifier" ? 93 : -1;
+    case propertyHash("name"): return value == "name" ? 94 : -1;
+    case propertyHash("nocrit"): return value == "nocrit" ? 95 : -1;
+    case propertyHash("noitemcd"): return value == "noitemcd" ? 96 : -1;
+    case propertyHash("normSpeed"): return value == "normSpeed" ? 97 : -1;
+    case propertyHash("offensive"): return value == "offensive" ? 98 : -1;
+    case propertyHash("offhand"): return value == "offhand" ? 99 : -1;
+    case propertyHash("offhit"): return value == "offhit" ? 100 : -1;
+    case propertyHash("overpowercrit"): return value == "overpowercrit" ? 101 : -1;
+    case propertyHash("overpowerrend"): return value == "overpowerrend" ? 102 : -1;
+    case propertyHash("phantom"): return value == "phantom" ? 103 : -1;
+    case propertyHash("physdmg"): return value == "physdmg" ? 104 : -1;
+    case propertyHash("procblock"): return value == "procblock" ? 105 : -1;
+    case propertyHash("rage"): return value == "rage" ? 106 : -1;
+    case propertyHash("rageblock"): return value == "rageblock" ? 107 : -1;
+    case propertyHash("ragecap"): return value == "ragecap" ? 108 : -1;
+    case propertyHash("rageconversion"): return value == "rageconversion" ? 109 : -1;
+    case propertyHash("ragemod"): return value == "ragemod" ? 110 : -1;
+    case propertyHash("rageretained"): return value == "rageretained" ? 111 : -1;
+    case propertyHash("reactionmax"): return value == "reactionmax" ? 112 : -1;
+    case propertyHash("reactionmin"): return value == "reactionmin" ? 113 : -1;
+    case propertyHash("refund"): return value == "refund" ? 114 : -1;
+    case propertyHash("school"): return value == "school" ? 115 : -1;
+    case propertyHash("shield"): return value == "shield" ? 116 : -1;
+    case propertyHash("skill_"): return value == "skill_" ? 117 : -1;
+    case propertyHash("skill_0"): return value == "skill_0" ? 118 : -1;
+    case propertyHash("skill_1"): return value == "skill_1" ? 119 : -1;
+    case propertyHash("skill_10"): return value == "skill_10" ? 120 : -1;
+    case propertyHash("skill_11"): return value == "skill_11" ? 121 : -1;
+    case propertyHash("skill_13"): return value == "skill_13" ? 122 : -1;
+    case propertyHash("skill_2"): return value == "skill_2" ? 123 : -1;
+    case propertyHash("skill_20"): return value == "skill_20" ? 124 : -1;
+    case propertyHash("skill_21"): return value == "skill_21" ? 125 : -1;
+    case propertyHash("skill_23"): return value == "skill_23" ? 126 : -1;
+    case propertyHash("skill_3"): return value == "skill_3" ? 127 : -1;
+    case propertyHash("skill_4"): return value == "skill_4" ? 128 : -1;
+    case propertyHash("skill_5"): return value == "skill_5" ? 129 : -1;
+    case propertyHash("skill_6"): return value == "skill_6" ? 130 : -1;
+    case propertyHash("skill_7"): return value == "skill_7" ? 131 : -1;
+    case propertyHash("slammainreset"): return value == "slammainreset" ? 132 : -1;
+    case propertyHash("speed"): return value == "speed" ? 133 : -1;
+    case propertyHash("spellcrit"): return value == "spellcrit" ? 134 : -1;
+    case propertyHash("spelldamage"): return value == "spelldamage" ? 135 : -1;
+    case propertyHash("spelldmgmod"): return value == "spelldmgmod" ? 136 : -1;
+    case propertyHash("spellqueueing"): return value == "spellqueueing" ? 137 : -1;
+    case propertyHash("stance"): return value == "stance" ? 138 : -1;
+    case propertyHash("str"): return value == "str" ? 139 : -1;
+    case propertyHash("strmod"): return value == "strmod" ? 140 : -1;
+    case propertyHash("swingtimer"): return value == "swingtimer" ? 141 : -1;
+    case propertyHash("swordboard"): return value == "swordboard" ? 142 : -1;
+    case propertyHash("swordproc"): return value == "swordproc" ? 143 : -1;
+    case propertyHash("tasteforblood"): return value == "tasteforblood" ? 144 : -1;
+    case propertyHash("tfbstep"): return value == "tfbstep" ? 145 : -1;
+    case propertyHash("tickdmg"): return value == "tickdmg" ? 146 : -1;
+    case propertyHash("timer"): return value == "timer" ? 147 : -1;
+    case propertyHash("timetoend"): return value == "timetoend" ? 148 : -1;
+    case propertyHash("timetostart"): return value == "timetostart" ? 149 : -1;
+    case propertyHash("timeworn"): return value == "timeworn" ? 150 : -1;
+    case propertyHash("twohand"): return value == "twohand" ? 151 : -1;
+    case propertyHash("type"): return value == "type" ? 152 : -1;
+    case propertyHash("umbridledwrath"): return value == "umbridledwrath" ? 153 : -1;
+    case propertyHash("unqueue"): return value == "unqueue" ? 154 : -1;
+    case propertyHash("unqueuetimer"): return value == "unqueuetimer" ? 155 : -1;
+    case propertyHash("useonly"): return value == "useonly" ? 156 : -1;
+    case propertyHash("usestep"): return value == "usestep" ? 157 : -1;
+    case propertyHash("vaelbuff"): return value == "vaelbuff" ? 158 : -1;
+    case propertyHash("value"): return value == "value" ? 159 : -1;
+    case propertyHash("value1"): return value == "value1" ? 160 : -1;
+    case propertyHash("value2"): return value == "value2" ? 161 : -1;
+    case propertyHash("wailingextra"): return value == "wailingextra" ? 162 : -1;
+    case propertyHash("weaponspell"): return value == "weaponspell" ? 163 : -1;
+    case propertyHash("zerkerpriority"): return value == "zerkerpriority" ? 164 : -1;
+    case propertyHash("afterswing"): return value == "afterswing" ? 165 : -1;
+    case propertyHash("dodgetimeworn"): return value == "dodgetimeworn" ? 166 : -1;
     default: return -1;
     }
 }
+
+static_assert([] {
+    for (std::size_t i = 0; i < kDensePropertyNames.size(); ++i)
+        if (propertyIndex(kDensePropertyNames[i]) != static_cast<int>(i)) return false;
+    return true;
+}(), "property indices must match array positions");
 
 struct KnownProperty {
     int index;

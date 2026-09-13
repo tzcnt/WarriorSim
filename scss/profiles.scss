@@ -180,28 +180,6 @@
         }
     }
 
-    .presets {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        flex-wrap: wrap;
-        gap: 16px;
-        margin-bottom: 30px;
-        & > div {
-            padding: 0 16px;
-            height: 30px;
-            text-align: center;
-            line-height: 30px;
-            border-radius: 5px;
-            border: 1px solid #525252;
-            transition: all 0.2s ease-in;
-            cursor: pointer;
-            &:hover {
-                border-color: white;
-            }
-        }
-    }
 
     @include mobile {
         z-index: 11;

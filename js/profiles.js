@@ -14,7 +14,6 @@ SIM.PROFILES = {
         view.body = $('body');
         view.section = view.body.find('section.profiles');
         view.container = view.section.find('.container');
-        view.presets = view.section.find('.presets');
         view.close = view.section.find('.btn-close');
         view.modal = view.body.find('.import-modal');
         view.textarea = view.modal.find('textarea');
@@ -47,41 +46,6 @@ SIM.PROFILES = {
             view.modal.addClass('open');
             view.textarea.focus();
         });
-
-        view.presets.on('click','.import-thbwl', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            let index = view.container.find('.profile').last().data('index') + 1;
-            view.importProfile(preset_thbwl, index);
-        });
-
-        view.presets.on('click','.import-dwbwl', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            let index = view.container.find('.profile').last().data('index') + 1;
-            view.importProfile(preset_dwbwl, index);
-        });
-
-        view.presets.on('click','.import-thaq', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            let index = view.container.find('.profile').last().data('index') + 1;
-            view.importProfile(preset_thaq, index);
-        });
-
-        view.presets.on('click','.import-dwaq', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            let index = view.container.find('.profile').last().data('index') + 1;
-            view.importProfile(preset_dwaq, index);
-        });
-
-        // view.presets.on('click','.import-fr', function (e) {
-        //     e.preventDefault();
-        //     e.stopPropagation();
-        //     let index = view.container.find('.profile').last().data('index') + 1;
-        //     view.importProfile(preset_fr, index);
-        // });
 
         view.container.on('click','.delete-profile', function (e) {
             e.preventDefault();
@@ -185,7 +149,6 @@ SIM.PROFILES = {
         SIM.SETTINGS.buildSpells();
         SIM.SETTINGS.buildBuffs();
         SIM.SETTINGS.buildTalents();
-        SIM.SETTINGS.buildRunes();
         view.body.find('nav > ul > li.active > p').click();
 
         let storage = JSON.parse(localStorage[modei]);
@@ -228,16 +191,6 @@ SIM.PROFILES = {
             <div class="import-profile">${svgImport}<p>Import Profile</p></div>
             </div>`);
 
-        if (mode == "sod") {
-            view.presets.empty();
-            view.presets.append(`
-                <label>Presets:</label>
-                <div class="import-thaq">P6 2H BiS</div>
-                <div class="import-dwaq">P6 DW BiS</div>
-                <div class="import-thbwl">P5 2H BiS</div>
-                <div class="import-dwbwl">P5 DW BiS</div>`);
-        }
-            
         },
 
     getItemsHTML(storage) {
@@ -269,17 +222,7 @@ SIM.PROFILES = {
     },
 
     getItemHTML(item, storage) {
-        let icon = '';
-        if (typeof storage.runes !== 'undefined' && storage.runes[item.slot]) {
-            for (let rune of storage.runes[item.slot]) {
-                if (rune.selected) {
-                    let r = runes[item.slot].filter(a => a.id == rune.id)[0];
-                    if (!r) rune.selected = false;
-                    else icon = `<img src="https://wow.zamimg.com/images/wow/icons/medium/${r.iconname}.jpg">`
-                }
-            }
-        }
-        let html = `<li data-quality="${item.q}"><p>${item.name}</p> ${icon}</li>`;
+        let html = `<li data-quality="${item.q}"><p>${item.name}</p></li>`;
         return html;
     },
 
@@ -345,36 +288,16 @@ SIM.PROFILES = {
                 if (typeof spell.exmacro !== 'undefined') obj.exmacro = spell.exmacro;
                 if (typeof spell.globals !== 'undefined') obj.globals = spell.globals;
                 if (typeof spell.globalsactive !== 'undefined') obj.globalsactive = spell.globalsactive;
-                if (typeof spell.swingreset !== 'undefined') obj.swingreset = spell.swingreset;
                 if (typeof spell.afterswing !== 'undefined') obj.afterswing = spell.afterswing;
                 if (typeof spell.alwaystails !== 'undefined') obj.alwaystails = spell.alwaystails;
                 if (typeof spell.alwaysheads !== 'undefined') obj.alwaysheads = spell.alwaysheads;
                 if (typeof spell.zerkerpriority !== 'undefined') obj.zerkerpriority = spell.zerkerpriority;
-                if (typeof spell.swordboard !== 'undefined') obj.swordboard = spell.swordboard;
-                if (typeof spell.resolve !== 'undefined') obj.resolve = spell.resolve;
-                if (typeof spell.switchstart !== 'undefined') obj.switchstart = spell.switchstart;
-                if (typeof spell.switchtime !== 'undefined') obj.switchtime = spell.switchtime;
-                if (typeof spell.switchrage !== 'undefined') obj.switchrage = spell.switchrage;
-                if (typeof spell.switchdefault !== 'undefined') obj.switchdefault = spell.switchdefault;
-                if (typeof spell.switchtimeactive !== 'undefined') obj.switchtimeactive = spell.switchtimeactive;
                 if (typeof spell.swingtimeractive !== 'undefined') obj.swingtimeractive = spell.swingtimeractive;
                 if (typeof spell.swingtimer !== 'undefined') obj.swingtimer = spell.swingtimer;
                 if (typeof spell.priority !== 'undefined') obj.priority = spell.priority;
                 if (typeof spell.expriority !== 'undefined') obj.expriority = spell.expriority;
-                if (typeof spell.switchechoesactive !== 'undefined') obj.switchechoesactive = spell.switchechoesactive;
-                if (typeof spell.switchechoestime !== 'undefined') obj.switchechoestime = spell.switchechoestime;
-                if (typeof spell.switchechoesrage !== 'undefined') obj.switchechoesrage = spell.switchechoesrage;
-                if (typeof spell.switchoractive !== 'undefined') obj.switchoractive = spell.switchoractive;
-                if (typeof spell.switchortime !== 'undefined') obj.switchortime = spell.switchortime;
-                if (typeof spell.switchorrage !== 'undefined') obj.switchorrage = spell.switchorrage;
-                if (typeof spell.secondarystance !== 'undefined') obj.secondarystance = spell.secondarystance;
                 minified.rotation.push(obj);
             }
-        }
-        minified.runes = {};
-        for (let type in storage.runes) {
-            for (let item of storage.runes[type])
-                if (item.selected) minified.runes[type] = item.id;
         }
         minified.enchant = {};
         for (let type in storage.enchant) {
@@ -443,36 +366,17 @@ SIM.PROFILES = {
                     if (typeof newspell.globals !== 'undefined') spell.globals = newspell.globals;
                     if (typeof newspell.globalsactive !== 'undefined') spell.globalsactive = newspell.globalsactive;
                     if (typeof newspell.afterswing !== 'undefined') spell.afterswing = newspell.afterswing;
-                    if (typeof newspell.swingreset !== 'undefined') spell.swingreset = newspell.swingreset;
                     if (typeof newspell.alwaystails !== 'undefined') spell.alwaystails = newspell.alwaystails;
                     if (typeof newspell.alwaysheads !== 'undefined') spell.alwaysheads = newspell.alwaysheads;
                     if (typeof newspell.zerkerpriority !== 'undefined') spell.zerkerpriority = newspell.zerkerpriority;
-                    if (typeof newspell.swordboard !== 'undefined') spell.swordboard = newspell.swordboard;
-                    if (typeof newspell.resolve !== 'undefined') spell.resolve = newspell.resolve;
-                    if (typeof newspell.switchstart !== 'undefined') spell.switchstart = newspell.switchstart;
-                    if (typeof newspell.switchtime !== 'undefined') spell.switchtime = newspell.switchtime;
-                    if (typeof newspell.switchrage !== 'undefined') spell.switchrage = newspell.switchrage;
-                    if (typeof newspell.switchdefault !== 'undefined') spell.switchdefault = newspell.switchdefault;
-                    if (typeof newspell.switchtimeactive !== 'undefined') spell.switchtimeactive = newspell.switchtimeactive;
                     if (typeof newspell.swingtimeractive !== 'undefined') spell.swingtimeractive = newspell.swingtimeractive;
                     if (typeof newspell.swingtimer !== 'undefined') spell.swingtimer = newspell.swingtimer;
                     if (typeof newspell.priority !== 'undefined') spell.priority = newspell.priority;
                     if (typeof newspell.expriority !== 'undefined') spell.expriority = newspell.expriority;
-                    if (typeof newspell.switchechoesactive !== 'undefined') spell.switchechoesactive = newspell.switchechoesactive;
-                    if (typeof newspell.switchechoestime !== 'undefined') spell.switchechoestime = newspell.switchechoestime;
-                    if (typeof newspell.switchechoesrage !== 'undefined') spell.switchechoesrage = newspell.switchechoesrage;
-                    if (typeof newspell.switchoractive !== 'undefined') spell.switchoractive = newspell.switchoractive;
-                    if (typeof newspell.switchortime !== 'undefined') spell.switchortime = newspell.switchortime;
-                    if (typeof newspell.switchorrage !== 'undefined') spell.switchorrage = newspell.switchorrage;
-                    if (typeof newspell.secondarystance !== 'undefined') spell.secondarystance = newspell.secondarystance;
                 }
                 else {
                     spell.active = false;
                 }
-            }
-            storage.runes = {};
-            for (let type in minified.runes) {
-                storage.runes[type] = [{id: minified.runes[type], selected: true}];
             }
             storage.enchant = {};
             for (let type in minified.enchant) {

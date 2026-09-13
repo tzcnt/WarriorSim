@@ -99,7 +99,7 @@ void activateProcReference(PlayerState& player, ProcState& proc) {
 
 void PlayerState::reset(double startingRage) {
     rage = startingRage;
-    timer = itemtimer = stancetimer = ragetimer = dodgetimer = crittimer = 0;
+    timer = itemtimer = stancetimer = dodgetimer = crittimer = 0;
     critdmgbonus = 0;
     mainspelldmg = 1;
     spelldelay = heroicdelay = 0;
@@ -127,13 +127,11 @@ void PlayerState::reset(double startingRage) {
         value.starttimer = 0;
         value.maxdelay = props.number("reactionmin"_prop);
         value.mintime = 0;
-        value.ticksleft = 0;
-        value.saveddmg = 0;
         value.nexttick = 0;
         value.cooldownTimer = 0;
         value.tfbstep = -6000;
-        if (value.kind == AuraKind::DeepWounds || value.kind == AuraKind::OldDeepWounds ||
-            value.kind == AuraKind::PotentVenoms || value.kind == AuraKind::Rend ||
+        if (value.kind == AuraKind::OldDeepWounds ||
+            value.kind == AuraKind::Rend ||
             value.kind == AuraKind::WeaponBleed) value.idmg = 0;
     }
     if (trinketproc1 && trinketproc1->useStep) trinketproc1->useStep = 0;
@@ -146,9 +144,6 @@ void PlayerState::reset(double startingRage) {
     if (auto* value = aura("battlestance"_action)) value->timer = stance == "battle" ? 1 : 0;
     if (auto* value = aura("berserkerstance"_action)) value->timer = stance == "zerk" ? 1 : 0;
     if (auto* value = aura("defensivestance"_action)) value->timer = stance == "def" ? 1 : 0;
-    if (auto* value = aura("gladiatorstance"_action)) value->timer = stance == "glad" ? 1 : 0;
-    if (auto* value = spell("unstoppablemight"_action); value && value->props.boolean("switchstart"_prop))
-        switchStance(value->props.string("secondarystance"_prop));
     update();
     if (oh) oh->timer = std::floor(oh->speed * 1000.0 / stats.number("haste"_prop, 1) / 2.0 + 0.5);
 }
@@ -250,35 +245,22 @@ void PlayerState::updateHaste() {
     // Preserve the source's literal order.  Besides intentionally excluding
     // unrelated auras, it fixes the exact floating-point event times for Slam.
     apply("flurry"_action, true);
-    apply("quicknesspotion"_action, true);
-    apply("bloodlust"_action, true);
     apply("berserking"_action, true);
     apply("empyrean"_action, false);
     apply("eskhandar"_action, false);
-    apply("tempest"_action, false);
     apply("pummeler"_action, false);
     apply("spider"_action, false);
-    apply("hategrips"_action, false);
     apply("voidmadness"_action, false);
-    apply("jackhammer"_action, false);
-    apply("ragehammer"_action, false);
-    apply("blisteringragehammer"_action, false);
     apply("gyromaticacceleration"_action, false);
     apply("gneurological"_action, false);
-    apply("spicy"_action, false);
-    apply("echoesdread"_action, false);
     apply("singleminded"_action, false);
     apply("magmadarsreturn"_action, false);
     apply("jujuflurry"_action, true);
-    apply("chastise"_action, true);
-    apply("crusaderzeal"_action, false);
     apply("obsidianhaste"_action, false);
-    apply("unrelentingstrikes"_action, false);
 }
 
 void PlayerState::updateHasteDamage() {
     double mod = 1;
-    if (active(*this, "spicy"_action)) mod *= 1 + auraMult(*this, "spicy"_action, "haste"_prop) / 100;
     if (active(*this, "jujuflurry"_action) && !turtleMode)
         mod *= 1 + auraMult(*this, "jujuflurry"_action, "haste"_prop) / 100;
     mh.mindmg = mh.baseMindmg / mod;
@@ -288,13 +270,11 @@ void PlayerState::updateHasteDamage() {
 
 void PlayerState::updateBonusDmg() {
     double bonus = 0;
-    double taken = 0;
-    constexpr detail::KnownAction bonusKeys[] = {"stoneslayer"_action, "zeal"_action, "zandalarian"_action,
-        "relentlessstrength"_action, "blisteringragehammer"_action, "crusaderzeal"_action, "obsidianhaste"_action, "modrag"_action};
+    constexpr detail::KnownAction bonusKeys[] = {"zeal"_action, "zandalarian"_action,
+        "relentlessstrength"_action, "obsidianhaste"_action};
     for (const auto key : bonusKeys) bonus += auraStat(*this, key, "moddmgdone"_prop);
-    taken += auraStat(*this, "meltarmor"_action, "moddmgtaken"_prop);
     stats.set("moddmgdone"_prop, base.number("moddmgdone"_prop) + bonus);
-    stats.set("moddmgtaken"_prop, base.number("moddmgtaken"_prop) + taken);
+    stats.set("moddmgtaken"_prop, base.number("moddmgtaken"_prop));
     mh.bonusdmg = mh.baseBonusdmg;
     if (oh) oh->bonusdmg = oh->baseBonusdmg;
 }
@@ -307,18 +287,10 @@ void PlayerState::updateArmorReduction() {
         if (const auto* value = aura(key); value && value->timer)
             target.armor = std::max(target.armor - value->stacks * value->props.number("armor"_prop), 0.0);
     };
-    const auto subtractFlat = [this](detail::KnownAction key) {
-        if (const auto* value = aura(key); value && value->timer)
-            target.armor = std::max(target.armor - value->props.number("armor"_prop), 0.0);
-    };
     subtractStacked("annihilator"_action);
     subtractStacked("rivenspike"_action);
-    subtractFlat("vibroblade"_action);
-    subtractFlat("ultrasonic"_action);
-    subtractFlat("cleavearmor"_action);
     subtractStacked("bonereaver"_action);
     subtractStacked("swarmguard"_action);
-    if (active(*this, "shieldrender"_action)) target.armor = 0;
     armorReduction = getArmorReduction();
     arpContribution = getArpContribution();
 }
@@ -405,9 +377,6 @@ bool PlayerState::stepItemTimer(double amount) {
 bool PlayerState::stepStanceTimer(double amount) {
     if (stancetimer <= amount) { stancetimer = 0; return true; }
     stancetimer -= amount; return false;
-}
-void PlayerState::stepRageTimer(double amount) {
-    if (ragetimer <= amount) { ragetimer = 0; rage += 10; } else ragetimer -= amount;
 }
 void PlayerState::stepDodgeTimer(double amount) {
     if (dodgetimer <= amount) dodgetimer = 0; else dodgetimer -= amount;
@@ -568,10 +537,6 @@ double PlayerState::attackMh(WeaponState& weapon, int adjacent, double damageSoF
         } else result = rollWeapon(weapon);
     } else result = rollWeapon(weapon);
 
-    if (ability) if (auto* raging = spell("ragingblow"_action); raging && raging->timer &&
-        isEnraged() && ability != raging && ability->props.boolean("offensive"_prop, true))
-        raging->timer = std::max(0.0, raging->timer - 1000);
-
     double dmg = weaponDamage(*this, weapon, ability);
     const double procDmg = procAttack(ability, weapon, result, adjacent, damageSoFar);
     if (result == Result::Dodge) dodgetimer = 5000;
@@ -623,9 +588,6 @@ double PlayerState::cast(SpellState& ability, SpellState* delayedHeroic, int adj
                          double damageSoFar) {
     if (!adjacent) { stepAuras(); spellUse(*this, ability, delayedHeroic); }
     if (ability.props.boolean("useonly"_prop)) return 0;
-    if (auto* raging = spell("ragingblow"_action); raging && raging->timer && isEnraged() &&
-        &ability != raging && ability.props.boolean("offensive"_prop, true))
-        raging->timer = std::max(0.0, raging->timer - 1000);
     double dmg = spellDamage(*this, ability) * mh.modifier;
     if (dmg) dmg += stats.number("moddmgtaken"_prop);
     Result result = Result::Hit;
@@ -748,7 +710,6 @@ double PlayerState::procAttack(SpellState* ability, WeaponState& weapon, Result 
     if (ability && ability->kind == SpellKind::ThunderClap) return 0;
     if (ability && ability->kind == SpellKind::ShieldSlam) {
         if (result != Result::Miss && result != Result::Dodge) {
-            if (sodMode) if (auto* value = aura("defendersresolve"_action)) auraUse(*this, *value);
             if (weapon.windfuryAura != kNoRef && !auras[weapon.windfuryAura].timer && !damageSoFar && rng.tenK() < 2000)
                 auraUse(*this, auras[weapon.windfuryAura]);
         }
@@ -884,8 +845,7 @@ double PlayerState::procAttack(SpellState* ability, WeaponState& weapon, Result 
                 if (ability &&
                     (ability->kind == SpellKind::Whirlwind ||
                      ability->kind == SpellKind::Bloodthirst ||
-                     ability->kind == SpellKind::HeroicStrike ||
-                     ability->kind == SpellKind::QuickStrike) &&
+                     ability->kind == SpellKind::HeroicStrike) &&
                     rng.tenK() < 3000)
                     freeslam = true;
                 break;
@@ -933,15 +893,6 @@ double PlayerState::procAttack(SpellState* ability, WeaponState& weapon, Result 
                 if (value.timer) auraProc(*this, value);
                 break;
             }
-            case ProcStage::PotentVenoms:
-                if (rng.tenK() < entry.chance) {
-                    if (!adjacent)
-                        auraUse(*this, auras[static_cast<std::size_t>(entry.action)]);
-                    if (adjacent && ability && ability->kind == SpellKind::Cleave &&
-                        entry.secondaryAction != kNoRef)
-                        auraUse(*this, auras[static_cast<std::size_t>(entry.secondaryAction)]);
-                }
-                break;
             case ProcStage::RelentlessStrength: {
                 auto& value = auras[static_cast<std::size_t>(entry.action)];
                 if (value.timer) auraProc(*this, value);
@@ -972,49 +923,25 @@ double PlayerState::procAttack(SpellState* ability, WeaponState& weapon, Result 
         }
         if (mh.windfuryAura != kNoRef && auras[mh.windfuryAura].stacks) auraProc(*this, auras[mh.windfuryAura]);
     }
-    if (extraattacks > 0 && configured.procTailUnrelentingStrikes != kNoRef) {
-        auto& value = auras[static_cast<std::size_t>(configured.procTailUnrelentingStrikes)];
-        if (!value.timer) auraUse(*this, value);
-    }
     return procDmg;
 }
 
 void PlayerState::switchStance(std::string_view value) {
-    const std::string previous = stance;
     stance = std::string(value);
     if (auto* auraValue = aura("battlestance"_action)) auraValue->timer = 0;
     if (auto* auraValue = aura("berserkerstance"_action)) auraValue->timer = 0;
     if (auto* auraValue = aura("defensivestance"_action)) auraValue->timer = 0;
-    if (auto* auraValue = aura("gladiatorstance"_action)) auraValue->timer = 0;
     const auto stanceKey = detail::stanceAuraAction(stance);
     if (auto* auraValue = stanceKey ? aura(*stanceKey) : aura(std::string_view{})) auraValue->timer = 1;
     rage = std::min(rage, talents.number("rageretained"_prop));
-    const auto echoKey = detail::stanceEchoAction(previous);
-    const std::string echoFallback = "echoes" + previous;
-    if (auto* echo = echoKey ? aura(*echoKey) : aura(echoFallback)) auraUse(*this, *echo);
-    const auto forecastKey = detail::stanceForecastAction(stance);
-    const std::string forecastFallback = stance + "forecast";
-    if (auto* forecast = forecastKey ? aura(*forecastKey) : aura(forecastFallback)) auraUse(*this, *forecast);
-    props.set("ragemod"_prop, (base.number("ragemod"_prop) ? base.number("ragemod"_prop) : 1) *
-        (stance == "glad" && !target.props.number("speed"_prop) ? 1.5 : 1));
-    if (flag("switchrage"_prop)) ragetimer = 10;
+    props.set("ragemod"_prop, base.number("ragemod"_prop) ? base.number("ragemod"_prop) : 1);
     stancetimer = 1000;
     updateAuras();
 }
 
 bool PlayerState::isValidStance(std::string_view value, bool isRend) const {
-    return stance == value || (stance == "glad" && flag("shield"_prop)) ||
-        (value == "zerk" && active(*this, "echoeszerk"_action)) ||
-        (value == "battle" && active(*this, "echoesbattle"_action)) ||
-        (value == "def" && active(*this, "echoesdef"_action)) || active(*this, "echoesglad"_action) ||
+    return stance == value ||
         (isRend && stance == "zerk" && flag("bloodfrenzy"_prop));
 }
 
-bool PlayerState::isEnraged() const {
-    constexpr detail::KnownAction keys[] = {"wreckingcrew"_action, "consumedrage"_action, "freshmeat"_action, "bloodrage"_action, "berserkerrage"_action};
-    for (const auto key : keys) if (active(*this, key)) return true;
-    return false;
-}
-
 } // namespace warriorsim
-

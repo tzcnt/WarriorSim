@@ -8,11 +8,6 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $wasmBuild = Join-Path $repoRoot 'wasm\build.ps1'
 
-if (-not $SkipWasmBuild) {
-    & $wasmBuild -Configuration $Configuration
-    if ($LASTEXITCODE -ne 0) { throw "WASM build failed with exit code $LASTEXITCODE" }
-}
-
 $emsdkRoot = if ($env:EMSDK) {
     $env:EMSDK
 } else {
@@ -31,6 +26,19 @@ if (-not $node -or -not (Test-Path -LiteralPath $node)) {
 }
 if (-not (Test-Path -LiteralPath $terser)) {
     throw 'Terser was not found in the Emscripten SDK dependencies'
+}
+
+# Keep header indices in sync before compiling; reusing WASM must not change them.
+$keyArgs = @()
+if ($SkipWasmBuild) { $keyArgs += '--check' }
+& $node (Join-Path $PSScriptRoot 'generate-native-keys.js') @keyArgs
+if ($LASTEXITCODE -ne 0) {
+    throw 'Native key generation/check failed; run a full distribution build to regenerate stale tables'
+}
+
+if (-not $SkipWasmBuild) {
+    & $wasmBuild -Configuration $Configuration
+    if ($LASTEXITCODE -ne 0) { throw "WASM build failed with exit code $LASTEXITCODE" }
 }
 
 $sourceRoot = Join-Path $repoRoot 'js'

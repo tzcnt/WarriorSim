@@ -7,7 +7,7 @@ const vm = require('node:vm');
 const {harness, params, report, job, BUILD, ROOT} = require('./helpers');
 
 function setup(t, {rows = 100, threads = 2, enabled = true, ready = true, iterations = 10000} = {}) {
-    const h = harness({getGlobalsDelta: () => ({sod: false})});
+    const h = harness({getGlobalsDelta: () => ({mode: 'classic'})});
     const client = new h.api.SharedComputeClient({url: 'ws://test/compute', buildId: BUILD, slots: threads});
     h.api.setClient(client);
     if (enabled) client.setEnabled(true);
@@ -163,7 +163,7 @@ test('oversized remote rows defer their local fallback until a local slot is ava
 });
 
 test('a batch without a sharing client runs locally with bounded concurrency', t => {
-    const {api, FakeWorker} = harness({getGlobalsDelta: () => ({sod: false})});
+    const {api, FakeWorker} = harness({getGlobalsDelta: () => ({mode: 'classic'})});
     const batch = new api.SimulationRowBatch(2);
     const completed = [];
     t.after(() => batch.cancel());

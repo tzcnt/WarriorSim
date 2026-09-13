@@ -13,9 +13,7 @@ Regression tests cover these fixes:
   so haste from the previous fight cannot affect it.
 - Merge maximum DPS and completion times using the largest worker values.
 - Sum Execute's excess rage across workers for damage-per-rage reporting.
-- Initialize and reset the free Shield Slam flag in the shared engine. Sword
-  and Board is an existing Season of Discovery feature; the fix does not add
-  that mechanic to Classic.
+- Initialize and reset the free Shield Slam flag in the shared engine.
 - Support seeded random rolls, including glancing damage, with independent
   streams for each global iteration so RNG assignment is reproducible.
   The seed formula is `(seed + imul(iterationOffset + i, 0x9e3779b9)) >>> 0`;
@@ -52,7 +50,7 @@ npm run test:compute
 ```
 
 The suite covers bundle hashing and complete asset preload, retained worker assets
-after bundle URLs disappear, Classic and SoD entrypoints, coordinator pool
+after bundle URLs disappear, Classic Era and WoW Forever entrypoints, coordinator pool
 isolation, the sharing preference and foreground priority, pool thread accounting
 and the panel's thread rows, lease recovery, ownership, duplicate
 results, and local fallback. Integration tests run real deployed WASM workers over
