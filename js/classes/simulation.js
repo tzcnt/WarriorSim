@@ -450,6 +450,8 @@ class Simulation {
                     else if (player.auras.flask && player.auras.flask.canUse()) { player.spelldelay = 1; delayedspell = player.auras.flask; }
                     else if (player.auras.recklessness && player.auras.recklessness.canUse()) { player.spelldelay = 1; delayedspell = player.auras.recklessness; }
                     else if (player.auras.deathwish && player.auras.deathwish.canUse()) { player.spelldelay = 1; delayedspell = player.auras.deathwish; }
+                    else if (player.auras.eluneslight && player.auras.eluneslight.canUse()) { player.spelldelay = 1; delayedspell = player.auras.eluneslight; }
+                    else if (player.auras.eureka && player.auras.eureka.canUse()) { player.spelldelay = 1; delayedspell = player.auras.eureka; }
                     else if (player.auras.bloodfury && player.auras.bloodfury.canUse()) { player.spelldelay = 1; delayedspell = player.auras.bloodfury; }
                     else if (player.auras.berserking && player.auras.berserking.canUse()) { player.spelldelay = 1; delayedspell = player.auras.berserking; }
                     else if (player.spells.berserkerrage && player.spells.berserkerrage.canUse()) { player.spelldelay = 1; delayedspell = player.spells.berserkerrage; }
@@ -705,6 +707,7 @@ class Simulation {
         // Fight done
         player.endauras();
         player.logging = false;
+        if (player.auras.touchofthegrave) this.idmg += player.auras.touchofthegrave.idmg;
         if (player.auras.sweepingstrikes) this.idmg += player.auras.sweepingstrikes.idmg;
 
         if (player.auras.deepwounds) {

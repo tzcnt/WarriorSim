@@ -889,6 +889,7 @@ class Felstriker extends Aura {
 class DeathWish extends Aura {
     constructor(player, id) {
         super(player, id, 'Death Wish');
+        if (player.mode === 'forever') this.cost = 10;
         this.duration = 30;
         this.mult_stats = { dmgmod: 20 };
         this.cooldown = 180;
@@ -896,7 +897,7 @@ class DeathWish extends Aura {
     use(a, prepull = 0) {
         if (this.timer) this.uptime += (step - this.starttimer);
         this.timer = step + this.duration * 1000 - prepull;
-        this.player.rage -= 10;
+        this.player.rage -= (this.cost ?? 10);
         this.player.timer = 1500;
         this.starttimer = step - prepull;
         this.player.updateDmgMod();
@@ -904,7 +905,7 @@ class DeathWish extends Aura {
         /* start-log */ if (this.player.logging) this.player.log(`${this.name} applied`); /* end-log */
     }
     canUse() {
-        return !this.timer && !this.player.timer && this.player.rage >= 10 && step >= this.usestep;
+        return !this.timer && !this.player.timer && this.player.rage >= (this.cost ?? 10) && step >= this.usestep;
     }
     step() {
         if (step >= this.timer) {
@@ -971,7 +972,7 @@ class BloodFury extends Aura {
     constructor(player, id) {
         super(player, id, 'Blood Fury');
         this.duration = 15;
-        this.mult_stats = { baseapmod: 25 };
+        this.mult_stats = player.mode === 'forever' ? {apmod: 10} : {baseapmod: 25};
     }
     use(a, prepull = 0) {
         if (this.timer) this.uptime += (step - this.starttimer);
@@ -1000,6 +1001,7 @@ class Berserking extends Aura {
     constructor(player, id) {
         super(player, id);
         this.duration = 10;
+        if (player.mode === 'forever') this.mult_stats = {haste: 10};
     }
     use(a, prepull = 0) {
         if (this.timer) this.uptime += (step - this.starttimer);
@@ -1021,6 +1023,83 @@ class Berserking extends Aura {
     }
     canUse() {
         return this.firstuse && !this.timer && this.player.rage >= 5 && step >= this.usestep;
+    }
+}
+
+class TouchOfTheGrave extends Aura {
+    constructor(player) {
+        super(player, undefined, 'Touch of the Grave');
+        this.chance = 500;
+        this.cooldown = 0; // No internal cooldown, per the supplied assumption.
+        this.healthcoeff = .05;
+        this.idmg = this.totaldmg = 0;
+    }
+    proc() {
+        if (step < (this.cooldowntimer || 0) || rng10k() >= this.chance) return;
+        this.cooldowntimer = step + this.cooldown * 1000;
+        const damage = this.player.magicproc({magicdmg: this.player.maxhealth * this.healthcoeff});
+        this.idmg += damage;
+        this.totaldmg += damage;
+    }
+}
+
+class ElunesLight extends Aura {
+    constructor(player, id) {
+        super(player, id, 'Elune’s Light');
+        this.duration = 15;
+        this.cooldown = 180;
+        this.stats = {crit: 10, spellcrit: 10};
+    }
+    canUse() {
+        return !this.timer && step >= this.usestep && step >= (this.cooldowntimer || 0);
+    }
+    use() {
+        super.use();
+        this.cooldowntimer = step + this.cooldown * 1000;
+    }
+}
+
+class Eureka extends Aura {
+    constructor(player, id) {
+        super(player, id, 'Eureka!');
+        this.cooldown = 120;
+        this.costreduction = .40;
+    }
+    canUse() {
+        return !this.stacks && step >= this.usestep && step >= (this.cooldowntimer || 0);
+    }
+    updateCosts(active) {
+        for (const action of [...Object.values(this.player.spells), ...Object.values(this.player.auras)]) {
+            if (!this.eligible(action)) continue;
+            if (active && action.cost) {
+                action.eurekabasecost = action.cost;
+                action.cost *= 1 - this.costreduction;
+            } else if (!active && action.eurekabasecost !== undefined) {
+                action.cost = action.eurekabasecost;
+                delete action.eurekabasecost;
+            }
+        }
+    }
+    eligible(action) {
+        return ['Bloodthirst','Whirlwind','Overpower','Execute','Bloodrage','HeroicStrike','Cleave',
+            'MortalStrike','SunderArmor','Hamstring','ThunderClap','BerserkerRage','Slam','ShieldSlam',
+            'SpearingStrike','Rend','BattleShout','DeathWish','Recklessness','SweepingStrikes'].includes(action.constructor.name);
+    }
+    use() {
+        this.timer = 1; // Charges have no duration in the dump.
+        this.stacks = 3;
+        this.starttimer = step;
+        this.cooldowntimer = step + this.cooldown * 1000;
+        this.updateCosts(true);
+        this.maxdelay = rng(this.player.reactionmin, this.player.reactionmax);
+    }
+    step() {}
+    consume() {
+        if (this.stacks && !--this.stacks) this.end();
+    }
+    end() {
+        this.updateCosts(false);
+        super.end();
     }
 }
 
@@ -1629,7 +1708,7 @@ class Rend extends Aura {
         }
 
         this.player.rage -= this.cost;
-        let dmg = this.value1 * this.player.stats.dmgmod * this.dmgmod * this.player.bleedmod;
+        let dmg = this.value1 * this.player.stats.dmgmod * this.dmgmod * this.player.bleedmod * (this.eurekamod || 1);
         this.tickdmg = dmg / this.value2;
 
         this.player.updateDmgMod();

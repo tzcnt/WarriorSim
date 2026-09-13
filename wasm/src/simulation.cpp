@@ -181,6 +181,8 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "flask"_action, true);
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "recklessness"_action, true);
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "deathwish"_action, true);
+                if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "eluneslight"_action, true);
+                if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "eureka"_action, true);
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "bloodfury"_action, true);
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "berserking"_action, true);
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "berserkerrage"_action, false);
@@ -231,7 +233,7 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
                     }
                     double done = 0;
                     if (delayedSpell.spell) done = player_.cast(*delayedSpell.spell, delayedHeroic);
-                    else { player_.stepAuras(); auraUse(player_, *delayedSpell.aura); done = 0; }
+                    else { player_.castRacialAffectedAura(*delayedSpell.aura); done = 0; }
                     damage += done;
                     player_.spelldelay = 0;
                     spellcheck = true;

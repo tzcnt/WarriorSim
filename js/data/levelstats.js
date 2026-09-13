@@ -480,3 +480,14 @@ var levelstats = [
     "8,1,58,116,79,107,26,45",
     "8,1,59,119,81,109,26,45",
     "8,1,60,121,82,111,26,46"];
+// Classic Warrior base health, indexed by level (before Stamina).
+// Source: https://github.com/cmangos/mangos-classic/blob/master/sql/base/mangos.sql
+// player_classlevelstats, retrieved 2026-09-13; retained provisionally for Forever.
+var warriorBaseHealth = [0,
+    20, 29, 38, 47, 56, 65, 74, 83, 92, 101,
+    100, 109, 118, 128, 139, 151, 154, 168, 168, 199,
+    206, 224, 243, 253, 274, 296, 309, 333, 348, 374,
+    401, 419, 448, 468, 499, 521, 545, 581, 609, 649,
+    681, 715, 761, 799, 839, 881, 935, 981, 1029, 1079,
+    1131, 1185, 1241, 1299, 1359, 1421, 1485, 1551, 1619, 1689,
+];

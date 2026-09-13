@@ -14,7 +14,7 @@ This project also fixes a number of bugs that were present in upstream, such as 
 ## WoW Forever Implementation Status
 
 - Talents: Done, based on [https://talentsforever.com/warrior](https://talentsforever.com/warrior). Some of the values are estimates and will be revised once Beta is available.
-- Racials: In progress.
+- Racials: Implemented from public data, with [documented provisional values](data/forever/RACIALS.md) where details are unpublished.
 - Gear: Not done / can't be done until we get in game.
 
 ## Self-hosting and Contributing

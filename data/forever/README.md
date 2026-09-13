@@ -100,9 +100,11 @@ Incoming attacks are configured damage events, without avoidance, block or crit
 outcomes. Consequently Shield Specialization and Master of Defense cannot generate
 reactive rage, and Anticipation/Deflection/Toughness do not simulate mitigation.
 Revenge and Charge are absent, so Improved Revenge, Improved Charge and Vanguard
-remain data-only. Health/healing (Blood Craze, Vitality's Stamina, Last Stand),
+remain data-only. Current health/healing (Blood Craze, Last Stand),
 threat (Defiance), and crowd-control/movement/utility effects are also outside the
-existing DPS model. These defects were explicitly left unchanged for this work.
+existing DPS model. Maximum health and Vitality's Stamina are now calculated for
+Touch of the Grave; see [the racial notes](RACIALS.md). The other defensive-model
+limitations remain unchanged.
 The current equipment catalog also has no shields; Shield Slam/Bastion validation
 uses a synthetic shield fixture. The corresponding numeric talent handlers and descriptions are present, without
 claiming those missing systems are simulated.
@@ -125,3 +127,6 @@ are implemented for Forever while preserving Classic combat behavior.
 
 See [the implementation audit](IMPLEMENTATION.md) for mode-specific rules, selector
 moves, runtime property mappings, engine gaps, and the accepted placeholder decisions.
+
+See [the racial implementation notes](RACIALS.md) for the new racial bonuses,
+Skyborne, and provisional values absent from the supplied racial dump.

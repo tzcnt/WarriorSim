@@ -77,13 +77,15 @@ bool auraCanUse(PlayerState& player, AuraState& aura) {
     }
     const bool ready = !active(aura) && player.step >= aura.useStep;
     switch (aura.kind) {
+    case AuraKind::ElunesLight:
+    case AuraKind::Eureka:
+        return ready && player.step >= aura.cooldownTimer;
     case AuraKind::Recklessness:
         return ready && !player.timer;
     case AuraKind::Cloudkeeper:
         return aura.firstuse && ready && !player.itemtimer;
     case AuraKind::DeathWish:
-        return ready && !player.timer && player.rage >=
-            10;
+        return ready && !player.timer && player.rage >= aura.props.number("cost"_prop, 10);
     case AuraKind::MightyRagePotion:
         return aura.firstuse && ready;
     case AuraKind::BloodFury:
@@ -143,6 +145,7 @@ void auraRemove(PlayerState& player, AuraState& aura) {
 }
 
 void auraEnd(PlayerState& player, AuraState& aura) {
+    if (aura.kind == AuraKind::Eureka) player.updateEurekaCosts(false);
     if (aura.kind == AuraKind::Rend) {
         if (aura.stacks) aura.uptime += player.step - aura.starttimer;
     } else if (active(aura)) {
@@ -223,7 +226,7 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         break;
     case AuraKind::DeathWish:
         begin(player, aura, precounter);
-        player.rage -= 10;
+        player.rage -= aura.props.number("cost"_prop, 10);
         player.timer = 1500;
         player.updateDmgMod();
         setDelay(player, aura);
@@ -242,6 +245,18 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
     case AuraKind::Eskhandar:
     case AuraKind::Pummeler:
         useWithUpdate(player, aura, &PlayerState::updateHaste);
+        break;
+    case AuraKind::ElunesLight:
+        useWithUpdate(player, aura, &PlayerState::updateAuras, 0, true);
+        aura.cooldownTimer = player.step + cooldownMs(aura);
+        break;
+    case AuraKind::Eureka:
+        aura.timer = 1;
+        aura.stacks = 3;
+        aura.starttimer = player.step;
+        aura.cooldownTimer = player.step + cooldownMs(aura);
+        player.updateEurekaCosts(true);
+        setDelay(player, aura);
         break;
     case AuraKind::BloodFury:
         player.timer = 1500;
@@ -347,7 +362,7 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         double baseDamage = aura.props.number("value1"_prop);
         const double value2 = aura.props.number("value2"_prop);
         aura.props.set("tickdmg"_prop, baseDamage * player.stats.number("dmgmod"_prop, 1) *
-            aura.props.number("dmgmod"_prop, 1) * player.prop("bleedmod"_prop, 1) / value2);
+            aura.props.number("dmgmod"_prop, 1) * player.prop("bleedmod"_prop, 1) * aura.props.number("eurekamod"_prop, 1) / value2);
         player.updateDmgMod();
         setDelay(player, aura);
         break;
@@ -457,6 +472,9 @@ bool auraStep(PlayerState& player, AuraState& aura) {
         return stepWithUpdate(player, aura, &PlayerState::updateDmgMod, false, true);
     case AuraKind::MightyRagePotion:
         return stepWithUpdate(player, aura, &PlayerState::updateStrength, true);
+    case AuraKind::Eureka:
+        return true;
+    case AuraKind::ElunesLight:
     case AuraKind::BloodFury:
         return stepWithUpdate(player, aura, &PlayerState::updateAuras, true);
     case AuraKind::Berserking:

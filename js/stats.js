@@ -110,10 +110,11 @@ SIM.STATS = {
             }
         }
 
-        const sweeping = sim.player.auras.sweepingstrikes;
-        if (sweeping && sweeping.totaldmg) {
-            view.dmgdata.labels.push(sweeping.name);
-            data.push((sweeping.totaldmg / sim.totalduration).toFixed(2));
+        for (const key of ['sweepingstrikes', 'touchofthegrave']) {
+            const aura = sim.player.auras[key];
+            if (!aura?.totaldmg) continue;
+            view.dmgdata.labels.push(aura.name);
+            data.push((aura.totaldmg / sim.totalduration).toFixed(2));
             colors.push(view.colors[counter % view.colors.length]);
             counter++;
         }
@@ -326,11 +327,12 @@ SIM.STATS = {
             html += `<tr><td>${sim.player.auras.rend.name}</td><td></td><td></td><td>${(data[1] / total * 100).toFixed(2)}</td><td>${(data[2] / total * 100).toFixed(2)}</td><td></td><td>${(total / i).toFixed(2)}</td><td>${dpr}</td><td>${dps}</td></tr>`;
         }
 
-        const sweeping = sim.player.auras.sweepingstrikes;
-        if (sweeping && sweeping.totaldmg) {
-            const dps = (sweeping.totaldmg / sim.totalduration).toFixed(2);
-            // Copies have no separate attack outcomes or recorded activation count.
-            html += `<tr><td>${sweeping.name}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>${dps}</td></tr>`;
+        for (const key of ['sweepingstrikes', 'touchofthegrave']) {
+            const aura = sim.player.auras[key];
+            if (!aura?.totaldmg) continue;
+            const dps = (aura.totaldmg / sim.totalduration).toFixed(2);
+            // These effects have no separate recorded attack table.
+            html += `<tr><td>${aura.name}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>${dps}</td></tr>`;
         }
 
         html += '</tbody></table>';

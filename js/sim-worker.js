@@ -8,6 +8,7 @@ importScripts(...[
     'js/data/talents.min.js',
     'js/data/talents_forever.min.js',
     'js/talent-rules.min.js',
+    'js/racial-rules.min.js',
     'js/classes/player.min.js',
     'js/classes/simulation.min.js',
     'js/classes/spell.min.js',

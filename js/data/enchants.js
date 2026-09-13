@@ -612,6 +612,7 @@ var enchant = {
        "spellid": true,
        "name": "Greater Stats",
        "agi": 4,
+       "sta": 4,
        "str": 4,
        "phase": 1,
        "r": 41,
@@ -622,6 +623,7 @@ var enchant = {
        "spellid": true,
        "name": "Stats",
        "agi": 3,
+       "sta": 3,
        "str": 3,
        "phase": 1,
        "r": 41,
@@ -632,6 +634,7 @@ var enchant = {
        "spellid": true,
        "name": "Lesser Stats",
        "agi": 2,
+       "sta": 2,
        "str": 2,
        "phase": 1,
        "ench": "866"
@@ -641,6 +644,7 @@ var enchant = {
        "spellid": true,
        "name": "Minor Stats",
        "agi": 1,
+       "sta": 1,
        "str": 1,
        "phase": 1,
        "ench": "847"

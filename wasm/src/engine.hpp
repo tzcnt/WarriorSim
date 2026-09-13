@@ -38,7 +38,7 @@ enum class AuraKind : std::uint8_t {
     BloodFury, Berserking, Empyrean, Eskhandar, Zeal, Annihilator, Rivenspike,
     Bonereaver, Destiny, Untamed, Pummeler, Windfury, Swarmguard, Flask, Slayer, Spider,
     Earthstrike, Gabbar, PrimalBlessing, BloodrageAura, Zandalarian,
-    Avenger, BerserkerRageAura, BattleShout, Rend, JujuFlurry, Enrage, SweepingStrikes
+    Avenger, BerserkerRageAura, BattleShout, Rend, JujuFlurry, Enrage, SweepingStrikes, ElunesLight, Eureka, TouchOfTheGrave
 };
 
 namespace detail {
@@ -460,6 +460,10 @@ struct PlayerState {
     template<std::size_t N> bool flag(const char (&)[N]) const = delete;
     template<std::size_t N> double prop(const char (&)[N], double = 0) const = delete;
 
+    void updateEurekaCosts(bool active);
+    bool beginEureka(SpellState& ability);
+    void consumeEureka();
+    void castRacialAffectedAura(AuraState& ability);
     void buildConfiguredActionLists();
     void reset(double startingRage);
     void update();

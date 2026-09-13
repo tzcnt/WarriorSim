@@ -1,6 +1,7 @@
 'use strict';
 
 const {loadFixtures} = require('./reference-engine');
+const {racialFixtures} = require('./racial-fixtures');
 const {foreverFixtures} = require('./forever-fixtures');
 const {sweepingFixtures} = require('./sweeping-fixtures');
 const {queuedStrikeFixtures} = require('./queued-strike-fixtures');
@@ -104,7 +105,7 @@ function extraFixtures() {
     return [
         phantom, suppression, long, trinkets,
         earthstrike, priority, clocks, gabbar, hamstring, ...bloodrageCases, ...stanceCases,
-        ...aliasCases, orderedProcs, ...foreverFixtures(), ...swordResets, ...sweepingFixtures(), ...queuedStrikeFixtures(),
+        ...aliasCases, orderedProcs, ...foreverFixtures(), ...racialFixtures(), ...swordResets, ...sweepingFixtures(), ...queuedStrikeFixtures(),
     ];
 }
 
