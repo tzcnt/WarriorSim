@@ -7,8 +7,8 @@ const vm = require('node:vm');
 const ROOT = path.resolve(__dirname, '..', '..');
 
 const MODE_SOURCES = {
- classic: ['js/data/gear.js','js/data/enchants.js','js/data/talents.js','js/data/spells.js','js/data/talents_forever.js','js/talent-rules.js','js/data/buffs.js','js/data/session.js'],
- forever: ['js/data/gear_forever.js','js/data/enchants.js','js/data/talents.js','js/data/spells.js','js/data/talents_forever.js','js/talent-rules.js','js/data/buffs.js','js/data/session_forever.js'],
+ classic: ['js/data/gear.js','js/data/enchants.js','js/data/talents.js','js/data/spells.js','js/data/talents_forever.js','js/talent-rules.js','js/racial-rules.js','js/data/buffs.js','js/data/session.js'],
+ forever: ['js/data/gear_forever.js','js/data/enchants.js','js/data/talents.js','js/data/spells.js','js/data/talents_forever.js','js/talent-rules.js','js/racial-rules.js','js/data/buffs.js','js/data/session_forever.js'],
 };
 
 const ENGINE_SOURCES = [

@@ -374,6 +374,7 @@ SIM.SETTINGS = {
         const view = this;
         let storage = JSON.parse(localStorage[mode + (globalThis.profileid || 0)]);
         let level = parseInt(storage.level);
+        if (mode === 'forever') view.fight.find('#racial-description').text(foreverRacialDescriptions[storage.race] || '');
         let container = view.rotation.find('div:first');
         container.empty();
         if (view.rotation.find('.open')) view.hideSpellDetails(view.rotation.find('.open'))
@@ -383,12 +384,8 @@ SIM.SETTINGS = {
         for (let spell of spells) {
             if (spell.mode && spell.mode !== mode) continue;
 
-            // race restriction
-            if (spell.id == 26296 && storage.race !== "Troll") {
-                spell.active = false;
-                continue;
-            }
-            if (spell.id == 20572 && storage.race !== "Orc") {
+            // Enforce the same restrictions as character construction and workers.
+            if (!racialSpellAvailable(spell.id, storage.race, mode)) {
                 spell.active = false;
                 continue;
             }
@@ -448,9 +445,10 @@ SIM.SETTINGS = {
             <a href="${WEB_DB_URL}${spell.item ? 'item' : 'spell'}=${spell.id}" class="wh-tooltip"></a>
             </div></div>`);
 
-            if (spell.localDescription) {
+            const description = racialSpellDescription(spell, mode);
+            if (description) {
                 div.find('a').removeClass('wh-tooltip').attr('href', '#');
-                div.find('.icon').attr('title', spell.name + '\n' + spell.localDescription);
+                div.find('.icon').attr('title', spell.name + '\n' + description);
             }
             if (spell.buff) buffs += div[0].outerHTML;
             else if (spell.item) items += div[0].outerHTML;
@@ -477,7 +475,7 @@ SIM.SETTINGS = {
         details.append(`<label>${spell.name}</label>`);
         let ul = $("<ul></ul>");
 
-        if (spell.haste !== undefined)
+        if (spell.haste !== undefined && !(mode === 'forever' && spell.id == 26296))
             ul.append(`<li class="nobox ${spell.haste ? 'active' : ''}">Attack speed set at <input type="text" name="haste" value="${spell.haste}" data-numberonly="true" /> %</li>`);
 
         if (typeof spell.priority !== 'undefined')

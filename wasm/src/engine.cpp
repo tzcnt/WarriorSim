@@ -486,7 +486,7 @@ AuraKind parseAuraKind(std::string_view value) {
     AURA_KIND(OldDeepWounds); AURA_KIND(Crusader);
     AURA_KIND(Cloudkeeper); AURA_KIND(Felstriker); AURA_KIND(DeathWish); AURA_KIND(BattleStance);
     AURA_KIND(DefensiveStance); AURA_KIND(BerserkerStance); AURA_KIND(MightyRagePotion);
-    AURA_KIND(BloodFury); AURA_KIND(Berserking);
+    AURA_KIND(ElunesLight); AURA_KIND(Eureka); AURA_KIND(TouchOfTheGrave); AURA_KIND(BloodFury); AURA_KIND(Berserking);
     AURA_KIND(Empyrean); AURA_KIND(Eskhandar); AURA_KIND(Zeal);
     AURA_KIND(Annihilator); AURA_KIND(Rivenspike); AURA_KIND(Bonereaver); AURA_KIND(Destiny);
     AURA_KIND(Untamed);
@@ -622,7 +622,7 @@ void PlayerState::buildConfiguredActionLists() {
     constexpr std::pair<detail::KnownAction, bool> stepNamed[] = {
         {"mightyragepotion"_action, true}, {"recklessness"_action, true}, {"deathwish"_action, true},
         {"cloudkeeper"_action, true}, {"flask"_action, true},
-        {"bloodfury"_action, true}, {"berserking"_action, true}, {"slayer"_action, true},
+        {"eluneslight"_action, false}, {"eureka"_action, false}, {"bloodfury"_action, true}, {"berserking"_action, true}, {"slayer"_action, true},
         {"spider"_action, true}, {"earthstrike"_action, true}, {"pummeler"_action, true}, {"swarmguard"_action, true}, {"zandalarian"_action, true},
         {"battleshout"_action, false}, {"jujuflurry"_action, false},
         };
@@ -652,7 +652,7 @@ void PlayerState::buildConfiguredActionLists() {
     constexpr std::pair<detail::KnownAction, bool> endNamed[] = {
         {"mightyragepotion"_action, true}, {"recklessness"_action, true}, {"deathwish"_action, true},
         {"cloudkeeper"_action, true}, {"flask"_action, true},
-        {"bloodfury"_action, true}, {"berserking"_action, true}, {"slayer"_action, true},
+        {"eluneslight"_action, false}, {"eureka"_action, false}, {"bloodfury"_action, true}, {"berserking"_action, true}, {"slayer"_action, true},
         {"spider"_action, true}, {"gabbar"_action, true}, {"earthstrike"_action, true}, {"pummeler"_action, true}, {"swarmguard"_action, true},
         {"zandalarian"_action, true}, {"battleshout"_action, false},
         {"jujuflurry"_action, false}, };
@@ -700,7 +700,7 @@ void PlayerState::buildConfiguredActionLists() {
         "slam"_action});
     addAuras(configured.periodicAuras, {"rend"_action, "deepwounds"_action,
         "deepwounds2"_action, "deepwounds3"_action, "deepwounds4"_action});
-    addAuras(configured.finalAuras, {"sweepingstrikes"_action, "deepwounds"_action, "deepwounds2"_action,
+    addAuras(configured.finalAuras, {"touchofthegrave"_action, "sweepingstrikes"_action, "deepwounds"_action, "deepwounds2"_action,
         "deepwounds3"_action, "deepwounds4"_action, "rend"_action});
     addSpells(configured.finalSpells, {"fireball"_action});
 

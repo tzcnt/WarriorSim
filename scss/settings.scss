@@ -131,6 +131,12 @@
             }
         }
 
+        .racial-description p {
+            margin: 0;
+            line-height: 1.5;
+            color: #bbb;
+        }
+
         input[name="level"], input[name="targetlevel"], input[name="adjacent"] {
             width: 24px;
         }

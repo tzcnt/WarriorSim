@@ -674,8 +674,8 @@ SIM.UI = {
         view.sidebar.find('#hit').html((player.stats.hit || 0) + '%');
         view.sidebar.find('#miss').html(Math.max(player.mh.miss, 0).toFixed(2) + '% <small>1H</small>' + (player.oh ? space + Math.max(player.mh.dwmiss, 0).toFixed(2) + '% <small>DW</small>' : ''));
         view.sidebar.find('#dodge').html(player.mh.dodge.toFixed(2) + '% <small>MH</small>' + (player.oh ? space + player.oh.dodge.toFixed(2) + '% <small>OH</small>' : ''));
-        let mhcrit = player.crit + player.mh.crit;
-        let ohcrit = player.crit + (player.oh ? player.oh.crit : 0);
+        let mhcrit = player.crit + player.mh.crit + (player.mode === 'forever' ? player.mh.racialcrit || 0 : 0);
+        let ohcrit = player.crit + (player.oh ? player.oh.crit : 0) + (player.mode === 'forever' ? player.oh?.racialcrit || 0 : 0);
         view.sidebar.find('#crit').html(mhcrit.toFixed(2) + '% <small>MH</small>' + (player.oh ? space + ohcrit.toFixed(2) + '% <small>OH</small>' : ''));
         let mhcap = Math.max(0, 100 - player.mh.dwmiss - player.mh.dodge - player.mh.glanceChance);
         let ohcap = Math.max(0, player.oh ? 100 - player.oh.dwmiss - player.oh.dodge - player.oh.glanceChance : 0);
@@ -683,6 +683,7 @@ SIM.UI = {
         let mhdmg = player.stats.dmgmod * player.mh.modifier * 100;
         let ohdmg = player.stats.dmgmod * (player.oh ? player.oh.modifier * 100 : 0);
         view.sidebar.find('#dmgmod').html(mhdmg.toFixed(2) + '% <small>MH</small>' + (player.oh ? space + ohdmg.toFixed(2) + '% <small>OH</small>' : ''));
+        if (mode === 'forever') view.fight.find('input[name="maxhealth"]').attr('placeholder', player.maxhealth);
         view.sidebar.find('#haste').html((player.stats.haste * 100).toFixed(2) + '%');
         view.sidebar.find('#shadow-resist').html(player.stats.resist.shadow);
         view.sidebar.find('#arcane-resist').html(player.stats.resist.arcane);
@@ -832,6 +833,7 @@ SIM.UI = {
         if (mode === 'forever') {
             obj.talents = talentSelection();
             obj.talentSchema = FOREVER_TALENT_SCHEMA;
+            obj.maxhealth = view.fight.find('input[name="maxhealth"]').val();
             obj.targetcreaturetype = view.fight.find('select[name="targetcreaturetype"]').val() || 'Other';
         }
         obj.gear = _gear;
@@ -857,6 +859,7 @@ SIM.UI = {
             storage.talentSchema = FOREVER_TALENT_SCHEMA;
             localStorage[mode + profileid] = JSON.stringify(storage);
         }
+        if (mode === 'forever' && storage.maxhealth === undefined) storage.maxhealth = '';
         if (!storage.level) storage.level = session.level;
         if (!storage.targetlevel) storage.targetlevel = session.targetlevel;
         if (!storage.profilename) storage.profilename = session.profilename;

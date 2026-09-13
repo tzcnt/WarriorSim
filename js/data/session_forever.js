@@ -1,6 +1,7 @@
 var session = {
     "level": "60",
     "race": "Human",
+    "maxhealth": "",
     "simulations": "50000",
     "timesecsmin": "50",
     "timesecsmax": "60",

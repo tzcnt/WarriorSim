@@ -201,7 +201,15 @@
               <option value="Orc">Orc</option>
               <option value="Tauren">Tauren</option>
               <option value="Troll">Troll</option>
+              <option value="Skyborne">Skyborne</option>
             </select>
+          </li>
+          <li class="racial-description">
+            <p id="racial-description"></p>
+          </li>
+          <li>
+            <label for="player-maxhealth" title="Leave blank to calculate from gear, talents and selected buffs. Enter your fully buffed maximum HP to override it for Touch of the Grave.">Max Health (override)</label>
+            <input id="player-maxhealth" type="text" name="maxhealth" value="" data-numberonly="true" aria-label="Maximum health override">
           </li>
           <li>
             <label>Simulations</label>
@@ -240,6 +248,8 @@
             <label>Target Type</label>
             <select dir="rtl" name="targetcreaturetype">
               <option>Other</option>
+              <option>Beast</option>
+              <option>Elemental</option>
               <option>Giant</option>
               <option>Dragonkin</option>
               <option>Mounted</option>

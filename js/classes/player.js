@@ -8,6 +8,7 @@ class Player {
             reactionmax: parseInt($('input[name="reactionmax"]').val()),
             adjacent: parseInt($('input[name="adjacent"]').val()),
             mode: globalThis.mode,
+            maxhealth: $('input[name="maxhealth"]').val(),
             spellqueueing: $('select[name="spellqueueing"]').val() == "Yes",
             target: {
                 level: parseInt($('input[name="targetlevel"]').val()),
@@ -97,6 +98,7 @@ class Player {
             block: 0,
             defense: 0,
         };
+        if (this.mode === 'forever') Object.assign(this.base, {sta: 0, stamod: 1, health: 0});
         if (enchtype == 1) {
             this.testEnch = testItem;
             this.testEnchType = testType;
@@ -138,10 +140,12 @@ class Player {
             this.base.dmgmod *= 1 + this.talents.bastion;
             this.base.spelldmgmod *= 1 + this.talents.bastion;
         }
+        this.addRacialBonuses();
         this.addSets();
         this.addEnchants();
         this.addTempEnchants();
         this.addBuffs();
+        if (this.mode === 'forever') this.resolveHealth(config.maxhealth);
         this.addSpells(testItem);
         this.sortSpells();
         this.setSkills();
@@ -174,7 +178,7 @@ class Player {
     addRace() {
         for(let l of levelstats) {
             let raceid;
-            if (this.race == "Human") raceid = "1";
+            if (this.race == "Human" || (this.mode === "forever" && this.race === "Skyborne")) raceid = "1";
             if (this.race == "Orc") raceid = "2";
             if (this.race == "Dwarf") raceid = "3";
             if (this.race == "Night Elf") raceid = "4";
@@ -190,12 +194,42 @@ class Player {
                 this.base.ap += (this.level * 3) - 20;
                 this.base.str += parseInt(stats[3]);
                 this.base.agi += parseInt(stats[4]);
-                this.base.skill_0 += raceid == "1" ? 5 : 0;
-                this.base.skill_1 += raceid == "1" ? 5 : 0;
+                if (this.mode === 'forever') this.base.sta += parseInt(stats[5]);
+                this.base.skill_0 += this.mode !== "forever" && raceid == "1" ? 5 : 0;
+                this.base.skill_1 += this.mode !== "forever" && raceid == "1" ? 5 : 0;
                 this.base.skill_2 += 0;
-                this.base.skill_3 += raceid == "2" ? 5 : 0;
+                this.base.skill_3 += this.mode !== "forever" && raceid == "2" ? 5 : 0;
             }
         }
+    }
+    addRacialBonuses() {
+        if (this.mode !== 'forever') return;
+        // Weapon racials affect autoattacks and abilities; each hand qualifies independently.
+        const specialization = {Human: [WEAPONTYPE.SWORD, 2], Dwarf: [WEAPONTYPE.MACE, 1], Orc: [WEAPONTYPE.AXE, 1]}[this.race];
+        for (const weapon of [this.mh, this.oh].filter(Boolean))
+            weapon.racialcrit = specialization && weapon.type === specialization[0] ? specialization[1] : 0;
+        this.base.spellcrit += Math.max(this.mh.racialcrit, this.oh?.racialcrit || 0);
+        if (this.race === 'Tauren') {
+            this.base.hit += 1;
+            this.target.misschance = Math.max(100, this.target.misschance - 100);
+            this.target.binaryresist = this.getTargetSpellBinaryResist();
+        }
+        if (this.race === 'Gnome') this.ragecap *= 1.05;
+        if (this.race === 'Undead') this.auras.touchofthegrave = new TouchOfTheGrave(this);
+        if (this.race === 'Skyborne') this.base.haste *= 1.01;
+        if ((['Dwarf', 'Troll'].includes(this.race) && this.target.creaturetype === 'Beast') ||
+            (this.race === 'Skyborne' && this.target.creaturetype === 'Elemental')) {
+            this.base.dmgmod *= 1.05;
+            this.base.spelldmgmod *= 1.05;
+        }
+    }
+    resolveHealth(override) {
+        // Static maximum health for HP-scaling damage; incoming attacks do not deplete it.
+        this.stamina = Math.max(0, Math.floor(this.base.sta * this.base.stamod));
+        const staminaHealth = Math.min(this.stamina, 20) + Math.max(this.stamina - 20, 0) * 10;
+        this.maxhealth = Math.max(1, Math.round((warriorBaseHealth[this.level] + staminaHealth + this.base.health) *
+            (this.race === 'Tauren' ? 1.05 : 1)));
+        if (Number.isFinite(Number(override)) && Number(override) > 0) this.maxhealth = Math.max(1, Math.round(Number(override)));
     }
     addTalents() {
         this.talents = this.mode === 'forever' ? {...foreverTalentDefaults} : {};
@@ -210,6 +244,7 @@ class Player {
             this.ragecostbonus = this.talents.focusedrage;
             this.base.hit += this.talents.precision;
             this.base.strmod *= 1 + this.talents.vitality;
+            this.base.stamod *= 1 + this.talents.vitality;
             this.target.misschance = Math.max(100, this.target.misschance - this.talents.precision * 100);
             this.target.binaryresist = this.getTargetSpellBinaryResist();
         }
@@ -417,7 +452,7 @@ class Player {
         }
         for (let buff of buffs) {
             if (buff.active) {
-                let ap = 0, str = 0, agi = 0;
+                let ap = 0, str = 0, agi = 0, sta = 0;
                 if (buff.name == "Blessing of Might") {
                     let impmight = buffs.filter(s => s.mightmod && s.active)[0];
                     ap = ~~(buff.ap * (impmight ? impmight.mightmod : 1));
@@ -426,6 +461,7 @@ class Player {
                     let impmotw = buffs.filter(s => s.motwmod && s.active)[0];
                     str = ~~(buff.str * (impmotw ? impmotw.motwmod : 1));
                     agi = ~~(buff.agi * (impmotw ? impmotw.motwmod : 1));
+                    sta = ~~(buff.sta * (impmotw ? impmotw.motwmod : 1));
                 }
                 if (buff.group == "vaelbuff")
                     this.vaelbuff = true;
@@ -442,6 +478,11 @@ class Player {
                 this.base.ap += ap || buff.ap || 0;
                 this.base.agi += agi || buff.agi || 0;
                 this.base.str += str || buff.str || 0;
+                if (this.mode === 'forever') {
+                    this.base.sta += sta || buff.sta || 0;
+                    this.base.stamod *= (1 + buff.stamod / 100) || 1;
+                    this.base.health += buff.health || 0;
+                }
                 this.base.crit += buff.crit || 0;
                 this.base.hit += buff.hit || 0;
                 this.base.spellcrit += buff.spellcrit || 0;
@@ -475,6 +516,7 @@ class Player {
         this.preporder = [];
         for (let spell of spells) {
             if (spell.mode && spell.mode !== this.mode) continue;
+            if (!racialSpellAvailable(spell.id, this.race, this.mode)) continue;
             if (spell.talent && (!this.talents[spell.talent] || this.level < (spell.minlevel || 0))) continue;
             if (this.mode === 'forever') {
                 if (this.level < (spell.minlevel || 0) || this.level > (spell.maxlevel || 60)) continue;
@@ -522,6 +564,7 @@ class Player {
         this.base.skill_3 += this.mh.twohand ? this.base.skill_23 : this.base.skill_13;
     }
     reset(rage) {
+        if (this.auras.eureka) this.auras.eureka.updateCosts(false);
         this.swordspecstep = -1;
         this.mounted = this.target?.creaturetype === "Mounted";
         this.rage = this.mode === 'forever' ? Math.min(rage, this.ragecap) : rage;
@@ -540,6 +583,7 @@ class Player {
         for (let s in this.spells) {
             let spell = this.spells[s];
             spell.timer = 0;
+            if (spell.eurekamod !== undefined) spell.eurekamod = 1;
             spell.stacks = 0;
             spell.maxdelay = this.reactionmin;
             if (spell.unqueuetimer !== undefined)
@@ -553,6 +597,7 @@ class Player {
         for (let s in this.auras) {
             let aura = this.auras[s];
             aura.timer = 0;
+            if (aura.eurekamod !== undefined) aura.eurekamod = 1;
             aura.firstuse = true;
             aura.stacks = 0;
             aura.starttimer = 0;
@@ -578,6 +623,7 @@ class Player {
         if (this.auras.rend) {
             this.auras.rend.idmg = 0;
         }
+        if (this.auras.touchofthegrave) this.auras.touchofthegrave.idmg = 0;
         if (this.auras.sweepingstrikes) this.auras.sweepingstrikes.idmg = 0;
         if (this.spells.fireball) {
             this.spells.fireball.idmg = 0;
@@ -877,6 +923,8 @@ class Player {
         if (this.auras.deathwish && this.auras.deathwish.firstuse && this.auras.deathwish.timer) this.auras.deathwish.step();
         if (this.auras.cloudkeeper && this.auras.cloudkeeper.firstuse && this.auras.cloudkeeper.timer) this.auras.cloudkeeper.step();
         if (this.auras.flask && this.auras.flask.firstuse && this.auras.flask.timer) this.auras.flask.step();
+        if (this.auras.eluneslight?.timer) this.auras.eluneslight.step();
+        if (this.auras.eureka?.timer) this.auras.eureka.step();
         if (this.auras.bloodfury && this.auras.bloodfury.firstuse && this.auras.bloodfury.timer) this.auras.bloodfury.step();
         if (this.auras.berserking && this.auras.berserking.firstuse && this.auras.berserking.timer) this.auras.berserking.step();
         if (this.auras.slayer && this.auras.slayer.firstuse && this.auras.slayer.timer) this.auras.slayer.step();
@@ -918,6 +966,8 @@ class Player {
         if (this.auras.deathwish && this.auras.deathwish.firstuse && this.auras.deathwish.timer) this.auras.deathwish.end();
         if (this.auras.cloudkeeper && this.auras.cloudkeeper.firstuse && this.auras.cloudkeeper.timer) this.auras.cloudkeeper.end();
         if (this.auras.flask && this.auras.flask.firstuse && this.auras.flask.timer) this.auras.flask.end();
+        if (this.auras.eluneslight?.timer) this.auras.eluneslight.end();
+        if (this.auras.eureka?.timer) this.auras.eureka.end();
         if (this.auras.bloodfury && this.auras.bloodfury.firstuse && this.auras.bloodfury.timer) this.auras.bloodfury.end();
         if (this.auras.berserking && this.auras.berserking.firstuse && this.auras.berserking.timer) this.auras.berserking.end();
         if (this.auras.slayer && this.auras.slayer.firstuse && this.auras.slayer.timer) this.auras.slayer.end();
@@ -955,7 +1005,7 @@ class Player {
         if (roll < tmp) return RESULT.DODGE;
         tmp += weapon.glanceChance * 100;
         if (roll < tmp) return RESULT.GLANCE;
-        tmp += (this.crit + weapon.crit) * 100;
+        tmp += (this.crit + weapon.crit + (this.mode === 'forever' ? weapon.racialcrit || 0 : 0)) * 100;
         if (roll < tmp) return RESULT.CRIT;
         return RESULT.HIT;
     }
@@ -973,7 +1023,7 @@ class Player {
             roll = rng10k();
             tmp = 0;
         }
-        let crit = this.crit + weapon.crit;
+        let crit = this.crit + weapon.crit + (this.mode === 'forever' ? weapon.racialcrit || 0 : 0);
         if (spell instanceof Overpower)
             crit += this.talents.overpowercrit;
         tmp += crit * 100;
@@ -1019,7 +1069,8 @@ class Player {
             result = this.rollweapon(weapon);
         }
 
-        let dmg = weapon.dmg(spell);
+        const empowered = spell && !adjacent ? this.beginEureka(spell) : false;
+        let dmg = weapon.dmg(spell) * (spell?.eurekamod || 1);
         procdmg = this.procattack(spell, weapon, result, adjacent, damageSoFar);
 
         if (result == RESULT.DODGE) {
@@ -1052,6 +1103,7 @@ class Player {
             this.nextswinghs = true;
             done += this.attackmh(weapon, 1, done);
         }
+        if (empowered) this.auras.eureka.consume();
         return done + procdmg;
     }
     attackoh(weapon) {
@@ -1084,17 +1136,28 @@ class Player {
         /* start-log */ if (this.logging) this.log(`Off hand attack for ${done + procdmg} (${Object.keys(RESULT)[result]})${this.nextswinghs ? ' (HS queued)' : ''}`); /* end-log */
         return done + procdmg;
     }
+    beginEureka(spell) {
+        const eureka = this.auras.eureka;
+        if (!eureka) return false;
+        const empowered = !!(eureka?.stacks && eureka.eligible(spell));
+        spell.eurekamod = empowered ? 1.1 : 1;
+        return empowered;
+    }
     cast(spell, delayedheroic, adjacent, damageSoFar) {
+        let empowered = false;
         if (!adjacent) {
             this.stepauras();
+            // Queued attacks consume a charge when the swing executes, not when queued.
+            if (!(spell instanceof HeroicStrike) && !(spell instanceof Cleave)) empowered = this.beginEureka(spell);
             spell.use(delayedheroic);
         }
         if (spell.useonly) {
+            if (empowered) this.auras.eureka.consume();
             /* start-log */ if (this.logging) this.log(`${spell.name} used`); /* end-log */
             return 0;
         }
         
-        let dmg = spell.dmg() * this.mh.modifier;
+        let dmg = spell.dmg() * this.mh.modifier * (spell.eurekamod || 1);
         if (dmg) dmg += this.stats.moddmgtaken;
         let result;
         if (spell.defenseType == DEFENSETYPE.MELEE) 
@@ -1131,11 +1194,12 @@ class Player {
         if (!adjacent) spell.data[result]++;
         spell.totaldmg += done;
         this.mh.totalprocdmg += procdmg;
+        if (empowered) this.auras.eureka.consume();
         /* start-log */ if (this.logging) this.log(`${spell.name} for ${~~done} (${Object.keys(RESULT)[result]})${adjacent ? ' (Adjacent)' : ''}.`); /* end-log */
         return done + procdmg;
     }
     castoh(spell, adjacent, damageSoFar) {
-        let dmg = spell.dmg(this.oh) * this.oh.modifier;
+        let dmg = spell.dmg(this.oh) * this.oh.modifier * (spell.eurekamod || 1);
         if (dmg) dmg += this.stats.moddmgtaken;
         let result = this.rollmeleespell(spell, this.oh);
 
@@ -1165,6 +1229,8 @@ class Player {
             if(spell == null || spell.school == SCHOOL.PHYSICAL)
               dmg *= (1 - this.weaponArmorReduction(weapon));
             if (!adjacent) this.addRage(dmg, result, weapon, spell);
+            if (dmg > 0 && (!spell || spell.defenseType === DEFENSETYPE.MELEE) && this.auras.touchofthegrave)
+                this.auras.touchofthegrave.proc();
             if (dmg > 0 && !adjacent && (!spell || spell.defenseType === DEFENSETYPE.MELEE)) {
                 if (this.talents.bloodthrill && this.auras.rend?.timer > step && this.auras.rend.stacks && rng10k() < this.talents.bloodthrill * 100)
                     this.bloodthrilltimer = 6000;
@@ -1322,7 +1388,7 @@ class Player {
         else mod *= this.target.mitigation;
         if (rng10k() < miss) return 0;
         if (rng10k() < (this.stats.spellcrit * 100)) mod *= 1 + 0.5;
-        if (proc.coeff) dmg += this.spelldamage * proc.coeff;
+        if (proc.coeff) dmg += this.spelldamage * proc.coeff * (this.mode === 'forever' && this.auras.bloodfury?.timer ? 1.1 : 1);
         return (dmg * mod * this.stats.spelldmgmod);
     }
     physproc(dmg) {

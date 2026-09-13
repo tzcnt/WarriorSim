@@ -33,7 +33,7 @@ function loadSimulation(full = false) {
     const sources = ['js/classes/simulation.js', 'js/classes/player.js'];
     if (full) sources.push(
         'js/data/gear.js', 'js/data/enchants.js', 'js/data/talents.js',
-        'js/data/spells.js', 'js/data/buffs.js', 'js/data/levelstats.js',
+        'js/data/spells.js', 'js/racial-rules.js', 'js/data/buffs.js', 'js/data/levelstats.js',
         'js/data/session.js', 'js/classes/spell.js', 'js/classes/weapon.js', 'js/globals.js',
     );
     for (const relativePath of sources) {
