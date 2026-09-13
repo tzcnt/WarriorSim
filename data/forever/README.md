@@ -92,7 +92,7 @@ Both modes require the talent, an enabled rotation action, and Adjacent Mobs > 0
 Off-hand rage scaling includes damage-derived swing rage and dodge compensation,
 but not flat procs such as Unbridled Wrath. Unbridled Wrath continues to trigger on
 autos and queued Heroic Strike/Cleave. Baseline hit, glancing and rage formulas
-remain Classic; dormant `turtleMode` branches are not enabled.
+remain Classic, with explicit Forever talent modifiers.
 
 ## Pre-existing model defects retained intentionally
 
@@ -105,7 +105,7 @@ threat (Defiance), and crowd-control/movement/utility effects are also outside t
 existing DPS model. These defects were explicitly left unchanged for this work.
 The current equipment catalog also has no shields; Shield Slam/Bastion validation
 uses a synthetic shield fixture. The corresponding numeric talent handlers and descriptions are present, without
-claiming those missing systems are simulated. No unsupported rune flags are enabled.
+claiming those missing systems are simulated.
 
 ## Validation
 

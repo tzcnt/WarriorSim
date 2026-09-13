@@ -139,20 +139,6 @@ SIM.STATS = {
             colors.push(view.colors[counter % view.colors.length]);
         }
 
-        // weapon bleed
-        if (sim.player.auras.weaponbleedmh && sim.player.auras.weaponbleedmh.totaldmg) {
-            view.dmgdata.labels.push(sim.player.auras.weaponbleedmh.name);
-            data.push((sim.player.auras.weaponbleedmh.totaldmg / sim.totalduration).toFixed(2));
-            colors.push(view.colors[counter % view.colors.length]);
-        }
-        if (sim.player.auras.weaponbleedoh && sim.player.auras.weaponbleedoh.totaldmg) {
-            view.dmgdata.labels.push(sim.player.auras.weaponbleedoh.name);
-            data.push((sim.player.auras.weaponbleedoh.totaldmg / sim.totalduration).toFixed(2));
-            colors.push(view.colors[counter % view.colors.length]);
-        }
-
-
-
         view.dmgdata.datasets.push({
             data: data,
             fill: false,
@@ -298,7 +284,6 @@ SIM.STATS = {
         view.table.empty();
         let html = '<table><thead><tr><th>Action</th><th>Hit %</th><th>Crit %</th><th>Miss %</th><th>Dodge %</th><th>Glance %</th><th>Uses</th><th>DPR</th><th>DPS</th></tr></thead><tbody>';
 
-
         let i = sim.iterations;
         let data = sim.player.mh.data;
         let total = data.reduce((a, b) => a + b, 0);
@@ -311,7 +296,7 @@ SIM.STATS = {
             dps = (sim.player.oh.totaldmg / sim.totalduration).toFixed(2);
             html += `<tr><td>Off Hand</td><td>${(data[0] / total * 100).toFixed(2)}</td><td>${(data[3] / total * 100).toFixed(2)}</td><td>${(data[1] / total * 100).toFixed(2)}</td><td>${(data[2] / total * 100).toFixed(2)}</td><td>${(data[4] / total * 100).toFixed(2)}</td><td>${(total / i).toFixed(2)}</td><td></td><td>${dps}</td></tr>`;
         }
-        
+
         for (let name in sim.player.spells) {
             let n = sim.player.spells[name].name;
             let data = sim.player.spells[name].data;

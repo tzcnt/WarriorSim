@@ -58,8 +58,14 @@ test('native API rejects unknown kinds and dangling action references', () => {
 
 test('native API rejects retired ability kinds', () => {
     for (const [group, kinds] of [
-        ['auras', ['DeepWounds', 'ConsumedRage', 'EchoesGlad', 'GladForecast', 'Spicy']],
-        ['spells', ['UnstoppableMight', 'QuickStrike', 'RagingBlow', 'Shockwave']],
+        ['auras', ['DeepWounds', 'ConsumedRage', 'EchoesGlad', 'GladForecast', 'Spicy',
+            'PrimalBlessing2', 'VoidMadness', 'WeaponBleed', 'GyromaticAcceleration',
+            'GneuroLogical', 'CoinFlip', 'SerpentAscension', 'VoodooFrenzy',
+            'RoarGuardian', 'RelentlessStrength', 'WarriorsResolve', 'DemonTaintedBlood',
+            'MoonstalkerFury', 'MagmadarsReturn', 'WrathWray', 'GrilekGuard',
+            'ObsidianStrength', 'ObsidianHaste']],
+        ['spells', ['UnstoppableMight', 'QuickStrike', 'RagingBlow', 'Shockwave',
+            'GunAxe', 'BlademasterFury', 'TheMoltenCore']],
     ]) {
         for (const kind of kinds) {
             const spec = executionSpec();

@@ -83,20 +83,6 @@ test('WoW Forever uses its own talents and differs from the Classic Era baseline
     }
 });
 
-test('Heroic bonus changes Heroic Strike but leaves Cleave weapon damage unchanged', () => {
-    for (const name of ['classic-dw-fury', 'classic-adjacent-cleave']) {
-        const fixture = loadFixtures().find(value => value.name === name);
-        const player = createConfiguredPlayer(createReferenceEngine(fixture.mode), fixture);
-        player.mh.mindmg = player.mh.maxdmg = 100;
-        const action = player.spells.heroicstrike || player.spells.cleave;
-        player.heroicbonus = false;
-        const before = player.mh.dmg(action);
-        player.heroicbonus = true;
-        const after = player.mh.dmg(action);
-        if (name.includes('cleave')) assert.equal(after, before);
-        else assert.ok(after > before);
-    }
-});
 
 test('Classic OldDeepWounds schedules three-second ticks and inactive Flurry starts empty', () => {
     const fixture = loadFixtures()[0];
@@ -144,3 +130,17 @@ test('Hamstring inherits its own cooldown and ignores the main ability cooldown 
     assert.ok(action.totaldmg > 0, 'fixture must deal Hamstring damage');
     assert.ok(action.data.reduce((sum, count) => sum + count, 0) > 0, 'fixture must cast Hamstring');
 });
+
+for (const mode of ['classic', 'forever']) {
+    test(`${mode}: Imperial Plate grants its Classic four-piece DPS bonus`, () => {
+        const fixture = loadFixtures().find(value => value.mode === mode);
+        const player = createConfiguredPlayer(createReferenceEngine(mode), fixture);
+        player.items = [12424, 12426, 12425];
+        player.base = {ap: 0, hit: 0, str: 0};
+        player.addSets();
+        assert.deepEqual(player.base, {ap: 0, hit: 0, str: 0});
+        player.items.push(12422);
+        player.addSets();
+        assert.deepEqual(player.base, {ap: 28, hit: 0, str: 0});
+    });
+}

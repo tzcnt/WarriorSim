@@ -11,14 +11,6 @@ function extraFixtures() {
     const fixtures = loadFixtures();
     const base = name => structuredClone(fixtures.find(fixture => fixture.name === name));
 
-    const heroic = base('classic-dw-fury');
-    heroic.name = 'classic-heroic-bonus';
-    heroic.playerOverrides = {heroicbonus: true};
-
-    const cleave = base('classic-adjacent-cleave');
-    cleave.name = 'classic-cleave-not-heroic-bonus';
-    cleave.playerOverrides = {heroicbonus: true};
-
     const phantom = base('classic-dw-fury');
     phantom.name = 'classic-recursive-physical-phantom';
     phantom.weaponOverrides = {mh: {proc1: {chance: 3500, physdmg: 120, phantom: true}}};
@@ -109,7 +101,7 @@ function extraFixtures() {
     });
 
     return [
-        heroic, cleave, phantom, suppression, long, trinkets,
+        phantom, suppression, long, trinkets,
         earthstrike, priority, clocks, gabbar, hamstring, ...bloodrageCases, ...stanceCases,
         ...aliasCases, orderedProcs, ...foreverFixtures(), ...swordResets, ...sweepingFixtures(),
     ];

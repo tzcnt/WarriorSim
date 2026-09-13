@@ -117,7 +117,7 @@ SIM.PROFILES = {
         this.buildProfiles();
         SIM.UI.addAlert(`Profile deleted`);
     },
- 
+
     addProfile(index) {
         const view = this;
         let modei = mode + index;
@@ -203,7 +203,7 @@ SIM.PROFILES = {
                         let i = view.getItem(item.id);
                         if (i) html += view.getItemHTML(i, storage);
                     }
-                        
+
                 }
             }
         }
@@ -240,14 +240,12 @@ SIM.PROFILES = {
         return `${arms} / ${fury} / ${prot}`;
     },
 
-    
     exportProfile: function(profile) {
         const view = this;
 
         let index = profile.data('index');
         let storage = JSON.parse(localStorage[mode + index]);
         let minified = {};
-
 
         for(let prop in storage) {
             if (typeof storage[prop] == 'string') minified[prop] = storage[prop];
@@ -270,27 +268,23 @@ SIM.PROFILES = {
                 if (typeof spell.timetoendactive !== 'undefined') obj.timetoendactive = spell.timetoendactive;
                 if (typeof spell.timetostart !== 'undefined') obj.timetostart = spell.timetostart;
                 if (typeof spell.timetostartactive !== 'undefined') obj.timetostartactive = spell.timetostartactive;
-                if (typeof spell.crusaders !== 'undefined') obj.crusaders = spell.crusaders;
+
                 if (typeof spell.haste !== 'undefined') obj.haste = spell.haste;
-                if (typeof spell.procblock !== 'undefined') obj.procblock = spell.procblock;
-                if (typeof spell.rageblock !== 'undefined') obj.rageblock = spell.rageblock;
-                if (typeof spell.rageblockactive !== 'undefined') obj.rageblockactive = spell.rageblockactive;
+
                 if (typeof spell.minrage !== 'undefined') obj.minrage = spell.minrage;
                 if (typeof spell.minrageactive !== 'undefined') obj.minrageactive = spell.minrageactive;
                 if (typeof spell.maxrage !== 'undefined') obj.maxrage = spell.maxrage;
                 if (typeof spell.maxrageactive !== 'undefined') obj.maxrageactive = spell.maxrageactive;
                 if (typeof spell.maincd !== 'undefined') obj.maincd = spell.maincd;
                 if (typeof spell.maincdactive !== 'undefined') obj.maincdactive = spell.maincdactive;
-                if (typeof spell.priorityap !== 'undefined') obj.priorityap = spell.priorityap;
-                if (typeof spell.priorityapactive !== 'undefined') obj.priorityapactive = spell.priorityapactive;
+
                 if (typeof spell.unqueue !== 'undefined') obj.unqueue = spell.unqueue;
                 if (typeof spell.unqueueactive !== 'undefined') obj.unqueueactive = spell.unqueueactive;
                 if (typeof spell.exmacro !== 'undefined') obj.exmacro = spell.exmacro;
                 if (typeof spell.globals !== 'undefined') obj.globals = spell.globals;
                 if (typeof spell.globalsactive !== 'undefined') obj.globalsactive = spell.globalsactive;
                 if (typeof spell.afterswing !== 'undefined') obj.afterswing = spell.afterswing;
-                if (typeof spell.alwaystails !== 'undefined') obj.alwaystails = spell.alwaystails;
-                if (typeof spell.alwaysheads !== 'undefined') obj.alwaysheads = spell.alwaysheads;
+
                 if (typeof spell.zerkerpriority !== 'undefined') obj.zerkerpriority = spell.zerkerpriority;
                 if (typeof spell.swingtimeractive !== 'undefined') obj.swingtimeractive = spell.swingtimeractive;
                 if (typeof spell.swingtimer !== 'undefined') obj.swingtimer = spell.swingtimer;
@@ -319,7 +313,6 @@ SIM.PROFILES = {
             let minified = str[0] == '{' ? JSON.parse(str.trim()) : JSON.parse(atob(str.trim()));
             if (!localStorage[mode + (globalThis.profileid || 0)]) SIM.UI.loadSession();
             let storage = JSON.parse(localStorage[mode + (globalThis.profileid || 0)]);
-
 
             for(let prop in minified) {
                 if (typeof minified[prop] == 'string') storage[prop] = minified[prop];
@@ -351,27 +344,23 @@ SIM.PROFILES = {
                     if (typeof newspell.timetoendactive !== 'undefined') spell.timetoendactive = newspell.timetoendactive;
                     if (typeof newspell.timetostart !== 'undefined') spell.timetostart = newspell.timetostart;
                     if (typeof newspell.timetostartactive !== 'undefined') spell.timetostartactive = newspell.timetostartactive;
-                    if (typeof newspell.crusaders !== 'undefined') spell.crusaders = newspell.crusaders;
+
                     if (typeof newspell.haste !== 'undefined') spell.haste = newspell.haste;
-                    if (typeof newspell.procblock !== 'undefined') spell.procblock = newspell.procblock;
-                    if (typeof newspell.rageblock !== 'undefined') spell.rageblock = newspell.rageblock;
-                    if (typeof newspell.rageblockactive !== 'undefined') spell.rageblockactive = newspell.rageblockactive;
+
                     if (typeof newspell.minrage !== 'undefined') spell.minrage = newspell.minrage;
                     if (typeof newspell.minrageactive !== 'undefined') spell.minrageactive = newspell.minrageactive;
                     if (typeof newspell.maxrage !== 'undefined') spell.maxrage = newspell.maxrage;
                     if (typeof newspell.maxrageactive !== 'undefined') spell.maxrageactive = newspell.maxrageactive;
                     if (typeof newspell.maincd !== 'undefined') spell.maincd = newspell.maincd;
                     if (typeof newspell.maincdactive !== 'undefined') spell.maincdactive = newspell.maincdactive;
-                    if (typeof newspell.priorityap !== 'undefined') spell.priorityap = newspell.priorityap;
-                    if (typeof newspell.priorityapactive !== 'undefined') spell.priorityapactive = newspell.priorityapactive;
+
                     if (typeof newspell.unqueue !== 'undefined') spell.unqueue = newspell.unqueue;
                     if (typeof newspell.unqueueactive !== 'undefined') spell.unqueueactive = newspell.unqueueactive;
                     if (typeof newspell.exmacro !== 'undefined') spell.exmacro = newspell.exmacro;
                     if (typeof newspell.globals !== 'undefined') spell.globals = newspell.globals;
                     if (typeof newspell.globalsactive !== 'undefined') spell.globalsactive = newspell.globalsactive;
                     if (typeof newspell.afterswing !== 'undefined') spell.afterswing = newspell.afterswing;
-                    if (typeof newspell.alwaystails !== 'undefined') spell.alwaystails = newspell.alwaystails;
-                    if (typeof newspell.alwaysheads !== 'undefined') spell.alwaysheads = newspell.alwaysheads;
+
                     if (typeof newspell.zerkerpriority !== 'undefined') spell.zerkerpriority = newspell.zerkerpriority;
                     if (typeof newspell.swingtimeractive !== 'undefined') spell.swingtimeractive = newspell.swingtimeractive;
                     if (typeof newspell.swingtimer !== 'undefined') spell.swingtimer = newspell.swingtimer;

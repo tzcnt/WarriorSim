@@ -49,14 +49,6 @@ bool choose(PlayerState& player, Action& result, int index, bool isAura) {
     return false;
 }
 
-bool consumedRageBlocked(PlayerState& player) {
-    const auto* consumed = player.aura("consumedrage"_action);
-    if (!consumed) return false;
-    if (consumed->props.boolean("procblock"_prop) && !consumed->timer && player.rage < 60) return true;
-    if (consumed->props.number("rageblock"_prop) && player.rage < consumed->props.number("rageblock"_prop)) return true;
-    return consumed->props.number("chargeblock"_prop) && consumed->stacks < consumed->props.number("chargeblock"_prop) && player.rage < 60;
-}
-
 double positiveModulo(double value, double divisor) {
     if (!divisor) return 0;
     double result = detail::jsRemainder(value, divisor);
@@ -137,29 +129,20 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
             positiveModulo(player_.step, 3000) == 0) {
             player_.rage = std::min(player_.rage + 1, player_.prop("ragecap"_prop, 100));
             spellcheck = true;
-            if (auto* consumed = player_.aura("consumedrage"_action); consumed && player_.rage >= 60 && player_.rage < 81)
-                auraUse(player_, *consumed);
         }
         if (player_.flag("vaelbuff"_prop) && next != 0 && positiveModulo(player_.step, 1000) == 0) {
             player_.rage = player_.foreverMode ? std::min(player_.rage + 20, player_.prop("ragecap"_prop, 100)) : player_.rage >= 60 ? 100 : player_.rage + 20;
             spellcheck = true;
-            if (auto* consumed = player_.aura("consumedrage"_action); consumed && player_.rage >= 60)
-                auraUse(player_, *consumed);
         }
-        if (auto* molten = player_.spell("themoltencore"_action); molten && next != 0 &&
-            positiveModulo(player_.step, 2000) == 0) spellUse(player_, *molten);
 
         const double targetSpeed = player_.target.props.number("speed"_prop);
         if (targetSpeed && positiveModulo(player_.step, targetSpeed) == 0) {
-            const double oldRage = player_.rage;
             double incoming = player_.rng.integer(player_.target.props.number("mindmg"_prop),
                                                         player_.target.props.number("maxdmg"_prop));
             if (const auto* wish = player_.aura("deathwish"_action); player_.foreverMode && wish && wish->timer > player_.step) incoming *= 1.05;
             player_.rage = std::min(player_.rage + incoming / player_.prop("rageconversion"_prop) * 2.5, player_.prop("ragecap"_prop, 100));
             if (auto* enrage = player_.aura("enrage"_action); incoming > 0 && enrage && player_.rng.tenK() < 3000) auraUse(player_, *enrage);
             spellcheck = true;
-            if (auto* consumed = player_.aura("consumedrage"_action); consumed && player_.rage >= 60 && oldRage < 60)
-                auraUse(player_, *consumed);
         }
 
         if (!slamStep) {
@@ -195,9 +178,6 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
                 }
                 if (!delayedSpell && player_.configured.stanceSwitchSelection != kNoRef)
                     choose(player_, delayedSpell, player_.configured.stanceSwitchSelection, false);
-                if (!delayedSpell && player_.timer) {
-                    // Deliberately leave empty, matching the JS branch that blocks GCD actions.
-                } else if (!delayedSpell) choose(player_, delayedSpell, "victoryrush"_action, false);
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "flask"_action, true);
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "recklessness"_action, true);
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "deathwish"_action, true);
@@ -205,9 +185,8 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "berserking"_action, true);
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "berserkerrage"_action, false);
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "battleshout"_action, true);
-                if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "blademasterfury"_action, false);
 
-                if (!delayedSpell && !player_.timer && !consumedRageBlocked(player_)) {
+                if (!delayedSpell && !player_.timer) {
                     const auto& priority = player_.step >= executeStep ? player_.executeSpells : player_.normalSpells;
                     for (const auto [isAura, index] : priority) {
                         if (isAura) {
@@ -226,12 +205,10 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
             if (spellcheck && !player_.heroicdelay) {
                 const auto* execute = player_.spell("execute"_action);
                 if (!execute || player_.step < executeStep) {
-                    if (!consumedRageBlocked(player_)) {
-                        if (auto* heroic = player_.spell("heroicstrike"_action); heroic && spellCanUse(player_, *heroic)) {
-                            player_.heroicdelay = 1; delayedHeroic = heroic;
-                        } else if (auto* cleave = player_.spell("cleave"_action); cleave && spellCanUse(player_, *cleave)) {
-                            player_.heroicdelay = 1; delayedHeroic = cleave;
-                        }
+                    if (auto* heroic = player_.spell("heroicstrike"_action); heroic && spellCanUse(player_, *heroic)) {
+                        player_.heroicdelay = 1; delayedHeroic = heroic;
+                    } else if (auto* cleave = player_.spell("cleave"_action); cleave && spellCanUse(player_, *cleave)) {
+                        player_.heroicdelay = 1; delayedHeroic = cleave;
                     }
                 }
                 spellcheck = false;
@@ -264,7 +241,6 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
                     }
                     if (delayedSpell.spell &&
                         (delayedSpell.spell->kind == SpellKind::Whirlwind ||
-                         delayedSpell.spell->kind == SpellKind::BlademasterFury ||
                          delayedSpell.spell->kind == SpellKind::ThunderClap)) {
                         for (int i = 0; i < player_.prop("adjacent"_prop); ++i) {
                             done = player_.cast(*delayedSpell.spell, delayedHeroic,
@@ -343,16 +319,10 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
         if (targetSpeed) minPositive(targetSpeed - positiveModulo(player_.step, targetSpeed), next);
         if (player_.talents.number("angermanagement"_prop)) minPositive(3000 - positiveModulo(player_.step, 3000), next);
         if (player_.flag("vaelbuff"_prop)) minPositive(1000 - positiveModulo(player_.step, 1000), next);
-        if (player_.spell("themoltencore"_action)) minPositive(2000 - positiveModulo(player_.step, 2000), next);
         for (const auto& candidate : player_.configured.periodicCandidates)
             periodicCandidate(player_, candidate.index, candidate.interval, next);
         for (const int index : player_.configured.tickAuras)
             nextTickCandidate(player_, index, next);
-        for (const int index : player_.configured.weaponBleeds) {
-            const auto& value = player_.auras[static_cast<std::size_t>(index)];
-            if (value.timer)
-                periodicCandidate(player_, index, value.props.number("interval"_prop), next);
-        }
         for (const int index : player_.configured.timedSpells)
             spellTimerCandidate(player_, index, next);
         const auto* executeAtEvent = player_.spell("execute"_action);

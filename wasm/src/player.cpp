@@ -25,10 +25,8 @@ double weaponDamage(PlayerState& player, WeaponState& weapon, const SpellState* 
                                        weapon.maxdmg + weapon.bonusdmg) +
                     (player.stats.number("ap"_prop) / 14.0) * weapon.speed +
                     player.stats.number("moddmgdone"_prop);
-    double mod = 1;
     if (heroic) damage += heroic->props.number("bonus"_prop, heroic->props.number("value1"_prop));
-    if (heroic && heroic->kind == SpellKind::HeroicStrike && player.flag("heroicbonus"_prop)) mod = 1.25;
-    return damage * weapon.modifier * player.stats.number("dmgmod"_prop, 1) * mod +
+    return damage * weapon.modifier * player.stats.number("dmgmod"_prop, 1) +
            player.stats.number("moddmgtaken"_prop);
 }
 
@@ -102,13 +100,11 @@ void PlayerState::reset(double startingRage) {
     rage = foreverMode ? std::min(startingRage, prop("ragecap"_prop, 100)) : startingRage;
     bloodthrilltimer = 0;
     props.set("mounted"_prop, target.props.string("creaturetype"_prop) == "Mounted");
-    timer = itemtimer = stancetimer = dodgetimer = crittimer = 0;
-    critdmgbonus = 0;
-    mainspelldmg = 1;
+    timer = itemtimer = stancetimer = dodgetimer = 0;
     spelldelay = heroicdelay = 0;
     mh.timer = 0;
     extraattacks = batchedextras = 0;
-    nextswinghs = nextswingcl = freeshieldslam = false;
+    nextswinghs = nextswingcl = false;
     for (auto& value : spells) {
         value.timer = 0;
         value.stacks = 0;
@@ -133,14 +129,11 @@ void PlayerState::reset(double startingRage) {
         value.nexttick = 0;
         value.cooldownTimer = 0;
         if (value.kind == AuraKind::SweepingStrikes || value.kind == AuraKind::OldDeepWounds ||
-            value.kind == AuraKind::Rend ||
-            value.kind == AuraKind::WeaponBleed) value.idmg = 0;
+            value.kind == AuraKind::Rend) value.idmg = 0;
     }
     if (trinketproc1 && trinketproc1->useStep) trinketproc1->useStep = 0;
     if (trinketproc2 && trinketproc2->useStep) trinketproc2->useStep = 0;
     if (auto* value = spell("fireball"_action)) value->idmg = 0;
-    if (auto* value = spell("gunaxe"_action)) value->idmg = 0;
-    if (auto* value = spell("themoltencore"_action)) value->idmg = 0;
 
     stance = props.string("basestance"_prop, "battle");
     if (auto* value = aura("battlestance"_action)) value->timer = stance == "battle" ? 1 : 0;
@@ -165,7 +158,6 @@ void PlayerState::update() {
         oh->glanceChance = glanceChance(*oh);
         oh->miss = missChance(*oh);
         oh->dwmiss = dwMissChance(*oh);
-        if (turtleMode) oh->dwmiss -= talents.number("offhit"_prop);
         if (foreverMode) {
             oh->miss -= talents.number("offhit"_prop);
             oh->dwmiss -= talents.number("offhit"_prop);
@@ -240,34 +232,26 @@ void PlayerState::updateAP() {
 
 void PlayerState::updateHaste() {
     stats.set("haste"_prop, base.number("haste"_prop, 1));
-    stats.set("castspeed"_prop, base.number("castspeed"_prop, 1));
-    const auto apply = [this](detail::KnownAction key, bool affectsCastSpeed) {
+    const auto apply = [this](detail::KnownAction key) {
         const auto* value = aura(key);
         if (!value || !value->timer) return;
         const double multiplier = 1 + value->multStats.number("haste"_prop) / 100;
         stats.set("haste"_prop, stats.number("haste"_prop) * multiplier);
-        if (affectsCastSpeed) stats.set("castspeed"_prop, stats.number("castspeed"_prop) * multiplier);
     };
     // Preserve the source's literal order.  Besides intentionally excluding
     // unrelated auras, it fixes the exact floating-point event times for Slam.
-    apply("flurry"_action, true);
-    apply("berserking"_action, true);
-    apply("empyrean"_action, false);
-    apply("eskhandar"_action, false);
-    apply("pummeler"_action, false);
-    apply("spider"_action, false);
-    apply("voidmadness"_action, false);
-    apply("gyromaticacceleration"_action, false);
-    apply("gneurological"_action, false);
-    apply("singleminded"_action, false);
-    apply("magmadarsreturn"_action, false);
-    apply("jujuflurry"_action, true);
-    apply("obsidianhaste"_action, false);
+    apply("flurry"_action);
+    apply("berserking"_action);
+    apply("empyrean"_action);
+    apply("eskhandar"_action);
+    apply("pummeler"_action);
+    apply("spider"_action);
+    apply("jujuflurry"_action);
 }
 
 void PlayerState::updateHasteDamage() {
     double mod = 1;
-    if (active(*this, "jujuflurry"_action) && !turtleMode)
+    if (active(*this, "jujuflurry"_action))
         mod *= 1 + auraMult(*this, "jujuflurry"_action, "haste"_prop) / 100;
     mh.mindmg = mh.baseMindmg / mod;
     mh.maxdmg = mh.baseMaxdmg / mod;
@@ -276,8 +260,7 @@ void PlayerState::updateHasteDamage() {
 
 void PlayerState::updateBonusDmg() {
     double bonus = 0;
-    constexpr detail::KnownAction bonusKeys[] = {"zeal"_action, "zandalarian"_action,
-        "relentlessstrength"_action, "obsidianhaste"_action};
+    constexpr detail::KnownAction bonusKeys[] = {"zeal"_action, "zandalarian"_action};
     for (const auto key : bonusKeys) bonus += auraStat(*this, key, "moddmgdone"_prop);
     stats.set("moddmgdone"_prop, base.number("moddmgdone"_prop) + bonus);
     stats.set("moddmgtaken"_prop, base.number("moddmgtaken"_prop));
@@ -286,9 +269,7 @@ void PlayerState::updateBonusDmg() {
 }
 
 void PlayerState::updateArmorReduction() {
-    stats.set("arp"_prop, base.number("arp"_prop));
-    if (talents.number("macearp"_prop)) stats.set("arp"_prop, stats.number("arp"_prop) + (mh.arp ? mh.arp : oh ? oh->arp : 0));
-    target.armor = std::max(target.props.number("basearmorbuffed"_prop) - stats.number("arp"_prop), 0.0);
+    target.armor = target.props.number("basearmorbuffed"_prop);
     const auto subtractStacked = [this](detail::KnownAction key) {
         if (const auto* value = aura(key); value && value->timer)
             target.armor = std::max(target.armor - value->stacks * value->props.number("armor"_prop), 0.0);
@@ -298,7 +279,6 @@ void PlayerState::updateArmorReduction() {
     subtractStacked("bonereaver"_action);
     subtractStacked("swarmguard"_action);
     armorReduction = getArmorReduction();
-    arpContribution = getArpContribution();
 }
 
 void PlayerState::updateDmgMod() {
@@ -306,20 +286,12 @@ void PlayerState::updateDmgMod() {
     stats.set("spelldmgmod"_prop, base.number("spelldmgmod"_prop, 1));
     for (const auto& value : auras) if (value.timer && value.multStats.number("dmgmod"_prop))
         stats.set("dmgmod"_prop, stats.number("dmgmod"_prop) * (1 + value.multStats.number("dmgmod"_prop) / 100));
-    if (flag("bleedbonus"_prop) && active(*this, "rend"_action) && active(*this, "deepwounds"_action))
-        stats.set("dmgmod"_prop, stats.number("dmgmod"_prop) * 1.1);
 }
 
 double PlayerState::glanceReduction(const WeaponState& weapon) {
     const double diff = target.props.number("defense"_prop) - weapon.skill;
-    double low, high;
-    if (turtleMode) {
-        low = std::clamp(0.9 - 0.023 * diff, 0.01, 0.9);
-        high = std::clamp(1.0 - 0.017 * diff, 0.20, 1.0);
-    } else {
-        low = std::clamp(1.3 - 0.05 * diff, 0.01, 0.91);
-        high = std::clamp(1.2 - 0.03 * diff, 0.2, 0.99);
-    }
+    const double low = std::clamp(1.3 - 0.05 * diff, 0.01, 0.91);
+    const double high = std::clamp(1.2 - 0.03 * diff, 0.2, 0.99);
     return rng.next() * (high - low) + low;
 }
 
@@ -330,16 +302,14 @@ double PlayerState::glanceChance(const WeaponState& weapon) const {
 
 double PlayerState::missChance(const WeaponState& weapon) const {
     const double diff = target.props.number("defense"_prop) - weapon.skill;
-    if (turtleMode) return 5 + std::max(diff * .2, 0.0) - stats.number("hit"_prop);
     return 5 + (diff > 10 ? diff * .2 : diff * .1) - (diff > 10 ? stats.number("hit"_prop) - 1 : stats.number("hit"_prop));
 }
 
 double PlayerState::dwMissChance(const WeaponState& weapon) const {
     const double diff = target.props.number("defense"_prop) - weapon.skill;
-    double miss = turtleMode ? 5 + std::max(diff * .2, 0.0) :
-                  5 + (diff > 10 ? diff * .2 : diff * .1);
+    double miss = 5 + (diff > 10 ? diff * .2 : diff * .1);
     miss = miss * .8 + 20;
-    return miss - (!turtleMode && diff > 10 ? stats.number("hit"_prop) - 1 : stats.number("hit"_prop));
+    return miss - (diff > 10 ? stats.number("hit"_prop) - 1 : stats.number("hit"_prop));
 }
 
 double PlayerState::critChance() const {
@@ -355,21 +325,13 @@ double PlayerState::effectiveCrit(const WeaponState& weapon) const {
 }
 
 double PlayerState::dodgeChance(const WeaponState& weapon) const {
-    return std::max(5 - stats.number("expertise"_prop) - props.number("dodgetimeworn"_prop) - target.props.number("dodge"_prop) +
+    return std::max(5 - target.props.number("dodge"_prop) +
                     (target.props.number("defense"_prop) - weapon.skill) * .1, 0.0);
 }
 
 double PlayerState::getArmorReduction() const {
     const double armor = std::isnan(target.armor) ? 0 : target.armor;
     return std::min(armor / (armor + 400 + 85 * props.number("level"_prop)), .75);
-}
-
-double PlayerState::getArpContribution() const {
-    const double level = props.number("level"_prop);
-    double baseReduction = target.props.number("basearmorbuffed"_prop) /
-        (target.props.number("basearmorbuffed"_prop) + 400 + 85 * level);
-    double withArp = target.armor / (target.armor + 400 + 85 * level);
-    return (1 - std::min(withArp, .75)) / (1 - std::min(baseReduction, .75)) - 1;
 }
 
 bool PlayerState::stepTimer(double amount) {
@@ -410,8 +372,7 @@ Result PlayerState::rollWeapon(WeaponState& weapon) {
     double tmp = 0;
     const int roll = rng.tenK();
     double miss = weapon.dwmiss;
-    if (nextswinghs && turtleMode && !weapon.offhand) miss = weapon.miss;
-    if (nextswinghs && !turtleMode) miss = weapon.miss;
+    if (nextswinghs) miss = weapon.miss;
     tmp += std::max(miss, 0.0) * 100;
     if (roll < tmp) return Result::Miss;
     tmp += weapon.dodge * 100; if (roll < tmp) return Result::Dodge;
@@ -460,12 +421,11 @@ Result PlayerState::rollMagicSpell(SpellState& value) {
 }
 
 void PlayerState::addRage(double dmg, Result result, WeaponState& weapon, const SpellState* ability) {
-    double oldRage = rage;
     if (!ability || isQueuedStrike(ability)) {
         if (result != Result::Miss && result != Result::Dodge && talents.number("umbridledwrath"_prop) &&
             rng.tenK() < talents.number("umbridledwrath"_prop) * 100) {
             rage += 1;
-            if ((turtleMode || foreverMode) && weapon.twohand) rage += 1;
+            if (foreverMode && weapon.twohand) rage += 1;
         }
     }
     if (ability) {
@@ -473,57 +433,17 @@ void PlayerState::addRage(double dmg, Result result, WeaponState& weapon, const 
             const_cast<SpellState*>(ability)->lastResult = result;
         if (result == Result::Miss || result == Result::Dodge) {
             rage += ability->props.boolean("refund"_prop, true) ? ability->props.number("cost"_prop) * .8 : 0;
-            oldRage += ability->props.number("cost"_prop) + ability->usedrage;
         }
-        if (result == Result::Hit && flag("altmightthreeset"_prop) && rng.tenK() < 1000) rage += 15;
     } else {
         if (result == Result::Dodge)
             rage += (averageWeaponDamage(*this, weapon) / props.number("rageconversion"_prop)) * 7.5 * .75 *
                 (foreverMode && weapon.offhand ? 1 + talents.number("offragebonus"_prop) : 1);
         else if (result != Result::Miss)
-            rage += (dmg / props.number("rageconversion"_prop)) * 7.5 * props.number("ragemod"_prop, 1) *
+            rage += (dmg / props.number("rageconversion"_prop)) * 7.5 *
                 (foreverMode && weapon.offhand ? 1 + talents.number("offragebonus"_prop) : 1);
     }
-    if (props.number("extrarage"_prop) && result == Result::Hit) rage += props.number("extrarage"_prop);
-    if (props.number("extracritrage"_prop) && result == Result::Crit) rage += props.number("extracritrage"_prop);
     rage = std::min(rage, props.number("ragecap"_prop, 100));
-    if (auto* consumed = aura("consumedrage"_action); consumed && oldRage < 60 && rage >= 60)
-        auraUse(*this, *consumed);
-}
 
-void PlayerState::addRageMh(double dmg, Result result, WeaponState& weapon, const SpellState* ability) {
-    if (!ability || isQueuedStrike(ability)) {
-        if (result != Result::Miss && result != Result::Dodge && talents.number("umbridledwrath"_prop) &&
-            rng.tenK() < talents.number("umbridledwrath"_prop) * 100) {
-            rage += 1;
-            if ((turtleMode || foreverMode) && weapon.twohand) rage += 1;
-        }
-    }
-    if (ability) {
-        if (ability->kind == SpellKind::Execute) const_cast<SpellState*>(ability)->lastResult = result;
-        if (result == Result::Miss || result == Result::Dodge)
-            rage += ability->props.boolean("refund"_prop, true) ? ability->props.number("cost"_prop) * .8 : 0;
-        if (result == Result::Miss && flag("altmightthreeset"_prop)) rage += 15;
-    } else if (result == Result::Dodge) {
-        rage += (averageWeaponDamage(*this, weapon) / props.number("rageconversion"_prop)) * 7.5 * .75;
-    } else if (result != Result::Miss && result != Result::Crit) {
-        rage += ((dmg / props.number("rageconversion"_prop) * 7.5) / 1.075) + (mh.speed * 3.5 / 2.25);
-    } else if (result == Result::Crit) {
-        rage += ((dmg / props.number("rageconversion"_prop) * 7.5) / 1.075) + (mh.speed * 7.5 / 2.25);
-    }
-    rage = std::min(rage, props.number("ragecap"_prop, 100));
-}
-
-void PlayerState::addRageOh(double dmg, Result result, WeaponState& weapon, const SpellState* ability) {
-    if (!ability && result != Result::Miss && result != Result::Dodge && talents.number("umbridledwrath"_prop) &&
-        rng.tenK() < talents.number("umbridledwrath"_prop) * 100) rage += 1;
-    if (result == Result::Dodge)
-        rage += (averageWeaponDamage(*this, weapon) / props.number("rageconversion"_prop)) * 7.5 * .75;
-    else if (result != Result::Miss && result != Result::Crit)
-        rage += ((dmg / props.number("rageconversion"_prop) * 7.5) / 1.075) + ((oh ? oh->speed : weapon.speed) * 1.75 / 2.4);
-    else if (result == Result::Crit)
-        rage += ((dmg / props.number("rageconversion"_prop) * 7.5) / 1.075) + ((oh ? oh->speed : weapon.speed) * 3.5 / 2.25);
-    rage = std::min(rage, props.number("ragecap"_prop, 100));
 }
 
 double PlayerState::attackMh(WeaponState& weapon, int adjacent, double damageSoFar) {
@@ -550,10 +470,9 @@ double PlayerState::attackMh(WeaponState& weapon, int adjacent, double damageSoF
     if (result == Result::Dodge) dodgetimer = 5000;
     if (result == Result::Glance) dmg *= glanceReduction(weapon);
     if (result == Result::Crit) {
-        const double abilityBonus = ability ? talents.number("abilitiescrit"_prop) +
-            (flag("altdreadnaughtfourset"_prop) ? .04 : 0) : 0;
-        dmg *= 1 + (1 + abilityBonus) * (1 + critdmgbonus * 2);
-        procCrit(false, adjacent, ability);
+        const double abilityBonus = ability ? talents.number("abilitiescrit"_prop) : 0;
+        dmg *= 1 + (1 + abilityBonus);
+        procCrit(false, adjacent);
     }
     useWeapon(*this, weapon);
     double done = dealDamage(dmg, result, weapon, ability, adjacent != 0);
@@ -581,8 +500,8 @@ double PlayerState::attackOh(WeaponState& weapon) {
     if (result == Result::Dodge) dodgetimer = 5000;
     if (result == Result::Glance) dmg *= glanceReduction(weapon);
     if (result == Result::Crit) {
-        dmg *= 1 + (1 + critdmgbonus * 2);
-        procCrit(true, 0, nullptr);
+        dmg *= 2;
+        procCrit(true, 0);
     }
     useWeapon(*this, weapon);
     const double done = dealDamage(dmg, result, weapon, nullptr, false);
@@ -610,12 +529,10 @@ double PlayerState::cast(SpellState& ability, SpellState* delayedHeroic, int adj
         if (result == Result::Dodge) dodgetimer = 5000;
     } else if (result == Result::Crit) {
         if (defenseType == 1)
-            dmg *= 1 + .5 * (1 + talents.number("abilitiescrit"_prop) +
-                (flag("altdreadnaughtfourset"_prop) ? .04 : 0)) * (1 + critdmgbonus * 3);
+            dmg *= 1 + .5 * (1 + talents.number("abilitiescrit"_prop));
         else
-            dmg *= 1 + (1 + talents.number("abilitiescrit"_prop) +
-                (flag("altdreadnaughtfourset"_prop) ? .04 : 0)) * (1 + critdmgbonus * 2);
-        procCrit(false, adjacent, &ability);
+            dmg *= 1 + (1 + talents.number("abilitiescrit"_prop));
+        procCrit(false, adjacent);
     }
     const double done = dealDamage(dmg, result, mh, &ability, adjacent != 0);
     if (!adjacent) ++ability.data[static_cast<std::size_t>(result)];
@@ -633,9 +550,8 @@ double PlayerState::castOh(SpellState& ability, int adjacent, double damageSoFar
     const double procDmg = procAttack(&ability, *oh, result, adjacent, damageSoFar);
     if (result == Result::Dodge) dodgetimer = 5000;
     if (result == Result::Crit) {
-        dmg *= 1 + (1 + talents.number("abilitiescrit"_prop) +
-            (flag("altdreadnaughtfourset"_prop) ? .04 : 0)) * (1 + critdmgbonus * 2);
-        procCrit(false, adjacent, &ability);
+        dmg *= 1 + (1 + talents.number("abilitiescrit"_prop));
+        procCrit(false, adjacent);
     }
     const double done = dealDamage(dmg, result, *oh, &ability, adjacent != 0);
     ability.totaldmg += done;
@@ -655,9 +571,7 @@ double PlayerState::dealDamage(double dmg, Result result, WeaponState& weapon,
     const bool landed = result != Result::Miss && result != Result::Dodge;
     if (landed && isPhysical(ability)) dmg *= 1 - weaponArmorReduction(weapon);
     if (!adjacent) {
-        if (!turtleMode) addRage(dmg, result, weapon, ability);
-        else if (&weapon == &mh) addRageMh(dmg, result, weapon, ability);
-        else addRageOh(dmg, result, weapon, ability);
+        addRage(dmg, result, weapon, ability);
     }
     if (landed && dmg > 0 && !adjacent && (!ability || ability->props.integer("defenseType"_prop, 2) == 2)) {
         if (const auto* rend = aura("rend"_action); talents.number("bloodthrill"_prop) && rend && rend->timer > step && rend->stacks &&
@@ -672,20 +586,13 @@ double PlayerState::dealDamage(double dmg, Result result, WeaponState& weapon,
     return landed ? dmg : 0;
 }
 
-void PlayerState::procCrit(bool offhand, int adjacent, SpellState* ability) {
-    crittimer = 1;
+void PlayerState::procCrit(bool offhand, int adjacent) {
     if (auto* value = aura("flurry"_action)) auraUse(*this, *value);
     if (auto* value = aura("deepwounds"_action)) {
         if (!adjacent) auraUse(*this, *value, offhand);
         else {
             const auto index = rng.integer(1, adjacent) + 1;
             if (auto* other = aura("deepwounds" + std::to_string(index))) auraUse(*this, *other, offhand);
-        }
-    }
-    if (flag("overpowerrend"_prop) && ability && ability->kind == SpellKind::Overpower) {
-        if (auto* value = aura("rend"_action); value && value->timer) {
-            value->timer = value->nexttick - 3000 + value->props.number("duration"_prop) * 1000;
-            value->stacks = value->props.integer("value2"_prop);
         }
     }
 }
@@ -698,7 +605,7 @@ double PlayerState::magicProc(const ProcState& proc) {
     else mod *= target.props.number("mitigation"_prop, 1);
     if (rng.tenK() < miss) return 0;
     if (rng.tenK() < stats.number("spellcrit"_prop) * 100)
-        mod *= 1 + .5 * (1 + critdmgbonus * 3);
+        mod *= 1 + .5;
     if (proc.coefficient) dmg += props.number("spelldamage"_prop) * proc.coefficient;
     return dmg * mod * stats.number("spelldmgmod"_prop, 1);
 }
@@ -710,7 +617,7 @@ double PlayerState::physProc(double dmg) {
     tmp += mh.dodge * 100;
     if (roll < tmp) dmg = 0;
     roll = rng.tenK();
-    if (roll < (crit + mh.crit) * 100) dmg *= 1 + (1 + critdmgbonus * 2);
+    if (roll < (crit + mh.crit) * 100) dmg *= 2;
     return dmg * stats.number("dmgmod"_prop, 1) * mh.modifier;
 }
 
@@ -745,11 +652,6 @@ double PlayerState::procAttack(SpellState* ability, WeaponState& weapon, Result 
         if (ability && ability->kind == SpellKind::Execute) {
             rage = 0;
         }
-        if (ability && ability->kind == SpellKind::Slam && flag("slammainreset"_prop)) {
-            if (auto* value = spell("mortalstrike"_action)) value->timer = 0;
-            if (auto* value = spell("bloodthirst"_action)) value->timer = 0;
-            if (auto* value = spell("shieldslam"_action)) value->timer = 0;
-        }
         const auto weaponDamageProc = [&](ProcState& proc) {
             if (!(rng.tenK() < proc.chance) || (proc.gcd && timer && timer < 1500)) return;
             activateProcReference(*this, proc);
@@ -757,7 +659,7 @@ double PlayerState::procAttack(SpellState* ability, WeaponState& weapon, Result 
                 procDmg += proc.chance == 10000 ? proc.magicDamage : magicProc(proc);
             if (proc.physicalDamage) {
                 double dmg = physProc(proc.physicalDamage);
-                if (dmg > 0 && proc.phantom && !turtleMode) dmg += phantomProc(weapon);
+                if (dmg > 0 && proc.phantom) dmg += phantomProc(weapon);
                 procDmg += dmg;
             }
         };
@@ -785,11 +687,6 @@ double PlayerState::procAttack(SpellState* ability, WeaponState& weapon, Result 
             if (proc.magicDamage)
                 procDmg += proc.chance == 10000 ? proc.magicDamage : magicProc(proc);
             activateProcReference(*this, proc);
-        };
-        const auto attackExtraProc = [&](ProcState& proc) {
-            if (damageSoFar || !(rng.tenK() < proc.chance)) return;
-            if (ability) batchedextras += proc.extraCount;
-            else batched = proc.extraCount;
         };
 
         for (const auto& entry : weapon.procPlan) {
@@ -821,57 +718,14 @@ double PlayerState::procAttack(SpellState* ability, WeaponState& weapon, Result 
             case ProcStage::AttackProc1Damage:
                 if (attackproc1) attackDamageProc(*attackproc1);
                 break;
-            case ProcStage::AttackProc1Extra:
-                if (attackproc1) attackExtraProc(*attackproc1);
-                break;
             case ProcStage::AttackProc2Damage:
                 if (attackproc2) attackDamageProc(*attackproc2);
-                break;
-            case ProcStage::AttackProc2Extra:
-                if (attackproc2) attackExtraProc(*attackproc2);
                 break;
             case ProcStage::SwordSpec:
                 if (!damageSoFar && swordspecstep != step && rng.tenK() < entry.chance) {
                     swordspecstep = step;
                     ability ? ++extraattacks : ++extras;
                 }
-                break;
-            case ProcStage::WailingExtra:
-                if (!damageSoFar && wailingextrastep != step && rng.tenK() < 300) {
-                    wailingextrastep = step;
-                    ability ? ++extraattacks : ++extras;
-                }
-                break;
-            case ProcStage::HakkariExtra:
-                if (!damageSoFar && hakkariextrastep != step && rng.tenK() < 200) {
-                    hakkariextrastep = step;
-                    ability ? ++extraattacks : ++extras;
-                }
-                break;
-            case ProcStage::TimewornExtra:
-                if (!damageSoFar && timewornstep != step && rng.tenK() < entry.chance) {
-                    timewornstep = step;
-                    ability ? ++extraattacks : ++extras;
-                }
-                break;
-            case ProcStage::ObsidianStrength:
-            case ProcStage::ObsidianHaste:
-                if (rng.tenK() < weapon.proc1->chance && !(timer && timer < 1500) &&
-                    entry.action != kNoRef)
-                    auraUse(*this, auras[static_cast<std::size_t>(entry.action)]);
-                break;
-            case ProcStage::SwordAndBoard:
-                if (ability && ability->kind == SpellKind::SunderArmor && rng.tenK() < 3000) {
-                    freeshieldslam = true;
-                    spells[static_cast<std::size_t>(entry.action)].timer = 0;
-                }
-                break;
-            case ProcStage::VoodooFrenzy:
-                if (rng.tenK() < 1500)
-                    auraUse(*this, auras[static_cast<std::size_t>(entry.action)]);
-                break;
-            case ProcStage::SingleMinded:
-                if (!ability) auraUse(*this, auras[static_cast<std::size_t>(entry.action)]);
                 break;
             case ProcStage::Windfury: {
                 auto& windfury = auras[static_cast<std::size_t>(entry.action)];
@@ -891,15 +745,6 @@ double PlayerState::procAttack(SpellState* ability, WeaponState& weapon, Result 
                 if (value.timer) auraProc(*this, value);
                 break;
             }
-            case ProcStage::RelentlessStrength: {
-                auto& value = auras[static_cast<std::size_t>(entry.action)];
-                if (value.timer) auraProc(*this, value);
-                break;
-            }
-            case ProcStage::Shieldrender:
-                if (!ability && rng.tenK() < entry.chance)
-                    auraUse(*this, auras[static_cast<std::size_t>(entry.action)]);
-                break;
             case ProcStage::Dragonbreath:
                 if (rng.tenK() < 500) {
                     ProcState dragon;
@@ -932,7 +777,6 @@ void PlayerState::switchStance(std::string_view value) {
     const auto stanceKey = detail::stanceAuraAction(stance);
     if (auto* auraValue = stanceKey ? aura(*stanceKey) : aura(std::string_view{})) auraValue->timer = 1;
     rage = std::min(rage, talents.number("rageretained"_prop));
-    props.set("ragemod"_prop, base.number("ragemod"_prop) ? base.number("ragemod"_prop) : 1);
     stancetimer = 1000;
     updateAuras();
 }

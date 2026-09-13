@@ -65,7 +65,7 @@ test('unlearned active talents cannot be injected through saved rotation setting
 
 test('Bloodthirst and Shield Slam use the agreed level-specific formulas', () => {
     const {run, player} = setup();
-    player.stats.ap = 1000; player.stats.block = 100; player.stats.dmgmod = player.mainspelldmg = 1;
+    player.stats.ap = 1000; player.stats.block = 100; player.stats.dmgmod = 1;
     for (const [level, bonus, shieldBase] of [[40,30,230],[48,40,270],[54,50,310],[60,60,430]]) {
         player.level = level;
         close(run('new Bloodthirst(p, 23894).dmg()'), 350 + bonus);
@@ -73,7 +73,7 @@ test('Bloodthirst and Shield Slam use the agreed level-specific formulas', () =>
     }
     const classic = setup('classic');
     classic.player.stats.ap = 1000; classic.player.stats.block = 100;
-    classic.player.stats.dmgmod = classic.player.mainspelldmg = 1;
+    classic.player.stats.dmgmod = 1;
     close(classic.run('new Bloodthirst(p, 23894).dmg()'), 450);
     close(classic.run('rng = (a,b) => (a+b)/2; new ShieldSlam(p,23925).dmg()'), 350 + 200 + 150);
 });
@@ -122,7 +122,7 @@ test('two-handed Unbridled Wrath and off-hand swing rage do not multiply flat pr
     run('rng10k = () => 0; p.mh.twohand = true; p.addRage(0, RESULT.HIT, p.mh, null)');
     close(player.rage, 2);
     player.rage = 0;
-    const swingRage = 100 / player.rageconversion * 7.5 * player.ragemod;
+    const swingRage = 100 / player.rageconversion * 7.5;
     run('p.addRage(100, RESULT.HIT, p.oh, null)');
     close(player.rage, 1 + swingRage * 2);
 });

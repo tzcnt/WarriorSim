@@ -16,11 +16,6 @@ bool option(const SpellState& spell, detail::KnownProperty key, bool fallback = 
     return spell.props.boolean(key, fallback);
 }
 
-bool active(const PlayerState& player, detail::KnownAction key) {
-    const auto* aura = player.aura(key);
-    return aura && aura->timer != 0;
-}
-
 void useAura(PlayerState& player, detail::KnownAction key) {
     if (auto* aura = player.aura(key)) auraUse(player, *aura);
 }
@@ -168,17 +163,12 @@ bool spellCanUse(PlayerState& player, SpellState& spell) {
     }
 
     case SpellKind::Fireball:
-    case SpellKind::GunAxe:
         return spell.timer == 0 && player.step >= spell.useStep;
-
-    case SpellKind::BlademasterFury:
-        return spell.timer == 0 && player.timer == 0 &&
-            (!player.spell("whirlwind"_action) || player.spell("whirlwind"_action)->timer > 0);
 
     case SpellKind::ShieldSlam:
         return player.props.boolean("shield"_prop) && spell.timer == 0 && player.timer == 0 &&
-            (player.freeshieldslam || cost <= player.rage) &&
-            (player.freeshieldslam || player.rage >= minrage);
+            cost <= player.rage &&
+            player.rage >= minrage;
 
     case SpellKind::StanceSwitch:
         return !player.stancetimer &&
@@ -188,7 +178,6 @@ bool spellCanUse(PlayerState& player, SpellState& spell) {
         return player.itemtimer == 0 && spell.timer == 0 && player.step >= spell.useStep;
 
     case SpellKind::Spell:
-    case SpellKind::TheMoltenCore:
         return spell.timer == 0 && player.timer == 0 && cost <= player.rage &&
                player.rage >= minrage;
     }
@@ -243,13 +232,9 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
 
     case SpellKind::Bloodrage: {
         spell.timer = cooldown * 1000;
-        const double oldRage = player.rage;
         player.rage = std::min(player.rage + value(spell, "rage"_prop), player.prop("ragecap"_prop, 100));
         useAura(player, "bloodrage"_action);
         spell.maxdelay = reactionDelay(player);
-        if (player.turtleMode && player.talents.number("enrage"_prop))
-            useAura(player, "enrage"_action);
-        if (oldRage < 60 && player.rage >= 60) useAura(player, "consumedrage"_action);
         return;
     }
 
@@ -265,7 +250,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
         player.rage -= cost;
         spell.timer = cooldown * 1000;
         spell.stacks = std::min(6, spell.stacks + 1);
-        if (player.props.boolean("homunculi"_prop) || player.props.boolean("exposed"_prop)) spell.stacks = 6;
+        if (player.props.boolean("exposed"_prop)) spell.stacks = 6;
         spell.maxdelay = reactionDelay(player);
         return;
 
@@ -292,29 +277,25 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
     case SpellKind::BerserkerRage: {
         player.timer = 1500;
         spell.timer = cooldown * 1000;
-        const double oldRage = player.rage;
         if (!player.isValidStance("zerk")) player.switchStance("zerk");
         player.rage = std::min(player.rage + value(spell, "rage"_prop), player.prop("ragecap"_prop, 100));
         useAura(player, "berserkerrage"_action);
         spell.maxdelay = reactionDelay(player);
-        if (oldRage < 60 && player.rage >= 60) useAura(player, "consumedrage"_action);
         return;
     }
 
     case SpellKind::RagePotion: {
         spell.timer = cooldown * 1000;
-        const double oldRage = player.rage;
         player.rage = std::min(player.rage + static_cast<double>(player.rng.integer(
             value(spell, "value1"_prop), value(spell, "value2"_prop))), player.prop("ragecap"_prop, 100));
         spell.maxdelay = reactionDelay(player);
-        if (oldRage < 60 && player.rage >= 60) useAura(player, "consumedrage"_action);
         return;
     }
 
     case SpellKind::Slam: {
         player.rage -= cost;
         spell.maxdelay = reactionDelay(player);
-        if (value(spell, "casttime"_prop) && !player.turtleMode && !value(spell, "swingmode"_prop)) {
+        if (value(spell, "casttime"_prop) && !value(spell, "swingmode"_prop)) {
             useWeapon(player, player.mh);
             if (player.oh) useWeapon(player, *player.oh);
         }
@@ -327,33 +308,12 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
         spell.idmg += fixedMagicProc(player, 371);
         return;
 
-    case SpellKind::GunAxe:
-        spell.timer = 1;
-        spell.idmg += fixedMagicProc(player, 225);
-        return;
-
-    case SpellKind::BlademasterFury:
-        player.timer = 1500;
-        spell.timer = cooldown * 1000;
-        spell.maxdelay = reactionDelay(player);
-        if (auto* whirlwind = player.spell("whirlwind"_action)) whirlwind->timer = 0;
-        return;
-
     case SpellKind::ShieldSlam:
         player.timer = 1500;
-        if (!player.freeshieldslam) player.rage -= cost;
+        player.rage -= cost;
         spell.timer = cooldown * 1000;
-        player.freeshieldslam = false;
         spell.maxdelay = reactionDelay(player);
         return;
-
-    case SpellKind::TheMoltenCore: {
-        double procDamage = fixedMagicProc(player, 20);
-        for (int i = 0; i < player.props.integer("adjacent"_prop); ++i)
-            procDamage += fixedMagicProc(player, 20);
-        spell.idmg += procDamage;
-        return;
-    }
 
     case SpellKind::StanceSwitch:
         spell.maxdelay = reactionDelay(player);
@@ -364,9 +324,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
         player.itemtimer = cooldown * 1000;
         spell.timer = cooldown * 1000;
         spell.maxdelay = reactionDelay(player);
-        const double oldRage = player.rage;
         player.rage = std::min(player.rage + value(spell, "rage"_prop), player.prop("ragecap"_prop, 100));
-        if (oldRage < 60 && player.rage >= 60) useAura(player, "consumedrage"_action);
         return;
     }
 
@@ -383,12 +341,11 @@ double spellDamage(PlayerState& player, SpellState& spell, WeaponState* weapon) 
     const double dmgmod = player.stats.number("dmgmod"_prop, 1);
     switch (spell.kind) {
     case SpellKind::Bloodthirst: {
-        const double damage = player.turtleMode ?
-            200 + player.stats.number("ap"_prop) * .35 : player.stats.number("ap"_prop) * value(spell, "apcoefficient"_prop, .45) + value(spell, "flatbonus"_prop);
-        return damage * dmgmod * player.mainspelldmg;
+        const double damage = player.stats.number("ap"_prop) * value(spell, "apcoefficient"_prop, .45) + value(spell, "flatbonus"_prop);
+        return damage * dmgmod;
     }
     case SpellKind::Whirlwind:
-        if (player.talents.number("ragingblows"_prop) || active(player, "consumedrage"_action)) spell.offhandhit = true;
+        if (player.talents.number("ragingblows"_prop)) spell.offhandhit = true;
         return normalizedWeaponDamage(player, player.foreverMode && weapon ? *weapon : player.mh) * dmgmod;
     case SpellKind::SpearingStrike: {
         const auto type = player.target.props.string("creaturetype"_prop);
@@ -396,15 +353,13 @@ double spellDamage(PlayerState& player, SpellState& spell, WeaponState* weapon) 
         return normalizedWeaponDamage(player, player.mh) * (bonus ? 1.2 : .4) * dmgmod;
     }
     case SpellKind::Overpower: {
-        const double mod = player.props.boolean("heroicbonus"_prop) ? 1.25 : 1;
-        return normalizedWeaponDamage(player, player.mh, value(spell, "value1"_prop)) * dmgmod * mod;
+        return normalizedWeaponDamage(player, player.mh, value(spell, "value1"_prop)) * dmgmod;
     }
     case SpellKind::Execute:
-        return (value(spell, "value1"_prop) + value(spell, "value2"_prop) * spell.usedrage *
-            value(spell, "dumpmod"_prop, 1)) * dmgmod;
+        return (value(spell, "value1"_prop) + value(spell, "value2"_prop) * spell.usedrage) * dmgmod;
     case SpellKind::MortalStrike:
         return normalizedWeaponDamage(player, player.mh, value(spell, "value1"_prop)) *
-               dmgmod * player.mainspelldmg;
+               dmgmod;
     case SpellKind::SunderArmor:
         return 0;
     case SpellKind::Hamstring:
@@ -413,17 +368,14 @@ double spellDamage(PlayerState& player, SpellState& spell, WeaponState* weapon) 
         return value(spell, "value1"_prop) * dmgmod;
     case SpellKind::Slam: {
         const WeaponState& use = weapon ? *weapon : player.mh;
-        const double bonus = player.turtleMode ? 0 : value(spell, "value1"_prop);
-        return weaponSpeedDamage(player, use, bonus) * dmgmod *
-               (player.props.boolean("heroicbonus"_prop) ? 1.25 : 1);
+        const double bonus = value(spell, "value1"_prop);
+        return weaponSpeedDamage(player, use, bonus) * dmgmod;
     }
-    case SpellKind::BlademasterFury:
-        return normalizedWeaponDamage(player, player.mh) * dmgmod;
     case SpellKind::ShieldSlam: {
         const double damage = player.rng.integer(value(spell, "value1"_prop), value(spell, "value2"_prop)) +
             player.stats.number("block"_prop) * value(spell, "blockcoefficient"_prop, 2) +
             static_cast<std::int32_t>(player.stats.number("ap"_prop) * value(spell, "apcoefficient"_prop, .15));
-        return damage * dmgmod * player.mainspelldmg;
+        return damage * dmgmod;
     }
     default:
         return 0;
@@ -441,7 +393,6 @@ void spellPrep(PlayerState&, SpellState& spell, int duration) {
     case SpellKind::Bloodrage:
     case SpellKind::RagePotion:
     case SpellKind::Fireball:
-    case SpellKind::GunAxe:
     case SpellKind::GrilekFury:
         if (spell.props.has("timetoend"_prop))
             spell.useStep = std::max(static_cast<double>(duration) - value(spell, "timetoend"_prop), 0.0);

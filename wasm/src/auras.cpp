@@ -30,12 +30,6 @@ void expire(PlayerState& player, AuraState& aura, bool firstuse = false) {
     if (firstuse) aura.firstuse = false;
 }
 
-void consumedRage(PlayerState& player, double oldRage) {
-    if (oldRage < 60 && player.rage >= 60) {
-        if (auto* consumed = player.aura("consumedrage"_action)) auraUse(player, *consumed);
-    }
-}
-
 void useWithUpdate(PlayerState& player, AuraState& aura,
                    void (PlayerState::*update)(), int precounter = 0,
                    bool delay = false) {
@@ -60,28 +54,12 @@ void useItem(PlayerState& player, AuraState& aura, int precounter,
     useWithUpdate(player, aura, update, precounter, delay);
 }
 
-bool stepPeriodicDamage(PlayerState& player, AuraState& aura,
-                        double interval, double damage) {
-    while (player.step >= aura.nexttick) {
-        aura.idmg += damage;
-        aura.totaldmg += damage;
-        aura.nexttick += interval;
-    }
-    if (player.step >= aura.timer) {
-        expire(player, aura, true);
-        return false;
-    }
-    return true;
-}
-
 bool isAlwaysBase(AuraKind kind) {
     switch (kind) {
     case AuraKind::Aura:
     case AuraKind::Destiny:
     case AuraKind::Untamed:
     case AuraKind::Avenger:
-    case AuraKind::ObsidianStrength:
-    case AuraKind::ObsidianHaste:
         return true;
     default:
         return false;
@@ -105,12 +83,8 @@ bool auraCanUse(PlayerState& player, AuraState& aura) {
         return aura.firstuse && ready && !player.itemtimer;
     case AuraKind::DeathWish:
         return ready && !player.timer && player.rage >=
-            (player.flag("altdreadnaughttwoset"_prop) ? 0 : 10);
+            10;
     case AuraKind::MightyRagePotion:
-    case AuraKind::VoidMadness:
-    case AuraKind::GyromaticAcceleration:
-    case AuraKind::GneuroLogical:
-    case AuraKind::CoinFlip:
         return aura.firstuse && ready;
     case AuraKind::BloodFury:
         return aura.firstuse && ready && !player.timer;
@@ -118,17 +92,11 @@ bool auraCanUse(PlayerState& player, AuraState& aura) {
         return aura.firstuse && ready && player.rage >= 5;
     case AuraKind::Pummeler:
     case AuraKind::Flask:
-    case AuraKind::DemonTaintedBlood:
-    case AuraKind::MoonstalkerFury:
-    case AuraKind::WrathWray:
-    case AuraKind::GrilekGuard:
         return aura.firstuse && ready && !player.itemtimer &&
             (aura.kind != AuraKind::Flask || !player.timer);
     case AuraKind::Swarmguard:
         return aura.firstuse && ready;
     case AuraKind::Slayer:
-    case AuraKind::RoarGuardian:
-    case AuraKind::RelentlessStrength:
         return aura.firstuse && ready && !player.itemtimer;
     case AuraKind::Spider:
     case AuraKind::Earthstrike:
@@ -184,7 +152,6 @@ void auraEnd(PlayerState& player, AuraState& aura) {
     aura.stacks = 0;
     switch (aura.kind) {
     case AuraKind::Zeal:
-    case AuraKind::RelentlessStrength:
         player.updateBonusDmg();
         break;
     case AuraKind::Zandalarian:
@@ -246,10 +213,7 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         aura.starttimer = player.step;
         break;
     case AuraKind::Crusader:
-    case AuraKind::WrathWray:
-        useWithUpdate(player, aura, &PlayerState::updateStrength,
-                      aura.kind == AuraKind::WrathWray ? precounter : 0);
-        if (aura.kind == AuraKind::WrathWray) player.itemtimer = durationMs(aura) - precounter;
+        useWithUpdate(player, aura, &PlayerState::updateStrength);
         break;
     case AuraKind::Cloudkeeper:
         useItem(player, aura, precounter, &PlayerState::updateAuras, true);
@@ -259,33 +223,25 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         break;
     case AuraKind::DeathWish:
         begin(player, aura, precounter);
-        player.rage -= player.flag("altdreadnaughttwoset"_prop) ? 0 : 10;
+        player.rage -= 10;
         player.timer = 1500;
         player.updateDmgMod();
         setDelay(player, aura);
         break;
     case AuraKind::MightyRagePotion: {
         accountRefresh(player, aura);
-        const double oldRage = player.rage;
         player.rage = std::min(player.rage + static_cast<double>(player.rng.integer(
             aura.props.number("value1"_prop), aura.props.number("value2"_prop))), player.prop("ragecap"_prop, 100));
         aura.timer = player.step + durationMs(aura) - precounter;
         aura.starttimer = player.step - precounter;
         player.updateStrength();
         setDelay(player, aura);
-        consumedRage(player, oldRage);
         break;
     }
     case AuraKind::Empyrean:
     case AuraKind::Eskhandar:
     case AuraKind::Pummeler:
-    case AuraKind::VoidMadness:
-    case AuraKind::GyromaticAcceleration:
-    case AuraKind::GneuroLogical:
-        useWithUpdate(player, aura, &PlayerState::updateHaste,
-            (aura.kind == AuraKind::VoidMadness ||
-             aura.kind == AuraKind::GyromaticAcceleration ||
-             aura.kind == AuraKind::GneuroLogical) ? precounter : 0);
+        useWithUpdate(player, aura, &PlayerState::updateHaste);
         break;
     case AuraKind::BloodFury:
         player.timer = 1500;
@@ -334,7 +290,6 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         break;
     case AuraKind::Slayer:
     case AuraKind::Earthstrike:
-    case AuraKind::RoarGuardian:
         useItem(player, aura, precounter, &PlayerState::updateAP);
         break;
     case AuraKind::Spider:
@@ -345,8 +300,6 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         useItem(player, aura, precounter, &PlayerState::updateAP);
         break;
     case AuraKind::PrimalBlessing:
-    case AuraKind::PrimalBlessing2:
-    case AuraKind::SerpentAscension:
         if (aura.cooldownTimer > player.step) return;
         begin(player, aura);
         aura.cooldownTimer = player.step + cooldownMs(aura);
@@ -393,70 +346,16 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         player.rage -= aura.props.number("cost"_prop);
         double baseDamage = aura.props.number("value1"_prop);
         const double value2 = aura.props.number("value2"_prop);
-        if (player.turtleMode) {
-            baseDamage += std::trunc(player.stats.number("ap"_prop) * 0.05 * value2);
-        }
         aura.props.set("tickdmg"_prop, baseDamage * player.stats.number("dmgmod"_prop, 1) *
             aura.props.number("dmgmod"_prop, 1) * player.prop("bleedmod"_prop, 1) / value2);
         player.updateDmgMod();
         setDelay(player, aura);
         break;
     }
-    case AuraKind::WeaponBleed:
-        accountRefresh(player, aura);
-        aura.nexttick = player.step + aura.props.number("interval"_prop);
-        aura.timer = player.step + durationMs(aura);
-        aura.starttimer = player.step;
-        break;
-    case AuraKind::CoinFlip:
-        aura.firstuse = false;
-        if (aura.props.boolean("alwaystails"_prop)) return;
-        if (aura.props.boolean("alwaysheads"_prop) || player.rng.tenK() < 5000) {
-            aura.timer = player.step + durationMs(aura) - precounter;
-            aura.starttimer = player.step - precounter;
-            player.updateAuras();
-        }
-        break;
-    case AuraKind::VoodooFrenzy: {
-        if (aura.cooldownTimer > player.step) return;
-        begin(player, aura);
-        aura.cooldownTimer = player.step + cooldownMs(aura);
-        aura.stats = PropertyBag{};
-        const auto stat = player.stats.number("str"_prop) >= player.stats.number("agi"_prop)
-            ? "str"_prop : "agi"_prop;
-        aura.stats.set(stat, 35);
-        player.updateAuras();
-        break;
-    }
-    case AuraKind::RelentlessStrength:
-        player.itemtimer = durationMs(aura) - precounter;
-        begin(player, aura, precounter);
-        aura.stats.set("moddmgdone"_prop, 20);
-        player.updateBonusDmg();
-        break;
-    case AuraKind::WarriorsResolve: {
-        const double oldRage = player.rage;
-        player.rage = std::min(player.rage + 10, player.prop("ragecap"_prop, 100));
-        consumedRage(player, oldRage);
-        break;
-    }
-    case AuraKind::DemonTaintedBlood:
-    case AuraKind::MoonstalkerFury:
-        useItem(player, aura, precounter, &PlayerState::updateStrength);
-        break;
-    case AuraKind::MagmadarsReturn:
-        if (aura.cooldownTimer > player.step) return;
-        begin(player, aura);
-        aura.cooldownTimer = player.step + cooldownMs(aura);
-        player.updateHaste();
-        break;
     case AuraKind::JujuFlurry:
         begin(player, aura, precounter);
         player.updateHasteDamage();
         player.updateHaste();
-        break;
-    case AuraKind::GrilekGuard:
-        useItem(player, aura, precounter, &PlayerState::updateAuras);
         break;
     case AuraKind::BattleStance:
     case AuraKind::DefensiveStance:
@@ -516,9 +415,6 @@ bool auraStep(PlayerState& player, AuraState& aura) {
             return false;
         }
         return true;
-    case AuraKind::WeaponBleed:
-        return stepPeriodicDamage(player, aura, aura.props.number("interval"_prop),
-                                  aura.props.number("dmg"_prop));
     case AuraKind::Gabbar:
         if (detail::jsRemainder(player.step - aura.starttimer, 2000.0) == 0) {
             aura.stats.set("ap"_prop, aura.stats.number("ap"_prop) + aura.props.number("value"_prop));
@@ -528,9 +424,6 @@ bool auraStep(PlayerState& player, AuraState& aura) {
     case AuraKind::BloodrageAura:
         if (detail::jsRemainder(player.step - aura.starttimer, 1000.0) == 0) {
             player.rage = std::min(player.rage + aura.props.number("tickrage"_prop, 1), player.prop("ragecap"_prop, 100));
-            if (player.rage >= 60 && player.rage < 81) {
-                if (auto* consumed = player.aura("consumedrage"_action)) auraUse(player, *consumed);
-            }
         }
         if (player.step >= aura.timer) {
             expire(player, aura);
@@ -591,12 +484,6 @@ bool auraStep(PlayerState& player, AuraState& aura) {
         return true;
     case AuraKind::BattleShout:
         return stepWithUpdate(player, aura, &PlayerState::updateAP, true);
-    case AuraKind::RelentlessStrength:
-        return stepWithUpdate(player, aura, &PlayerState::updateBonusDmg, true);
-    case AuraKind::DemonTaintedBlood:
-    case AuraKind::MoonstalkerFury:
-    case AuraKind::WrathWray:
-        return stepWithUpdate(player, aura, &PlayerState::updateStrength, true);
     case AuraKind::JujuFlurry:
         if (player.step >= aura.timer) {
             expire(player, aura, true);
@@ -606,8 +493,6 @@ bool auraStep(PlayerState& player, AuraState& aura) {
             return false;
         }
         return true;
-    case AuraKind::GrilekGuard:
-        return stepWithUpdate(player, aura, &PlayerState::updateAuras, true);
     default:
         if (player.step >= aura.timer) {
             expire(player, aura, true);
@@ -643,14 +528,6 @@ void auraProc(PlayerState& player, AuraState& aura) {
         break;
     case AuraKind::Zandalarian:
         aura.stats.set("moddmgdone"_prop, aura.stats.number("moddmgdone"_prop) - 2);
-        player.updateBonusDmg();
-        if (aura.stats.number("moddmgdone"_prop) <= 0) {
-            aura.timer = player.step;
-            (void)auraStep(player, aura);
-        }
-        break;
-    case AuraKind::RelentlessStrength:
-        aura.stats.set("moddmgdone"_prop, aura.stats.number("moddmgdone"_prop) - 1);
         player.updateBonusDmg();
         if (aura.stats.number("moddmgdone"_prop) <= 0) {
             aura.timer = player.step;

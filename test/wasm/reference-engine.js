@@ -63,7 +63,7 @@ function createReferenceEngine(mode, options = {}) {
                 return new Player(undefined, undefined, undefined, config);
             },
             createAura(player, kind, id) {
-                const constructors = { CoinFlip, Flurry };
+                const constructors = { Annihilator, Flurry };
                 if (!constructors[kind]) throw new Error('Unsupported synthetic aura kind: ' + kind);
                 return new constructors[kind](player, id);
             },
@@ -134,7 +134,7 @@ function createDirectReferenceEngine(mode, options = {}) {
             configure(state) { updateGlobals(state); },
             createPlayer(config) { return new Player(undefined, undefined, undefined, config); },
             createAura(player, kind, id) {
-                const constructors = { CoinFlip, Flurry };
+                const constructors = { Annihilator, Flurry };
                 if (!constructors[kind]) throw new Error('Unsupported synthetic aura kind: ' + kind);
                 return new constructors[kind](player, id);
             },

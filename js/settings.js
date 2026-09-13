@@ -344,7 +344,7 @@ SIM.SETTINGS = {
             if (e.originalEvent && e.originalEvent.isTrusted && ($(this).data('id') == 'timetoendactive' || $(this).data('id') == 'timetostartactive')) {
                 spell.active = active;
             }
-            
+
             SIM.UI.updateSession();
         });
 
@@ -443,20 +443,6 @@ SIM.SETTINGS = {
                 }
             }
 
-            // Might set bonus
-            if (spell.itemblock) { 
-                let count = 0;
-                let items = [226499,226497,226494,226495,226493,226492,226498,226496,232251,232249,232254,232247,232252,232248,232250,232253];
-                for (let type in gear)
-                    for (let g of gear[type])
-                        if (g.selected && items.includes(g.id)) count++;
-                if (count < 4) {
-                    spell.active = false;
-                    continue;
-                }
-                spell.active = true;
-            }
-
             let div = $(`<div data-id="${spell.id}" data-name="${spell.name}" class="spell ${spell.active ? 'active' : ''}"><div class="icon">
             <img src="https://wow.zamimg.com/images/wow/icons/medium/${spell.iconname.toLowerCase()}.jpg " alt="${spell.name}">
             <a href="${WEB_DB_URL}${spell.item ? 'item' : 'spell'}=${spell.id}" class="wh-tooltip"></a>
@@ -467,7 +453,7 @@ SIM.SETTINGS = {
                 div.find('.icon').attr('title', spell.name + '\n' + spell.localDescription);
             }
             if (spell.buff) buffs += div[0].outerHTML;
-            else if (spell.item || spell.itemblock) items += div[0].outerHTML;
+            else if (spell.item) items += div[0].outerHTML;
             else container.append(div);
 
         }
@@ -479,8 +465,6 @@ SIM.SETTINGS = {
             container.append($('<div class="label">Items</div>'));
             container.append(items);
         }
-        
-
 
     },
 
@@ -526,7 +510,7 @@ SIM.SETTINGS = {
                 <option value="10" ${spell.expriority == 10 ? 'selected' : ''}>Highest</option>
             </select></li>`);
 
-        if (typeof spell.timetoend === 'undefined' && !spell.noactiveoption)
+        if (typeof spell.timetoend === 'undefined')
             ul.append(`<li data-id="active" class="${spell.active ? 'active' : ''}">Enabled ${note ? ` - ${note}` : ''}</li>`);
         if (typeof spell.afterswing !== 'undefined') 
             ul.append(`<li data-id="afterswing" class="${spell.afterswing ? 'active' : ''}">Use only after a swing reset</li>`);
@@ -548,42 +532,25 @@ SIM.SETTINGS = {
             ul.append(`<li data-id="timetostartactive" data-group="timeto" class="${spell.timetostartactive ? 'active' : ''}">Use <input type="text" name="timetostart" value="${spell.timetostart}" data-numberonly="true" /> seconds from the start of the fight</li>`);
         if (spell.timetoend !== undefined)
             ul.append(`<li data-id="timetoendactive" data-group="timeto" class="${spell.timetoendactive ? 'active' : ''}">Use <input type="text" name="timetoend" value="${spell.timetoend}" data-numberonly="true" /> seconds from the end of the fight</li>`);
-        if (spell.priorityap !== undefined)
-            ul.append(`<li data-id="priorityapactive" class="${spell.priorityapactive ? 'active' : ''}">Don't use if Attack Power is higher than <input type="text" name="priorityap" value="${spell.priorityap}" data-numberonly="true" style="width: 25px" /></li>`);
-        if (spell.procblock !== undefined)
-            ul.append(`<li data-id="procblock" class="${spell.procblock ? 'active' : ''}">Don't use rage until it procs</li>`);
-        if (spell.rageblock !== undefined)
-            ul.append(`<li data-id="rageblockactive" class="${spell.rageblockactive ? 'active' : ''}">Don't use rage below <input type="text" name="rageblock" value="${spell.rageblock}" data-numberonly="true" /> rage</li>`);
+
         if (typeof spell.globals !== 'undefined') 
             ul.append(`<li data-id="globalsactive" class="${spell.globalsactive ? 'active' : ''}" data-group="usage">Only use on first <input type="text" name="globals" value="${spell.globals}" data-numberonly="true" /> globals</li>`);
-        if (spell.chargeblock !== undefined)
-            ul.append(`<li data-id="chargeblockactive" class="${spell.chargeblockactive ? 'active' : ''}">Don't use rage below <input type="text" name="chargeblock" value="${spell.chargeblock}" data-numberonly="true" /> CbR charges</li>`);
-        if (spell.erageblock !== undefined)
-            ul.append(`<div class="label">Execute Phase:</div><li data-id="erageblockactive" class="${spell.erageblockactive ? 'active' : ''}">Don't use rage below <input type="text" name="erageblock" value="${spell.erageblock}" data-numberonly="true" /> rage</li>`);
-        if (spell.echargeblock !== undefined)
-            ul.append(`<li data-id="echargeblockactive" class="${spell.echargeblockactive ? 'active' : ''}">Don't use rage below <input type="text" name="echargeblock" value="${spell.echargeblock}" data-numberonly="true" /> CbR charges</li>`);
-        if (spell.alwaysheads !== undefined)
-            ul.append(`<li data-id="alwaysheads" data-group="coinflip" class="${spell.alwaysheads ? 'active' : ''}">Always heads</li>`);
-        if (spell.alwaystails !== undefined)
-            ul.append(`<li data-id="alwaystails" data-group="coinflip" class="${spell.alwaystails ? 'active' : ''}">Always tails</li>`);
+
         if (spell.zerkerpriority !== undefined)
             ul.append(`<li data-id="zerkerpriority" class="${spell.zerkerpriority ? 'active' : ''}">Prioritize over Bloodrage</li>`);
         if (typeof spell.swingtimer !== 'undefined') 
             ul.append(`<li data-id="swingtimeractive" class="${spell.swingtimeractive ? 'active' : ''}">Don't use if swing timer longer than <input type="text" name="swingtimer" value="${spell.swingtimer}" data-numberonly="true" /> secs</li>`);
 
-
         details.css('visibility','hidden');
         details.append(ul);
         let height = details.height();
-        
+
         setTimeout(function() {
             details.css('visibility','');
             el.css('margin-bottom', height + 30 + 'px');
             details.css('top', el.position().top + 74 + 'px');
             details.addClass('visible');
         }, 200);
-        
-        
     },
 
     hideSpellDetails(el) {
@@ -591,7 +558,7 @@ SIM.SETTINGS = {
         let details = view.rotation.find('.details');
         details.removeClass('visible');
         el.css('margin-bottom', '0px');
-        
+
     },
 
     toggleArticle: function(label) {
@@ -610,7 +577,7 @@ SIM.SETTINGS = {
         view.buffs.append('<label class="active">Buffs</label>');
         let storage = JSON.parse(localStorage[mode + (globalThis.profileid || 0)]);
         let level = parseInt(storage.level);
-        let worldbuffs = '', consumes = '', other = '', armor = '', stances = '', skills = '';
+        let worldbuffs = '', consumes = '', other = '', armor = '', stances = '';
         for (let buff of buffs) {
 
             // level restrictions
@@ -632,7 +599,6 @@ SIM.SETTINGS = {
             }
 
             let tooltip = buff.id;
-            if (buff.id == 413479) tooltip = 412513;
 
             let wh = buff.spellid ? 'spell' : 'item';
             let active = buff.active ? 'active' : '';
@@ -647,10 +613,9 @@ SIM.SETTINGS = {
             else if (buff.consume) consumes += html;
             else if (buff.other) other += html;
             else if (buff.armor || buff.improvedexposed) armor += html;
-            else if (buff.skill) skills += html;
             else view.buffs.append(html);
         }
-        
+
         view.buffs.append('<div class="label">Consumables</div>');
         view.buffs.append(consumes);
         view.buffs.append('<div class="label">World Buffs</div>');
@@ -661,8 +626,6 @@ SIM.SETTINGS = {
         view.buffs.append(armor);
         view.buffs.append('<div class="label">Default Stance</div>');
         view.buffs.append(stances);
-        view.buffs.append('<div class="label">Skill Specialization</div>');
-        view.buffs.append(skills);
         SIM.UI.updateSession();
         SIM.UI.updateSidebar();
     },
