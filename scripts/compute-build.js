@@ -18,7 +18,7 @@ const entrypoints = {
 const scripts = mode => entrypoints[mode].map(name => `js/${name}.min.js`);
 
 function buildBundle(root) {
-    const dist = path.join(root, 'dist');
+    const dist = path.resolve(root, 'dist');
     const entries = new Map();
     function visit(directory, relative = '') {
         for (const entry of fs.readdirSync(directory, {withFileTypes: true})) {
@@ -43,24 +43,19 @@ function buildBundle(root) {
         for (const file of list) if (!entries.has(file)) throw new Error(`Missing bundle entrypoint: ${file}`);
     }
     const buildId = digest(JSON.stringify(descriptor));
-    const bundleRoot = path.join(dist, 'bundles', buildId);
-    for (const [name, bytes] of entries) {
-        const destination = path.join(bundleRoot, name);
-        fs.mkdirSync(path.dirname(destination), {recursive: true});
-        if (fs.existsSync(destination)) {
-            if (!fs.readFileSync(destination).equals(bytes)) throw new Error(`Immutable bundle was modified: ${destination}`);
-        } else fs.writeFileSync(destination, bytes, {flag: 'wx'});
-    }
     const manifest = {buildId, ...descriptor};
     const json = JSON.stringify(manifest) + '\n';
-    const bundleManifest = path.join(bundleRoot, 'manifest.json');
-    if (fs.existsSync(bundleManifest)) {
-        if (fs.readFileSync(bundleManifest, 'utf8') !== json) throw new Error(`Immutable manifest was modified: ${bundleManifest}`);
-    } else fs.writeFileSync(bundleManifest, json, {flag: 'wx'});
-    // Publish the pointer only after the complete immutable snapshot exists.
+    // The manifest addresses dist/js and dist/wasm directly. Publish it only after
+    // all assets have been read and validated; no second asset tree is needed.
     const pending = path.join(dist, 'compute-build.json.tmp');
     fs.writeFileSync(pending, json);
     fs.renameSync(pending, path.join(dist, 'compute-build.json'));
+    // Remove duplicate output (including interrupted staging) from older builds.
+    for (const name of ['bundle', 'bundle.tmp']) {
+        const legacy = path.resolve(dist, name);
+        if (path.dirname(legacy) !== dist) throw new Error(`Invalid legacy bundle path: ${legacy}`);
+        fs.rmSync(legacy, {recursive: true, force: true});
+    }
     return manifest;
 }
 

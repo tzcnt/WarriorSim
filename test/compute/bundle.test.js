@@ -46,6 +46,8 @@ function load(root, supplied, mode = 'sod', options = {}) {
                 assert.equal(options.cache, 'no-store');
                 return {ok: true, json: async () => supplied || JSON.parse(fs.readFileSync(path.join(root, 'dist/compute-build.json')))};
             }
+            assert.equal(options.cache, 'no-cache', 'assets at mutable URLs must be revalidated');
+            assert.match(new URL(url).pathname, /^\/subpath\/dist\/(js|wasm)\//);
             const file = path.join(root, new URL(url).pathname.replace('/subpath/', ''));
             return {ok: fs.existsSync(file), arrayBuffer: async () => Uint8Array.from(fs.readFileSync(file)).buffer};
         },
@@ -100,7 +102,41 @@ test('bundle identity covers code, WASM, content, and entrypoint order but exclu
     fs.appendFileSync(path.join(root, 'dist/wasm/warriorsim.wasm'), Buffer.from([0]));
     const third = buildBundle(root);
     assert.notEqual(third.buildId, second.buildId);
-    assert.ok(fs.existsSync(path.join(root, 'dist/bundles', first.buildId, 'wasm/warriorsim.wasm')));
+    // Repeated builds publish only the manifest alongside the canonical assets.
+    assert.deepEqual(fs.readdirSync(path.join(root, 'dist')).sort(), ['compute-build.json', 'css', 'js', 'wasm']);
+    assert.equal(JSON.parse(fs.readFileSync(path.join(root, 'dist/compute-build.json'))).buildId, third.buildId);
+});
+
+test('rebuilding removes legacy bundle copies without rewriting the canonical assets', t => {
+    const root = workspace(t);
+    const first = buildBundle(root);
+    for (const name of ['bundle', 'bundle.tmp']) {
+        const stale = path.join(root, 'dist', name, 'js/data/leftover.min.js');
+        fs.mkdirSync(path.dirname(stale), {recursive: true});
+        fs.writeFileSync(stale, '// from an older release');
+    }
+    const times = first.files.map(file => fs.statSync(path.join(root, 'dist', file.path)).mtimeMs);
+    const second = buildBundle(root);
+    assert.equal(second.buildId, first.buildId, 'editing the bundle copy cannot change bundle identity');
+    assert.deepEqual(fs.readdirSync(path.join(root, 'dist')).sort(), ['compute-build.json', 'js', 'wasm']);
+    for (const [index, file] of second.files.entries()) {
+        const asset = path.join(root, 'dist', file.path);
+        assert.equal(createHash('sha256').update(fs.readFileSync(asset)).digest('hex'), file.sha256);
+        assert.equal(fs.statSync(asset).mtimeMs, times[index], 'manifest generation leaves assets in place');
+    }
+});
+
+test('a missing entrypoint or WASM asset leaves the published manifest untouched', t => {
+    const root = workspace(t);
+    buildBundle(root);
+    const manifest = fs.readFileSync(path.join(root, 'dist/compute-build.json'));
+    for (const name of ['js/ui.min.js', 'wasm/warriorsim.wasm']) {
+        const asset = path.join(root, 'dist', name);
+        fs.renameSync(asset, asset + '.offline');
+        assert.throws(() => buildBundle(root), /Missing bundle entrypoint|ENOENT/);
+        assert.deepEqual(fs.readFileSync(path.join(root, 'dist/compute-build.json')), manifest);
+        fs.renameSync(asset + '.offline', asset);
+    }
 });
 
 test('each tab preloads the whole bundle once and executes real local/shared WASM after server assets disappear', {timeout: 20000}, async t => {
@@ -125,9 +161,10 @@ test('each tab preloads the whole bundle once and executes real local/shared WAS
         assert.equal(new Set(tab.requested).size, tab.fetchCount());
         assert.deepEqual(tab.loaded.map(script => script.src), Array.from(manifest.entrypoints[tab.context.mode], file => bundle.url(file)));
     }
-    // Rename inside this test's temporary workspace to simulate deployment cleanup.
-    const oldDirectory = path.join(root, 'dist/bundles', first.buildId);
-    fs.renameSync(oldDirectory, oldDirectory + '.offline');
+    // The second build already replaced the old tab's assets in place; now take the directory
+    // away entirely, inside this test's temporary workspace, to simulate deployment cleanup.
+    const directory = path.join(root, 'dist');
+    fs.renameSync(directory, directory + '.offline');
     for (const sod of [true, false]) {
         const {context} = await workerContext(oldTab, oldBundle, 'js/sim-worker.min.js');
         vm.runInContext(`importRules(${sod})`, context);
@@ -210,13 +247,19 @@ test('tampered manifests and changed asset bytes cannot start a mixed bundle', a
     const tampered = load(root, wrong);
     await assert.rejects(tampered.context.simulatorReady, /hash mismatch/);
     assert.equal(tampered.loaded.length, 0);
-    const file = path.join(root, 'dist/bundles', manifest.buildId, 'wasm/warriorsim.wasm');
+    const file = path.join(root, 'dist/wasm/warriorsim.wasm');
+    const original = fs.readFileSync(file);
     fs.appendFileSync(file, Buffer.from([0]));
     const corrupted = load(root);
     await assert.rejects(corrupted.context.simulatorReady, /Bundle asset hash mismatch/);
     assert.equal(corrupted.loaded.length, 0, 'even UI scripts wait for the WASM integrity check');
     assert.equal(corrupted.blobs.size, 0);
-    assert.throws(() => buildBundle(root), /Immutable bundle was modified/);
+    // Per-file verification is what catches this, so serving one mutable directory keeps
+    // a client that reads a half-replaced bundle from ever executing mixed code.
+    fs.writeFileSync(file, original);
+    assert.equal(buildBundle(root).buildId, manifest.buildId);
+    const repaired = load(root);
+    await assert.ok(await repaired.context.simulatorReady, 'restoring the matching bytes repairs startup');
 });
 
 test('missing assets block startup and script-load failures release retained bytes', async t => {
@@ -225,7 +268,7 @@ test('missing assets block startup and script-load failures release retained byt
     const failed = load(root, undefined, 'sod', {scriptFailure: true});
     await assert.rejects(failed.context.simulatorReady, /Could not load bundle asset/);
     assert.equal(failed.blobs.size, 0);
-    const unused = path.join(root, 'dist/bundles', manifest.buildId, 'js/data/gear.min.js');
+    const unused = path.join(root, 'dist/js/data/gear.min.js');
     fs.renameSync(unused, unused + '.offline');
     const missing = load(root);
     await assert.rejects(missing.context.simulatorReady, /Could not preload bundle asset/);

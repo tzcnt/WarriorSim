@@ -1,4 +1,6 @@
 const MAX_WORKERS = Math.max(1, Math.min(64, navigator.hardwareConcurrency || 4));
+// Hardware is only the ceiling; the sharing panel's slider picks the count actually used.
+function simulationThreads() { return sharedComputeLocalThreads() || MAX_WORKERS; }
 const WEB_DB_URL = "https://classic.wowhead.com/";
 
 var SIM = SIM || {}
@@ -11,7 +13,7 @@ SIM.UI = {
         view.events();
         view.initLog();
         view.loadSession();
-        initSharedCompute();
+        initSharedCompute(MAX_WORKERS);
         view.loadWeapons("mainhand");
         view.updateSidebar();
         view.main.find('.js-import').hide();
@@ -368,7 +370,7 @@ SIM.UI = {
             return;
         }
         var sim = createSimulationRunner(
-            MAX_WORKERS,
+            simulationThreads(),
             (report) => {
                 // Finished
                 // Technically, it is incorrect to calculate mean DPS like this, since fight duration varies...
@@ -458,7 +460,7 @@ SIM.UI = {
                 sim: Simulation.getConfig(),
             };
             var sim = createSimulationRunner(
-                MAX_WORKERS,
+                simulationThreads(),
                 (report) => {
                     const mean = report.totaldmg / report.totalduration;
 
@@ -479,14 +481,12 @@ SIM.UI = {
     simulateRows: function(rows) {
         var view = this;
         var btn = view.sidebar.find('.js-table');
+        const batch = new SimulationRowBatch(simulationThreads());
 
         const simulations = rows.map((row) => {
             const simulation = { perc: 0 };
             simulation.run = () => {
-                // Remove from pending simulations
-                pending.delete(simulation);
-
-                // Start simulation
+                // Queue the row; the batch assigns separate rows locally and remotely.
                 this.simulateRow($(row), (perc) => {
                     // Update row percentage
                     simulation.perc = perc;
@@ -504,26 +504,15 @@ SIM.UI = {
                     } else {
                         btn.css('background', 'linear-gradient(to right, transparent ' + total + '%, #444 ' + total + '%)');
                     }
-
-                    // If simulation complete, run another pending simulation (if any)
-                    if (simulation.perc == 100) {
-                        const next = pending.values().next().value;
-                        if (next) {
-                            next.run();
-                        }
-                    }
-                });
+                }, batch);
             };
             return simulation;
         });
-        const pending = new Set(simulations);
-
-        for (const simulation of simulations.slice(0, MAX_WORKERS)) {
-            simulation.run();
-        }
+        for (const simulation of simulations) simulation.run();
+        batch.start();
     },
 
-    simulateRow: function(tr, updateFn) {
+    simulateRow: function(tr, updateFn, batch) {
         var view = this;
         var dps = tr.find('td:last-of-type');
         var type = tr.parents('table').data('type');
@@ -556,7 +545,6 @@ SIM.UI = {
                 });
 
                 tr.removeClass('waiting');
-                updateFn(100);
                 sim = null;
 
                 if (isench) {
@@ -569,6 +557,7 @@ SIM.UI = {
                         if (i.id == item)
                             i.dps = calc.toFixed(2);
                 }
+                updateFn(100);
             },
             (iteration, report) => {
                 // Update
@@ -583,6 +572,7 @@ SIM.UI = {
                 view.endLoading();
                 console.error(error);
             },
+            batch,
         );
         sim.start(params);
     },
@@ -1066,7 +1056,8 @@ SIM.UI = {
 
     loadWeapons: function (type, editmode) {
         var view = this;
-        var filter = view.main.find('nav li.active .filter .active').text();
+        // Trimmed: the markup wraps each label on its own line, so .text() carries indentation.
+        var filter = view.main.find('nav li.active .filter .active').text().trim();
 
         let storage = JSON.parse(localStorage[mode + (globalThis.profileid || 0)]);
         let level = parseInt(storage.level);
