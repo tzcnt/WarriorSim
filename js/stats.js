@@ -110,6 +110,14 @@ SIM.STATS = {
             }
         }
 
+        const sweeping = sim.player.auras.sweepingstrikes;
+        if (sweeping && sweeping.totaldmg) {
+            view.dmgdata.labels.push(sweeping.name);
+            data.push((sweeping.totaldmg / sim.totalduration).toFixed(2));
+            colors.push(view.colors[counter % view.colors.length]);
+            counter++;
+        }
+
         // DW
         if (sim.player.auras.deepwounds && sim.player.auras.deepwounds.totaldmg) {
             view.dmgdata.labels.push(sim.player.auras.deepwounds.name);
@@ -316,6 +324,13 @@ SIM.STATS = {
             let dps = (totaldmg / sim.totalduration).toFixed(2);
             let dpr = ((totaldmg / i) / (sim.player.auras.rend.cost * (total / i))).toFixed(2);
             html += `<tr><td>${sim.player.auras.rend.name}</td><td></td><td></td><td>${(data[1] / total * 100).toFixed(2)}</td><td>${(data[2] / total * 100).toFixed(2)}</td><td></td><td>${(total / i).toFixed(2)}</td><td>${dpr}</td><td>${dps}</td></tr>`;
+        }
+
+        const sweeping = sim.player.auras.sweepingstrikes;
+        if (sweeping && sweeping.totaldmg) {
+            const dps = (sweeping.totaldmg / sim.totalduration).toFixed(2);
+            // Copies have no separate attack outcomes or recorded activation count.
+            html += `<tr><td>${sweeping.name}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>${dps}</td></tr>`;
         }
 
         html += '</tbody></table>';
