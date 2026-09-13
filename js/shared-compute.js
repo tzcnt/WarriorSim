@@ -1,26 +1,114 @@
 /* global ComputeProtocol, Player, SimulationWorkerParallel */
+// Enough round-trip samples to follow a changing connection within a couple of seconds of
+// donation at typical thread counts, and enough chunk samples to shrug off a single
+// garbage-collection pause.
+const RTT_SAMPLES = 32;
+const CHUNK_SAMPLES = 16;
+const MAX_SAMPLE_MS = 60000;
+// Headroom over the measured need, the relative change worth telling the coordinator
+// about, and the shortest interval between two such updates.
+const QUEUE_MARGIN = 1.25;
+const QUEUE_HYSTERESIS = 0.25;
+const QUEUE_PUBLISH_INTERVAL_MS = 1000;
+
+function median(values) {
+    const sorted = [...values].sort((a, b) => a - b);
+    const middle = Math.floor(sorted.length / 2);
+    return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
 class SharedComputeClient {
-    constructor({url, buildId, slots, workerUrl = './dist/js/compute-worker.min.js', onStatus = () => {}}) {
+    constructor({url, buildId, slots, workerUrl = './dist/js/compute-worker.min.js',
+        onStatus = () => {}, onThreads = () => {},
+        now = () => (typeof performance === 'object' ? performance.now() : Date.now())}) {
         if (!ComputeProtocol.buildId(buildId)) throw new Error('Invalid bundle hash');
         this.url = url;
         Object.defineProperty(this, 'buildId', {value: buildId, enumerable: true});
         this.workerUrl = workerUrl;
+        this.now = now;
         this.slots = slots;
+        // What the coordinator was last told; the difference is what publish must send.
+        this.publishedSlots = slots;
         this.onStatus = onStatus;
+        this.onThreads = onThreads;
+        // Capacity of everyone else in the pool as of the last handshake, excluding our own
+        // shared threads; undefined until a coordinator reports one.
+        this.networkThreads = undefined;
         this.enabled = false;
         this.uiBusy = false;
         this.runs = new Map();
+        this.batches = new Set();
+        this.leaseMs = ComputeProtocol.leaseMs;
+        // Round trips to the coordinator and our own compute time per chunk, most recent last.
+        this.samples = {rtt: [], chunk: []};
+        // Leases the coordinator may keep with us: the ones running plus enough waiting
+        // behind them that no worker idles for a round trip between chunks.
+        this.queue = this.queueFor(slots);
+        this.publishedQueue = this.queue;
+        this.lastQueuePublish = -Infinity;
+        // Specs received on this connection, by job ID; later leases name the job only.
+        this.jobs = new Map();
+        // Lease ID to donation. Those without a worker wait in order in `waiting`.
         this.donations = new Map();
+        this.waiting = [];
+        this.active = 0;
         this.idleWorkers = [];
         this.cancelled = [];
         this.retryDelay = 1000;
     }
     busy() { return this.uiBusy || this.runs.size > 0; }
     status() {
+        this.onThreads({enabled: this.enabled, shared: this.slots, network: this.networkThreads});
+        const waiting = this.waiting.length ? ` · ${this.waiting.length} queued` : '';
         this.onStatus(!this.enabled ? 'Off · local simulations only' :
             !this.ready ? 'Connecting · simulations run locally' :
             this.busy() ? 'Accelerating your simulations' :
-            this.donations.size ? `Sharing compute · ${this.donations.size} workers` : 'Ready to share');
+            this.donations.size ? `Sharing compute · ${this.active} workers${waiting}` : 'Ready to share');
+    }
+    setSlots(slots) {
+        this.slots = slots;
+        this.queue = this.queueFor(slots);
+        this.status();
+    }
+    sample(kind, value) {
+        if (!(value >= 0 && value <= MAX_SAMPLE_MS)) return;
+        const values = this.samples[kind];
+        values.push(value);
+        if (values.length > (kind === 'rtt' ? RTT_SAMPLES : CHUNK_SAMPLES)) values.shift();
+    }
+    // Little's law: a lease turns around in one round trip plus one chunk, so a worker stays
+    // busy when its share of the outstanding leases covers that turnaround. Round trips are
+    // taken at their minimum, since every sample is a true round trip plus some slack; chunk
+    // times at their median. Start at the cap so fast workers do not exhaust the first
+    // window before their first speed measurement can make a round trip.
+    queueFor(slots) {
+        const cap = Math.min(4 * slots, ComputeProtocol.maxQueue);
+        if (!this.samples.rtt.length || !this.samples.chunk.length) return cap;
+        const rtt = Math.min(...this.samples.rtt), chunk = Math.max(1, median(this.samples.chunk));
+        let queue = Math.ceil(slots * (1 + rtt / chunk) * QUEUE_MARGIN);
+        // Waiting work must still start well inside its lease when chunks are slow here.
+        queue = Math.min(queue, Math.floor(slots * this.leaseMs / (2 * chunk)));
+        return Math.max(slots, Math.min(cap, queue));
+    }
+    adapt() {
+        this.queue = this.queueFor(this.slots);
+        // Judged against what the coordinator knows, so an update held back by the interval
+        // still goes out once it has passed.
+        if (Math.abs(this.queue - this.publishedQueue) < Math.max(1, this.publishedQueue * QUEUE_HYSTERESIS) ||
+            this.now() - this.lastQueuePublish < QUEUE_PUBLISH_INTERVAL_MS) return;
+        this.publish();
+    }
+    publish() {
+        if (!this.ready) return;
+        this.queue = this.queueFor(this.slots);
+        if (this.slots === this.publishedSlots && this.queue === this.publishedQueue) return;
+        // The pool figure counts peers only, so our own change never moves it.
+        if (this.send({type: 'mode', busy: this.busy(), slots: this.slots, queue: this.queue})) {
+            this.publishedSlots = this.slots;
+            this.publishedQueue = this.queue;
+            this.lastQueuePublish = this.now();
+        }
+        this.status();
     }
     setEnabled(enabled) {
         this.enabled = !!enabled;
@@ -49,8 +137,12 @@ class SharedComputeClient {
         const timeout = setTimeout(() => { if (!this.ready && this.socket === socket) socket.close(); }, 5000);
         socket.onopen = () => {
             if (this.socket !== socket) return;
+            this.publishedSlots = this.slots;
+            this.queue = this.queueFor(this.slots);
+            this.publishedQueue = this.queue;
+            this.helloAt = this.now();
             socket.send(JSON.stringify({type: 'hello', protocol: ComputeProtocol.version,
-                buildId: this.buildId, share: true, slots: this.slots, busy: this.busy()}));
+                buildId: this.buildId, share: true, slots: this.slots, queue: this.queue, busy: this.busy()}));
         };
         socket.onmessage = event => {
             if (this.socket !== socket || !this.enabled) return;
@@ -66,8 +158,10 @@ class SharedComputeClient {
             this.socket = undefined;
             this.ready = false;
             this.stopDonations();
+            this.jobs.clear();
             this.cancelled = [];
             for (const run of this.runs.values()) run.detach();
+            for (const batch of this.batches) batch.pump();
             this.status();
             if (event.code === 1008) this.onStatus('Sharing unavailable · reload to check for updates');
             else this.reconnect();
@@ -84,19 +178,28 @@ class SharedComputeClient {
         this.socket = undefined;
         this.ready = false;
         if (socket) socket.close();
+        this.jobs.clear();
         this.cancelled = [];
         for (const run of this.runs.values()) run.detach();
+        for (const batch of this.batches) batch.pump();
     }
     receive(message) {
         if (message.buildId !== this.buildId) throw new Error('Message belongs to a different bundle');
         if (message.type === 'ready') {
             if (message.buildId !== this.buildId || message.protocol !== ComputeProtocol.version) throw new Error('Incompatible coordinator');
             this.ready = true;
+            // Optional: a coordinator that predates pool reporting simply leaves the row unknown.
+            this.networkThreads = ComputeProtocol.uint(message.networkThreads, 0) ? message.networkThreads : undefined;
+            this.leaseMs = ComputeProtocol.uint(message.leaseMs, 1, 60000) ? message.leaseMs : ComputeProtocol.leaseMs;
+            this.sample('rtt', this.now() - this.helloAt);
             this.retryDelay = 1000;
             for (const run of this.runs.values()) run.attach();
+            for (const batch of this.batches) batch.pump();
         } else if (message.type === 'work') this.donate(message);
         else if (message.type === 'cancel') this.stopDonation(message.leaseId);
-        else {
+        else if (message.type === 'forget') {
+            if (ComputeProtocol.id(message.jobId)) this.jobs.delete(message.jobId);
+        } else {
             const run = this.runs.get(message.jobId);
             if (run) run.receive(message);
         }
@@ -106,11 +209,22 @@ class SharedComputeClient {
         const donation = this.donations.get(id);
         if (!donation) return;
         clearTimeout(donation.timeout);
-        donation.worker.terminate(); // Synchronous reclamation, even inside a native runBatch.
         this.donations.delete(id);
+        if (donation.worker) {
+            donation.worker.terminate(); // Synchronous reclamation, even inside a native runBatch.
+            this.active--;
+            this.pump();
+        } else {
+            // Waiting work stops for free: no worker started it.
+            const at = this.waiting.indexOf(id);
+            if (at >= 0) this.waiting.splice(at, 1);
+        }
     }
     stopDonations() {
-        for (const id of this.donations.keys()) {
+        // Drop the waiting leases first, so terminating a worker does not start another one.
+        const ids = [...this.donations.keys()];
+        this.waiting = [];
+        for (const id of ids) {
             this.cancelled.push(id);
             this.stopDonation(id);
         }
@@ -132,6 +246,9 @@ class SharedComputeClient {
         if (run.done) return;
         this.stopDonations();
         this.runs.set(run.job.id, run);
+        if (run.localOnly && this.runs.size === 1 && this.send({type: 'mode', busy: true})) {
+            this.cancelled = []; // The mode change reclaims all donations at the coordinator.
+        }
         run.attach();
         this.status();
     }
@@ -142,32 +259,66 @@ class SharedComputeClient {
         this.status();
     }
     donate(message) {
-        const reject = () => this.send({type: 'abandon', cancelled: [message.leaseId]});
-        if (!this.enabled || this.busy() || this.donations.size >= this.slots) { reject(); return; }
-        const job = message.job;
-        if (!ComputeProtocol.id(message.leaseId) || !ComputeProtocol.job(job) ||
-            !ComputeProtocol.uint(message.index, 0, Math.ceil(job.iterations / job.chunkSize) - 1) ||
-            !ComputeProtocol.uint(message.leaseMs, 1, 60000)) throw new Error('Invalid work');
-        const worker = this.idleWorkers.pop() || new Worker(this.workerUrl);
+        if (!ComputeProtocol.id(message.leaseId) || !ComputeProtocol.id(message.jobId) ||
+            !ComputeProtocol.uint(message.leaseMs, 1, 60000) ||
+            (message.echo !== undefined && !ComputeProtocol.uint(message.echo, 0, Number.MAX_SAFE_INTEGER))) {
+            throw new Error('Invalid work');
+        }
+        // Our own send time for an earlier result, echoed back: one round trip plus whatever
+        // the coordinator waited before granting this lease.
+        if (message.echo !== undefined) this.sample('rtt', this.now() - message.echo);
+        let job = this.jobs.get(message.jobId);
+        if (message.job !== undefined) {
+            if (!ComputeProtocol.job(message.job) || message.job.id !== message.jobId) throw new Error('Invalid work');
+            job = message.job;
+            this.jobs.set(job.id, job);
+        }
+        if (!job) throw new Error('Unknown job');
+        if (!ComputeProtocol.uint(message.index, 0, Math.ceil(job.iterations / job.chunkSize) - 1)) throw new Error('Invalid work');
         const id = message.leaseId;
-        const donation = {worker};
+        const reject = () => this.send({type: 'abandon', cancelled: [id]});
+        if (!this.enabled || this.busy() || this.donations.size >= Math.min(4 * this.slots, ComputeProtocol.maxQueue)) {
+            reject();
+            return;
+        }
+        const donation = {job, index: message.index, reject};
         this.donations.set(id, donation);
         donation.timeout = setTimeout(() => { this.stopDonation(id); reject(); this.status(); }, message.leaseMs);
-        const fail = () => { this.stopDonation(id); reject(); this.status(); };
-        worker.onerror = fail;
-        worker.onmessage = ({data}) => {
-            if (this.donations.get(id) !== donation || data.id !== id) return;
-            if (data.error || !ComputeProtocol.report(data.report, job, message.index)) { fail(); return; }
-            clearTimeout(donation.timeout);
-            this.donations.delete(id);
-            this.idleWorkers.push(worker);
-            this.send({type: 'result', leaseId: id, report: data.report});
-            this.status();
-        };
-        try {
-            worker.postMessage({id, jobId: job.id, spec: job.spec, seed: job.seed,
-                fullReport: job.fullReport, ...ComputeProtocol.range(job, message.index)});
-        } catch (_) { fail(); }
+        this.waiting.push(id);
+        this.pump();
+    }
+    pump() {
+        while (this.waiting.length && this.active < this.slots) {
+            const id = this.waiting.shift();
+            const donation = this.donations.get(id);
+            const worker = this.idleWorkers.pop() || new Worker(this.workerUrl);
+            donation.worker = worker;
+            donation.started = this.now();
+            this.active++;
+            const fail = () => { this.stopDonation(id); donation.reject(); this.status(); };
+            worker.onerror = fail;
+            worker.onmessage = ({data}) => {
+                if (this.donations.get(id) !== donation || data.id !== id) return;
+                if (data.error || !ComputeProtocol.report(data.report, donation.job, donation.index)) { fail(); return; }
+                this.finish(id, data.report);
+            };
+            try {
+                worker.postMessage({id, jobId: donation.job.id, spec: donation.job.spec, seed: donation.job.seed,
+                    fullReport: donation.job.fullReport, ...ComputeProtocol.range(donation.job, donation.index)});
+            } catch (_) { fail(); }
+        }
+    }
+    finish(id, report) {
+        const donation = this.donations.get(id);
+        clearTimeout(donation.timeout);
+        this.donations.delete(id);
+        this.active--;
+        this.idleWorkers.push(donation.worker);
+        this.sample('chunk', this.now() - donation.started);
+        this.send({type: 'result', leaseId: id, report, sent: Math.floor(this.now())});
+        this.pump();
+        this.adapt();
+        this.status();
     }
 }
 
@@ -198,12 +349,15 @@ class SharedSimulation {
         this.workers = [];
         this.done = false;
     }
-    start(params) {
+    start(params, {localOnly = false, remoteOnly = false} = {}) {
         this.started = Date.now();
+        this.localOnly = localOnly;
         this.client.stopDonations();
         try {
             params = normalizeSimulationWorkerParams(params);
             const spec = resolveSharedSimulationSpec(params);
+            // Fine-grained chunks balance individual simulations and the final batch tail.
+            // Helpers buffer chunks to cover network latency.
             const chunkSize = Math.min(ComputeProtocol.maxChunkSize,
                 Math.max(128, Math.ceil(params.sim.iterations / (this.threads * 16))));
             const id = Array.from(crypto.getRandomValues(new Uint32Array(4)), value => value.toString(16).padStart(8, '0')).join('');
@@ -215,16 +369,28 @@ class SharedSimulation {
                 this.client.stopDonations();
                 this.client.runs.set(this.job.id, this);
                 this.client.send({type: 'mode', busy: true});
+                this.fallbackParams = params;
+                if (!remoteOnly) this.startLocal();
+                return;
+            }
+            this.states = Array(Math.ceil(this.job.iterations / chunkSize)).fill('pending');
+            this.remoteLeases = new Map();
+            if (!remoteOnly) this.startLocal();
+            this.client.add(this);
+        } catch (error) { this.fail(error); }
+    }
+    startLocal() {
+        if (this.done || this.workers.length || this.fallback) return;
+        try {
+            if (this.fallbackParams) {
                 this.fallback = new SimulationWorkerParallel(this.threads, report => {
                     this.done = true;
                     this.cleanup();
                     this.finished(report);
                 }, this.update, error => this.fail(error));
-                this.fallback.start(params);
+                this.fallback.start(this.fallbackParams);
                 return;
             }
-            this.states = Array(Math.ceil(this.job.iterations / chunkSize)).fill('pending');
-            this.remoteLeases = new Map();
             for (let i = 0; i < Math.min(this.threads, this.states.length); i++) {
                 const slot = {worker: new Worker(this.client.workerUrl)};
                 this.workers.push(slot);
@@ -240,11 +406,10 @@ class SharedSimulation {
                 this.fill(slot);
                 if (this.done) return;
             }
-            this.client.add(this);
         } catch (error) { this.fail(error); }
     }
     attach() {
-        if (this.done || this.fallback || this.attached || !this.client.enabled || !this.client.ready) return;
+        if (this.done || this.localOnly || this.fallbackParams || this.attached || !this.client.enabled || !this.client.ready) return;
         const claimed = [];
         this.states.forEach((state, index) => { if (state === 'local' || state === 'done') claimed.push(index); });
         this.attached = this.client.send({type: 'submit', job: this.job, claimed,
@@ -323,31 +488,198 @@ class SharedSimulation {
     }
 }
 
+// A row batch assigns different rows locally and remotely while fresh rows remain.
+// Remote rows start without reserving a local chunk and replenish independently of local
+// progress. Once all rows are assigned, either side can help finish the remaining chunks.
+class SimulationRowBatch {
+    constructor(threads, client = sharedCompute) {
+        this.threads = Math.max(1, Math.trunc(threads) || 1);
+        this.client = client;
+        this.pending = [];
+        this.local = new Set();
+        this.remote = new Set();
+    }
+    createRunner(finished, update, error) {
+        return {start: params => { this.pending.push({params, finished, update, error}); }};
+    }
+    start() {
+        if (this.client) this.client.batches.add(this);
+        this.pump();
+    }
+    launch(task, remote) {
+        (remote ? this.remote : this.local).add(task);
+        const finished = report => {
+            if (this.stopped) return;
+            this.local.delete(task);
+            this.remote.delete(task);
+            // Refill before rendering results, which can sort a large gear table.
+            this.pump();
+            task.finished(report);
+        };
+        const error = value => {
+            if (this.stopped) return;
+            this.cancel();
+            task.error(value);
+        };
+        try {
+            task.run = this.client ? new SharedSimulation(this.client, 1, finished, task.update, error) :
+                new SimulationWorkerParallel(1, finished, task.update, error);
+            task.run.start(task.params, {localOnly: !remote, remoteOnly: remote});
+        } catch (value) { error(value); }
+    }
+    pump() {
+        if (this.pumping || this.stopped) return;
+        this.pumping = true;
+        try {
+            const sharedJobs = () => [...this.client.runs.values()].filter(run =>
+                !run.localOnly && !run.fallbackParams && !run.done).length;
+            // Fresh rows always go to free local workers before the lookahead is extended.
+            while (!this.stopped && this.pending.length && this.local.size < this.threads) {
+                this.launch(this.pending.shift(), false);
+            }
+            if (this.client && this.client.enabled && this.client.ready) {
+                // The coordinator accepts at most 64 jobs per owner. Local-only rows do
+                // not consume that budget; include other shared runs on this connection.
+                while (!this.stopped && this.pending.length && this.remote.size < 64 && sharedJobs() < 64) {
+                    this.launch(this.pending.shift(), true);
+                }
+            }
+            if (!this.pending.length) {
+                // At the tail, expose unfinished local rows too, as the submission budget
+                // becomes available. A fast helper must not wait for the last local rows.
+                if (this.client) for (const task of this.local) {
+                    if (this.stopped || sharedJobs() >= 64) break;
+                    if (!task.run.localOnly || task.run.fallbackParams) continue;
+                    task.run.localOnly = false;
+                    task.run.attach();
+                }
+                // Only the tail steals: newest remote rows are most likely still waiting.
+                for (const task of [...this.remote].reverse()) {
+                    if (this.stopped || this.local.size >= this.threads) break;
+                    if (this.local.has(task)) continue;
+                    this.local.add(task);
+                    task.run.startLocal();
+                }
+            }
+            if (!this.pending.length && !this.local.size && !this.remote.size && this.client) {
+                this.client.batches.delete(this);
+            }
+        } finally { this.pumping = false; }
+    }
+    cancel() {
+        if (this.stopped) return;
+        this.stopped = true;
+        this.pending = [];
+        for (const task of new Set([...this.local, ...this.remote])) if (task.run) task.run.cancel();
+        this.local.clear();
+        this.remote.clear();
+        if (this.client) this.client.batches.delete(this);
+    }
+}
+
 let sharedCompute;
-function createSimulationRunner(threads, finished, update, error) {
+function createSimulationRunner(threads, finished, update, error, batch) {
+    if (batch) return batch.createRunner(finished, update, error);
     return sharedCompute && sharedCompute.enabled ?
         new SharedSimulation(sharedCompute, threads, finished, update, error) :
         new SimulationWorkerParallel(threads, finished, update, error);
 }
 
-function initSharedCompute() {
+const SHARE_COMPUTE_KEY = 'warriorsim.shareCompute';
+const LOCAL_THREADS_KEY = 'warriorsim.localThreads';
+const SHARED_THREADS_KEY = 'warriorsim.sharedThreads';
+const SHARED_THREADS_MIN = 2;
+const SHARED_THREADS_RATIO = 0.45;
+
+// Sharing is opt-out: only an explicit refusal from an earlier visit turns it off,
+// so a first visit and unreadable storage both keep the default on.
+function readShareComputePreference() {
+    try { return localStorage.getItem(SHARE_COMPUTE_KEY) !== 'false'; } catch (_) { return true; }
+}
+function readStoredThreads(key, min, max, fallback) {
+    let stored;
+    try { stored = parseInt(localStorage.getItem(key), 10); } catch (_) { /* Private browsing. */ }
+    // Always re-clamp: a stored count can come from a machine with a different CPU.
+    return Math.min(max, Math.max(min, Number.isFinite(stored) ? stored : fallback));
+}
+function storeThreads(key, value) {
+    try { localStorage.setItem(key, String(value)); } catch (_) { /* Optional persistence. */ }
+}
+
+let localThreadCount = 0;
+// The simulator's own worker count once the panel has resolved its stored preference.
+// Zero beforehand, so callers fall back to their own hardware default.
+function sharedComputeLocalThreads() { return localThreadCount; }
+
+function initSharedCompute(maxThreads) {
     const toggle = document.getElementById('share-compute');
     const status = document.getElementById('share-compute-status');
     if (!toggle || !status) return;
+    const localMax = ComputeProtocol.uint(maxThreads, 1) ? maxThreads : (navigator.hardwareConcurrency || 4);
+    // A single-core machine still has to satisfy the shared floor, so clamp rather than invert.
+    const sharedMax = Math.max(SHARED_THREADS_MIN, localMax);
+    localThreadCount = readStoredThreads(LOCAL_THREADS_KEY, 1, localMax, localMax);
+    const sharedThreads = readStoredThreads(SHARED_THREADS_KEY, SHARED_THREADS_MIN, sharedMax,
+        Math.floor(sharedMax * SHARED_THREADS_RATIO));
+    const entries = {};
+    for (const entry of document.querySelectorAll('.share-compute-entry[data-threads]')) {
+        entries[entry.dataset.threads] = entry;
+    }
+    const count = value => ComputeProtocol.uint(value, 0) ? `${value} thread${value === 1 ? '' : 's'}` : '—';
+    const write = (name, value, active) => {
+        const entry = entries[name];
+        if (!entry) return;
+        const cell = entry.querySelector('.share-compute-row').lastElementChild;
+        const text = count(value);
+        if (cell.textContent !== text) cell.textContent = text;
+        entry.classList.toggle('share-compute-idle', !active);
+    };
+    const slider = (name, min, max, value) => {
+        const input = entries[name] && entries[name].querySelector('input[type="range"]');
+        if (!input) return undefined;
+        input.min = String(min);
+        input.max = String(max);
+        input.value = String(value);
+        input.disabled = min >= max; // Nothing to choose between.
+        return input;
+    };
     const url = new URL('./compute', location.href);
     url.protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
     sharedCompute = new SharedComputeClient({url: url.href, buildId: globalThis.SIMULATOR_BUNDLE.buildId,
         workerUrl: globalThis.SIMULATOR_BUNDLE.workerUrl('js/compute-worker.min.js'),
-        slots: Math.max(1, Math.min(4, Math.floor((navigator.hardwareConcurrency || 4) / 2))),
-        onStatus: value => { status.textContent = value; }});
-    try { toggle.checked = localStorage.getItem('warriorsim.shareCompute') === 'true'; } catch (_) { /* Private browsing. */ }
+        slots: sharedThreads,
+        onStatus: value => { status.textContent = value; },
+        onThreads: ({enabled, shared, network}) => {
+            // Local workers run every simulation, shared or not, so that row never dims.
+            write('local', localThreadCount, true);
+            write('network', network, enabled);
+            write('shared', shared, enabled);
+        }});
+    const localSlider = slider('local', 1, localMax, localThreadCount);
+    if (localSlider) {
+        localSlider.addEventListener('input', () => {
+            localThreadCount = Number(localSlider.value);
+            sharedCompute.status();
+        });
+        localSlider.addEventListener('change', () => storeThreads(LOCAL_THREADS_KEY, localThreadCount));
+    }
+    const sharedSlider = slider('shared', SHARED_THREADS_MIN, sharedMax, sharedThreads);
+    if (sharedSlider) {
+        // Track the drag locally, but only tell the coordinator once it settles.
+        sharedSlider.addEventListener('input', () => sharedCompute.setSlots(Number(sharedSlider.value)));
+        sharedSlider.addEventListener('change', () => {
+            storeThreads(SHARED_THREADS_KEY, sharedCompute.slots);
+            sharedCompute.publish();
+        });
+    }
+    toggle.checked = readShareComputePreference();
     toggle.addEventListener('change', () => {
-        try { localStorage.setItem('warriorsim.shareCompute', String(toggle.checked)); } catch (_) { /* Optional persistence. */ }
+        try { localStorage.setItem(SHARE_COMPUTE_KEY, String(toggle.checked)); } catch (_) { /* Optional persistence. */ }
         sharedCompute.setEnabled(toggle.checked);
     });
-    // Existing tabs must honor revocation too; opting in stays an explicit action per tab.
+    // Existing tabs must honor revocation too; opting back in stays an explicit action per tab.
     window.addEventListener('storage', event => {
-        if (event.key === 'warriorsim.shareCompute' && event.newValue !== 'true') {
+        if (event.key === SHARE_COMPUTE_KEY && event.newValue === 'false') {
             toggle.checked = false;
             sharedCompute.setEnabled(false);
         }
@@ -357,7 +689,7 @@ function initSharedCompute() {
     });
     window.addEventListener('pageshow', event => {
         if (event.persisted) {
-            try { toggle.checked = localStorage.getItem('warriorsim.shareCompute') === 'true'; } catch (_) { toggle.checked = false; }
+            toggle.checked = readShareComputePreference();
             sharedCompute.setEnabled(toggle.checked);
         }
     });
