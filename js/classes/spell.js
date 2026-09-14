@@ -797,10 +797,14 @@ class OldDeepWounds extends Aura {
             let max = this.player.mh.maxdmg + this.player.mh.bonusdmg+ this.player.stats.moddmgdone + (this.player.stats.ap / 14) * this.player.mh.speed;
             let dmg = (min + max) / 2;
             dmg *= this.player.mh.modifier * this.player.stats.dmgmod * this.player.talents.deepwounds * this.player.bleedmod;
+            // Forever bleed ticks can crit with Impale, without triggering crit procs.
+            const crit = this.player.mode === 'forever' && rng10k() <
+                (this.player.crit + this.player.mh.crit + (this.player.mh.racialcrit || 0)) * 100;
+            if (crit) dmg *= 1 + (1 + this.player.talents.abilitiescrit);
             this.idmg += dmg / 4;
             this.totaldmg += dmg / 4;
 
-            /* start-log */ if (this.player.logging) this.player.log(`${this.name} tick for ${(dmg / 4).toFixed(2)}`); /* end-log */
+            /* start-log */ if (this.player.logging) this.player.log(`${this.name} tick for ${(dmg / 4).toFixed(2)}${crit ? ' (CRIT)' : ''}`); /* end-log */
 
             this.nexttick += 3000;
         }
@@ -1669,10 +1673,15 @@ class Rend extends Aura {
     }
     step() {
         while (step >= this.nexttick && this.stacks) {
-            this.idmg += this.tickdmg;
-            this.totaldmg += this.tickdmg;
+            // Roll each tick independently; Rend's application still cannot crit.
+            const crit = this.player.mode === 'forever' && rng10k() <
+                (this.player.crit + this.player.mh.crit + (this.player.mh.racialcrit || 0)) * 100;
+            let dmg = this.tickdmg;
+            if (crit) dmg *= 1 + (1 + this.player.talents.abilitiescrit);
+            this.idmg += dmg;
+            this.totaldmg += dmg;
 
-            /* start-log */ if (this.player.logging) this.player.log(`${this.name} tick for ${this.tickdmg.toFixed(2)}`); /* end-log */
+            /* start-log */ if (this.player.logging) this.player.log(`${this.name} tick for ${dmg.toFixed(2)}${crit ? ' (CRIT)' : ''}`); /* end-log */
 
             this.nexttick += 3000;
             this.stacks--;

@@ -402,9 +402,13 @@ bool auraStep(PlayerState& player, AuraState& aura) {
                 player.stats.number("moddmgdone"_prop) + player.stats.number("ap"_prop) / 14.0 * player.mh.speed;
             const double max = player.mh.maxdmg + player.mh.bonusdmg +
                 player.stats.number("moddmgdone"_prop) + player.stats.number("ap"_prop) / 14.0 * player.mh.speed;
-            const double damage = (min + max) / 2.0 * player.mh.modifier *
+            double damage = (min + max) / 2.0 * player.mh.modifier *
                 player.stats.number("dmgmod"_prop, 1) * player.talents.number("deepwounds"_prop) *
                 player.prop("bleedmod"_prop, 1) / 4.0;
+            // Forever bleed crits benefit from Impale without triggering crit procs.
+            if (player.foreverMode && player.rng.tenK() <
+                (player.crit + player.mh.crit + player.mh.props.number("racialcrit"_prop)) * 100)
+                damage *= 1 + (1 + player.talents.number("abilitiescrit"_prop));
             aura.idmg += damage;
             aura.totaldmg += damage;
             aura.nexttick += 3000;
@@ -416,7 +420,11 @@ bool auraStep(PlayerState& player, AuraState& aura) {
         return true;
     case AuraKind::Rend:
         while (player.step >= aura.nexttick && aura.stacks) {
-            const double damage = aura.props.number("tickdmg"_prop);
+            double damage = aura.props.number("tickdmg"_prop);
+            // The application cannot crit; each tick rolls independently.
+            if (player.foreverMode && player.rng.tenK() <
+                (player.crit + player.mh.crit + player.mh.props.number("racialcrit"_prop)) * 100)
+                damage *= 1 + (1 + player.talents.number("abilitiescrit"_prop));
             aura.idmg += damage;
             aura.totaldmg += damage;
             aura.nexttick += 3000;
