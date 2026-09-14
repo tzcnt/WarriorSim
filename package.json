@@ -19,6 +19,7 @@
     "compute:server": "node server/index.js",
     "compute:headless": "node compute/index.js",
     "optimize:talents": "node scripts/optimize-forever-talents.js",
+    "optimize:abilities": "node scripts/optimize-forever-abilities.js",
     "compute:dev": "node server/dev.js",
     "compute:build": "node scripts/compute-build.js",
     "dist": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-dist.ps1",

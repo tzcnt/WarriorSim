@@ -22,8 +22,11 @@ The original search below used Death Wish at the pull. The default and permanent
 preset subsequently moved it to 31 seconds before fight end; the recorded
 measurements are historical and have not been rerun for that timing change.
 
-Each row below uses 1,000,000 fights with a fresh validation seed, separate from
-the seeds used to choose the build. The same seed was used across candidates.
+Each row below uses 1,000,000 fights. A later audit found that the original
+stage seeds shifted the same random sequence by one fight, so these historical
+measurements are not independent validation of the selected build. The scripts
+now reserve disjoint fight-seed blocks for screening, refinement, and validation;
+see the [subsequent ability search](DUAL_WIELD_ABILITIES.md).
 
 | Configuration | Mean fight DPS (95% interval half-width) | UI DPS (damage / duration) |
 | --- | ---: | ---: |
@@ -108,7 +111,7 @@ Forever mechanics and documented model limitations still apply.
 [The recorded result](dual-wield-talents-result.json) includes the build identity,
 original at-pull configuration, talent keys, raw validation aggregates,
 seeds, and compute counts. The permanent preset in `js/data/presets_forever.js`
-preserves that configuration with the corrected end-relative Death Wish timing.
+has since received race, buff, and [ability changes](DUAL_WIELD_ABILITIES.md).
 
 ## Running the script
 

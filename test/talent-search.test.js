@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const {domain, valid, neighbors, enumerate, key, startingBuilds, statistics} = require('../scripts/lib/talent-search');
 const {options} = require('../scripts/optimize-forever-talents');
+const {searchSeeds} = require('../scripts/lib/search-seeds');
 
 function fixture() {
     const context = vm.createContext({});
@@ -77,6 +78,24 @@ test('statistics distinguish per-fight mean from duration-weighted UI DPS', () =
     assert.equal(result.dps, 17.5);
     assert.equal(result.se, 5);
     assert.equal(result.ci95, 9.8);
+});
+
+test('search stages do not reuse fights under the simulator seed mapping', () => {
+    const engine = vm.createContext({});
+    vm.runInContext(fs.readFileSync('js/classes/simulation.js', 'utf8'), engine);
+    for (const base of [0, 20260915, 0xffffffff]) {
+        const seen = new Set();
+        for (const seed of searchSeeds(base)) {
+            // Check both edges of each reserved block, including uint32 wrap.
+            for (let i = 0; i < 5000; i++) for (const offset of [i, 0x10000000 - 5000 + i]) {
+                const fight = engine.simulationIterationSeed(seed, offset);
+                assert.equal(seen.has(fight), false, 'a validation fight overlaps another stage');
+                seen.add(fight);
+            }
+        }
+    }
+    assert.throws(() => searchSeeds(0, 17), /Invalid seed partition/);
+    assert.throws(() => searchSeeds(0, 5, 0x10000001), /Invalid seed partition/);
 });
 
 test('CLI rejects malformed configuration before launching a browser', () => {

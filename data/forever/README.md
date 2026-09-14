@@ -66,6 +66,10 @@ new replacement talents. The default dual-wield build is 13/38/0. Its talents we
 [production talent search](DUAL_WIELD_TALENTS.md). Classic saves and talent
 effects retain their existing behavior.
 
+The permanent Night Elf preset's priorities and Hamstring settings were selected
+by a subsequent [production ability search](DUAL_WIELD_ABILITIES.md), reproducible
+with `npm run optimize:abilities`.
+
 ## Combat rules
 
 JavaScript character/spell construction and the WASM combat engine implement the

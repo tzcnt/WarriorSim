@@ -1,12 +1,12 @@
 // Permanent profile snapshots, independent of saved profiles and future default changes.
-// Source: data/forever/dual-wield-talents-result.json, with Death Wish moved to 31s before fight end.
+// Talents: data/forever/dual-wield-talents-result.json. Abilities: data/forever/DUAL_WIELD_ABILITIES.md.
 var profilePresets = [
     {
         "id": "forever-dual-wield-fury",
-        "description": "Level 60 Human · Death Wish 31s before fight end",
+        "description": "Speculative - P1 - Level 60 Night Elf",
         "profile": {
             "level": "60",
-            "race": "Human",
+            "race": "Night Elf",
             "simulations": "50000",
             "timesecsmin": "50",
             "timesecsmax": "60",
@@ -170,9 +170,25 @@ var profilePresets = [
                 "13452",
                 "12451",
                 "12460",
-                "2458"
+                "2458",
+                "11597",
+                "9907",
+                "11717"
             ],
             "rotation": [
+                {
+                    "id": "11551",
+                    "name": "Battle Shout",
+                    "classname": "BattleShout",
+                    "iconname": "Ability_Warrior_BattleShout",
+                    "value1": 185,
+                    "value2": 1,
+                    "minlevel": 52,
+                    "aq": false,
+                    "buff": true,
+                    "aura": true,
+                    "active": true
+                },
                 {
                     "id": "11567",
                     "name": "Heroic Strike",
@@ -212,9 +228,9 @@ var profilePresets = [
                     "duration": 15,
                     "durationactive": false,
                     "globals": "1",
-                    "globalsactive": false,
+                    "globalsactive": true,
                     "active": true,
-                    "priority": 6,
+                    "priority": 1,
                     "expriority": 0
                 },
                 {
@@ -230,6 +246,21 @@ var profilePresets = [
                     "minlevel": 60,
                     "active": true,
                     "priority": 6,
+                    "expriority": 1
+                },
+                {
+                    "id": "7373",
+                    "name": "Hamstring",
+                    "classname": "Hamstring",
+                    "iconname": "ability_shockwave",
+                    "minrage": 10,
+                    "minrageactive": true,
+                    "duration": 15,
+                    "durationactive": false,
+                    "minlevel": 54,
+                    "value1": 45,
+                    "active": true,
+                    "priority": 2,
                     "expriority": 0
                 },
                 {
@@ -248,18 +279,6 @@ var profilePresets = [
                     "minrageactive": false,
                     "minrage": 50,
                     "starttime": "52"
-                },
-                {
-                    "id": 18499,
-                    "name": "Berserker Rage",
-                    "classname": "BerserkerRage",
-                    "iconname": "spell_nature_ancestralguardian",
-                    "minlevel": 32,
-                    "maxrage": 25,
-                    "maxrageactive": false,
-                    "active": true,
-                    "buff": true,
-                    "zerkerpriority": false
                 },
                 {
                     "id": "1680",

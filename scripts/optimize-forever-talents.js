@@ -8,6 +8,7 @@ const path = require('node:path');
 const {parseArgs} = require('node:util');
 const {createHash} = require('node:crypto');
 const {sum, key, domain, neighbors, enumerate, startingBuilds, statistics} = require('./lib/talent-search');
+const {searchSeeds} = require('./lib/search-seeds');
 
 function options(args) {
     const {values} = parseArgs({args, options: {
@@ -29,6 +30,7 @@ function options(args) {
         if (!Number.isSafeInteger(values[name]) || values[name] < (name === 'seed' ? 0 : 1)) throw new Error(`Invalid --${name}`);
     }
     if (values.seed > 0xffffffff || values.threads > 64 || values.iterations < 2 || values.refine < 2 || values.final < 2) throw new Error('Invalid seed, threads, or sample size');
+    searchSeeds(values.seed, 3, Math.max(values.iterations, values.refine, values.final));
     if (!['local', 'exhaustive'].includes(values.method)) throw new Error('--method must be local or exhaustive');
     if (values.method === 'exhaustive' && !values.bounds) throw new Error('Exhaustive search requires explicit --bounds JSON');
     const url = new URL(values.site);
@@ -114,7 +116,7 @@ occur on the site. --resume requires identical production build and configuratio
         const space = domain(snapshot.trees, Number(snapshot.player.level) - 9, bounds);
         if (extraStart && !space.accepts(extraStart.winner.ranks)) throw new Error('--start-from winner violates the search constraints');
         const baseline = snapshot.trees.map(tree => tree.t.map(t => t.c));
-        const identity = createHash('sha256').update(JSON.stringify({format: 3, buildId: snapshot.buildId,
+        const identity = createHash('sha256').update(JSON.stringify({format: 4, buildId: snapshot.buildId,
             profile: snapshot.profile, player: snapshot.player, sim: snapshot.sim, bounds, extraStart: extraStart?.winner.ranks,
             settings: {...opt, out: undefined, resume: undefined, bounds: undefined}})).digest('hex');
         const checkpoint = path.join(opt.out, 'checkpoint.json');
@@ -248,7 +250,7 @@ occur on the site. --resume requires identical production build and configuratio
             }
         }
         state.stages.push({stage: 'screen', candidates: allBuilds.size});
-        const refineSeed = (opt.seed + 0x9e3779b9) >>> 0;
+        const [, refineSeed, finalSeed] = searchSeeds(opt.seed, 3, Math.max(opt.iterations, opt.refine, opt.final));
         // Keep statistically plausible contenders, not just the highest noisy screen
         // scores. Always recheck local-search seeds, including a prior known winner.
         const shortlist = ranked.filter((row, index) => index < Math.max(opt.finalists * 4, 32) ||
@@ -266,7 +268,6 @@ occur on the site. --resume requires identical production build and configuratio
         }
         if (!localOptimum) throw new Error('Refinement round limit reached; increase --rounds');
         const selected = refined[0];
-        const finalSeed = (opt.seed + 0x3c6ef372) >>> 0;
         // Selection is frozen before independent validation; validation does not re-pick a noisy winner.
         const finalBuilds = [baseline, ...refined.slice(0, opt.finalists).map(row =>
             ({ranks: row.ranks, enabledTalents: row.enabledTalents}))];
