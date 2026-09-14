@@ -4,11 +4,14 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const http = require('node:http');
+const vm = require('node:vm');
 const {once} = require('node:events');
 const {chromium} = require('playwright');
 
 const root = path.resolve(__dirname, '..');
-const recorded = JSON.parse(fs.readFileSync(path.join(root, 'data/forever/dual-wield-talents-result.json')));
+const presetContext = {};
+vm.runInNewContext(fs.readFileSync(path.join(root, 'js/data/presets_forever.js'), 'utf8'), presetContext);
+const expected = JSON.parse(JSON.stringify(presetContext.profilePresets[0].profile));
 
 test('Forever preset creates independent profiles, survives edits/deletion/reload, and stays out of Classic', async t => {
     const types = {'.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json',
@@ -42,6 +45,10 @@ test('Forever preset creates independent profiles, survives edits/deletion/reloa
         await page.waitForFunction(() => typeof SIM !== 'undefined' && SIM.PROFILES?.container?.find('.profile').length > 0);
     };
     await ready('forever');
+    assert.deepEqual(await page.evaluate(() => {
+        const spell = JSON.parse(localStorage.forever0).rotation.find(s => s.id == 11597);
+        return {active: spell.active, priority: spell.priority, globalsactive: spell.globalsactive, globals: spell.globals};
+    }), {active: false, priority: 10, globalsactive: true, globals: '1'});
     const preset = page.locator('.presets [data-preset="forever-dual-wield-fury"]');
     assert.equal(await preset.count(), 1);
 
@@ -77,8 +84,20 @@ test('Forever preset creates independent profiles, survives edits/deletion/reloa
     assert.equal(loaded.selected, 1);
     assert.equal(loaded.personal, personal, 'using a preset does not overwrite the personal profile');
     assert.equal(loaded.saved.profilename, 'Dual Wield Fury (13/38/0)');
-    assert.deepEqual(loaded.ranks, recorded.winner.talents);
-    assert.deepEqual(loaded.config, recorded.configuration.player);
+    assert.deepEqual(loaded.ranks, expected.talents.map(tree => tree.t));
+    assert.equal(loaded.config.race, expected.race);
+    assert.equal(loaded.config.level, expected.level);
+    assert.equal(loaded.config.maxhealth, expected.maxhealth);
+    assert.equal(loaded.config.target.creaturetype, expected.targetcreaturetype);
+    for (const id of expected.buffs.filter(Boolean)) assert(loaded.saved.buffs.some(value => String(value) === String(id)));
+    assert.deepEqual(loaded.saved.rotation.filter(spell => spell.active).map(spell => String(spell.id)).sort(),
+        expected.rotation.filter(spell => spell.active !== false).map(spell => String(spell.id)).sort());
+    for (const spell of expected.rotation) {
+        const saved = loaded.saved.rotation.find(value => String(value.id) === String(spell.id));
+        for (const option of ['priority', 'expriority', 'minrage', 'minrageactive', 'maxrage', 'maxrageactive', 'globals', 'globalsactive']) {
+            if (spell[option] !== undefined) assert.equal(String(saved[option]), String(spell[option]), `${spell.name}: ${option}`);
+        }
+    }
     assert.equal(loaded.valid, true);
     const dw = loaded.saved.rotation.find(s => s.name === 'Death Wish');
     assert.equal(dw.timetostartactive, false);
@@ -94,9 +113,52 @@ test('Forever preset creates independent profiles, survives edits/deletion/reloa
     assert.deepEqual(scheduled, [19000, 29000, 0], 'Death Wish follows fight end and clamps short fights to the pull');
     assert.equal(loaded.saved.rotation.find(s => s.name === 'Mighty Rage Potion').timetostartactive, false);
     assert.equal(loaded.saved.rotation.find(s => s.name === 'Spearing Strike').active, false);
-    for (const [slot, id] of Object.entries(recorded.configuration.profile.gear)) {
+    const sunder = loaded.saved.rotation.find(s => s.name === 'Sunder Armor');
+    assert.equal(sunder.active, false);
+    assert.equal(sunder.priority, 10);
+    assert.equal(sunder.globalsactive, true);
+    assert.equal(String(sunder.globals), '1');
+    const enabledSunder = await page.evaluate(() => {
+        const spell = spells.find(s => s.id == 11597);
+        const before = new Player(undefined, undefined, undefined, Player.getConfig());
+        spell.active = true;
+        try {
+            const after = new Player(undefined, undefined, undefined, Player.getConfig());
+            return {disabled: !before.spells.sunderarmor, first: after.normalspells[0].name,
+                globals: after.spells.sunderarmor.globals};
+        } finally { spell.active = false; }
+    });
+    assert.deepEqual(enabledSunder, {disabled: true, first: 'Sunder Armor', globals: '1'});
+    for (const [slot, id] of Object.entries(expected.gear)) {
         assert.deepEqual(loaded.saved.gear[slot].filter(item => item.selected).map(item => item.id), [id]);
     }
+
+    // Loading the Night Elf preset must include the same racial as selecting
+    // Night Elf in the race dropdown; otherwise a round trip silently gains DPS.
+    const racialRoundTrip = await page.evaluate(() => {
+        const snapshot = () => {
+            setSimulationSeed(0);
+            return new Player(undefined, undefined, undefined, Player.getConfig())
+                .serializeSimulationSpec(Simulation.getConfig());
+        };
+        const initial = snapshot();
+        $('select[name="race"]').val('Human').trigger('change');
+        const human = snapshot();
+        $('select[name="race"]').val('Night Elf').trigger('change');
+        const returned = snapshot();
+        const aura = new Player(undefined, undefined, undefined, Player.getConfig()).auras.eluneslight;
+        const schedule = [50000, 60000, 10000].map(duration => {
+            aura.prep(duration, 0);
+            return aura.usestep;
+        });
+        return {initial, human, returned, schedule};
+    });
+    assert.deepEqual(racialRoundTrip.initial, racialRoundTrip.returned,
+        'Night Elf → Human → Night Elf must restore the exact preset simulation inputs');
+    assert.ok(racialRoundTrip.initial.player.auras.some(aura => aura.key === 'eluneslight'));
+    assert.ok(!racialRoundTrip.human.player.auras.some(aura => aura.key === 'eluneslight'));
+    assert.deepEqual(racialRoundTrip.schedule, [34000, 44000, 0],
+        'Elune’s Light uses the default 16 seconds before fight end, clamped to the pull');
 
     await page.evaluate(() => {
         const saved = JSON.parse(localStorage.forever1);
@@ -106,7 +168,7 @@ test('Forever preset creates independent profiles, survives edits/deletion/reloa
     });
     await open();
     await preset.click();
-    assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.forever2).talents.map(tree => tree.t)), recorded.winner.talents);
+    assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.forever2).talents.map(tree => tree.t)), expected.talents.map(tree => tree.t));
     assert.equal(await page.evaluate(() => JSON.stringify(profilePresets[0])), loaded.template);
     await open();
     await page.locator('.profile[data-index="2"] .delete-profile').click();
@@ -118,7 +180,17 @@ test('Forever preset creates independent profiles, survives edits/deletion/reloa
     await open();
     await preset.click();
     assert.equal(await page.evaluate(() => globalThis.profileid), 2);
-    assert.deepEqual(await page.evaluate(() => talentSelection().map(tree => tree.t)), recorded.winner.talents);
+    assert.deepEqual(await page.evaluate(() => talentSelection().map(tree => tree.t)), expected.talents.map(tree => tree.t));
+
+    const legacyActive = await page.evaluate(() => {
+        const profile = structuredClone(profilePresets[0].profile);
+        profile.rotation = profile.rotation.filter(spell => spell.active !== false);
+        for (const spell of profile.rotation) delete spell.active;
+        SIM.PROFILES.importProfile(JSON.stringify(profile), 3);
+        return JSON.parse(localStorage.forever3).rotation.filter(spell => spell.active).map(spell => String(spell.id)).sort();
+    });
+    assert.deepEqual(legacyActive, expected.rotation.filter(spell => spell.active !== false).map(spell => String(spell.id)).sort(),
+        'legacy imports without active flags still enable their listed abilities');
 
     await ready('classic');
     assert.equal(await page.locator('[data-preset]').count(), 0);
