@@ -38,6 +38,43 @@
         gap: 20px;
     }
 
+    .presets {
+        width: 100%;
+        padding: 0 20px 28px;
+        box-sizing: border-box;
+
+        h2 {
+            margin: 0 0 12px;
+            text-align: center;
+            font-size: 18px;
+        }
+    }
+
+    .preset-list {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .preset {
+        max-width: 100%;
+        padding: 14px 20px;
+        border: 1px solid #525252;
+        border-radius: 10px;
+        background: #181818;
+        color: white;
+        font: inherit;
+        text-align: center;
+        cursor: pointer;
+
+        strong, span { display: block; }
+        span { margin-top: 6px; font-size: 12px; }
+        .preset-action { color: $icon-border; font-weight: bold; }
+
+        &:hover, &:focus-visible { border-color: $icon-border; }
+    }
+
     .profile {
         position: relative;
         width: 260px;

@@ -14,6 +14,7 @@ SIM.PROFILES = {
         view.body = $('body');
         view.section = view.body.find('section.profiles');
         view.container = view.section.find('.container');
+        view.presets = view.section.find('.presets');
         view.close = view.section.find('.btn-close');
         view.modal = view.body.find('.import-modal');
         view.textarea = view.modal.find('textarea');
@@ -45,6 +46,11 @@ SIM.PROFILES = {
             e.preventDefault();
             view.modal.addClass('open');
             view.textarea.focus();
+        });
+
+        view.presets.on('click', '[data-preset]', function (e) {
+            e.preventDefault();
+            view.loadPreset($(this).attr('data-preset'));
         });
 
         view.container.on('click','.delete-profile', function (e) {
@@ -157,9 +163,40 @@ SIM.PROFILES = {
         profile.siblings().removeClass('active');
     },
 
+    loadPreset(id) {
+        const preset = typeof profilePresets === 'undefined' ? undefined : profilePresets.find(p => p.id === id);
+        if (!preset) return;
+        // Presets create independent saved profiles; they never replace a player's build.
+        let index = 0;
+        while (index <= 40 && localStorage[mode + index]) index++;
+        if (index > 40) {
+            SIM.UI.addAlert('All profile slots are in use. Delete a profile to add another.');
+            return;
+        }
+        if (this.importProfile(JSON.stringify(preset.profile), index, session)) {
+            this.loadProfile(this.container.find(`.profile[data-index="${index}"]`));
+            this.close.click();
+        }
+    },
+
+    buildPresets() {
+        const presets = typeof profilePresets === 'undefined' ? [] : profilePresets;
+        this.presets.empty().prop('hidden', !presets.length);
+        if (!presets.length) return;
+        this.presets.append($('<h2>').text('Presets'));
+        const list = $('<div class="preset-list">').appendTo(this.presets);
+        for (const preset of presets) {
+            const button = $('<button type="button" class="preset">').attr('data-preset', preset.id).appendTo(list);
+            $('<strong>').text(preset.profile.profilename).appendTo(button);
+            $('<span>').text(preset.description).appendTo(button);
+            $('<span class="preset-action">').text('Use preset').appendTo(button);
+        }
+    },
+
     buildProfiles() {
         const view = this;
         view.container.empty();
+        view.buildPresets();
 
         let profileid = globalThis.profileid || 0;
         let i = 0;
@@ -307,12 +344,13 @@ SIM.PROFILES = {
         SIM.UI.addAlert('Profile copied to clipboard');
     },
 
-    importProfile(str, index) {
+    importProfile(str, index, baseSession) {
         const view = this;
         try {
             let minified = str[0] == '{' ? JSON.parse(str.trim()) : JSON.parse(atob(str.trim()));
-            if (!localStorage[mode + (globalThis.profileid || 0)]) SIM.UI.loadSession();
-            let storage = JSON.parse(localStorage[mode + (globalThis.profileid || 0)]);
+            if (!baseSession && !localStorage[mode + (globalThis.profileid || 0)]) SIM.UI.loadSession();
+            // A preset starts from clean defaults, not the current player's settings.
+            let storage = JSON.parse(baseSession ? JSON.stringify(baseSession) : localStorage[mode + (globalThis.profileid || 0)]);
 
             for(let prop in minified) {
                 if (typeof minified[prop] == 'string') storage[prop] = minified[prop];
@@ -331,7 +369,7 @@ SIM.PROFILES = {
             }
             for (let spell of spells) {
                 if (!storage.rotation.filter(s => s.id == spell.id).length) {
-                    storage.rotation.push(spell);
+                    storage.rotation.push({...spell});
                 }
             }
             for (let spell of storage.rotation) {
@@ -382,9 +420,11 @@ SIM.PROFILES = {
             localStorage[modei] = JSON.stringify(storage);
             view.buildProfiles();
             SIM.UI.addAlert(storage.profilename + ' imported');
+            return true;
 
         } catch (e) {
             SIM.UI.addAlert('Invalid profile');
+            return false;
         }
     }
 

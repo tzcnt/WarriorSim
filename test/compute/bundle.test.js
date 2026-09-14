@@ -222,7 +222,7 @@ test('Classic Era and WoW Forever preserve their page script order and await the
         classic: [...prefix, 'data/gear', 'data/enchants', 'data/levelstats', 'data/buffs', 'data/spells', 'data/talents', 'data/talents_forever', 'talent-rules', 'racial-rules',
             'data/session', 'globals', 'settings', 'profiles', 'stats', 'ui'],
         forever: [...prefix, 'data/gear_forever', 'data/enchants', 'data/levelstats', 'data/buffs', 'data/spells',
-            'data/talents', 'data/talents_forever', 'talent-rules', 'racial-rules', 'data/session_forever', 'globals', 'settings', 'profiles', 'stats', 'ui'],
+            'data/talents', 'data/talents_forever', 'talent-rules', 'racial-rules', 'data/session_forever', 'data/presets_forever', 'globals', 'settings', 'profiles', 'stats', 'ui'],
     };
     assert.deepEqual(Object.keys(entrypoints), ['classic', 'forever']);
     for (const [mode, page] of [['classic', 'classic.html'], ['forever', 'index.html']]) {

@@ -12,7 +12,7 @@ const entrypoints = {
     classic: [...common, 'data/gear', 'data/enchants', 'data/levelstats', 'data/buffs', 'data/spells',
         'data/talents', 'data/talents_forever', 'talent-rules', 'racial-rules', 'data/session', 'globals', 'settings', 'profiles', 'stats', 'ui'],
     forever: [...common, 'data/gear_forever', 'data/enchants', 'data/levelstats', 'data/buffs', 'data/spells',
-        'data/talents', 'data/talents_forever', 'talent-rules', 'racial-rules', 'data/session_forever', 'globals', 'settings', 'profiles', 'stats', 'ui'],
+        'data/talents', 'data/talents_forever', 'talent-rules', 'racial-rules', 'data/session_forever', 'data/presets_forever', 'globals', 'settings', 'profiles', 'stats', 'ui'],
 };
 const scripts = mode => entrypoints[mode].map(name => `js/${name}.min.js`);
 

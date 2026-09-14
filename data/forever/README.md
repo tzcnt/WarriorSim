@@ -62,8 +62,9 @@ invented game IDs. New actions use stable local string IDs.
 Saved Forever builds use `talentSchema: 'forever-v1'` and talent keys. Legacy
 positional builds are mapped by talent name, with removed/replaced points refunded,
 rank limits clamped, and invalid descendants refunded. No points are guessed for
-new replacement talents. The default build is a legal 17/34/0 build using the new
-tree. Classic saves and talent effects retain their existing behavior.
+new replacement talents. The default dual-wield build is 13/38/0. Its talents were selected by a
+[production talent search](DUAL_WIELD_TALENTS.md). Classic saves and talent
+effects retain their existing behavior.
 
 ## Combat rules
 

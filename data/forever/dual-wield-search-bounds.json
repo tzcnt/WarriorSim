@@ -1,0 +1,38 @@
+{
+  "fury:booming-voice": 0,
+  "fury:cruelty": 5,
+  "fury:iron-will": 0,
+  "fury:unbridled-wrath": 5,
+  "fury:improved-cleave": [
+    2,
+    3
+  ],
+  "fury:piercing-howl": 0,
+  "fury:blood-craze": 0,
+  "fury:boundless-rage": [
+    2,
+    3
+  ],
+  "fury:dual-wield-specialization": 5,
+  "fury:raging-blows": 1,
+  "fury:enrage": 5,
+  "fury:improved-execute": [
+    0,
+    2
+  ],
+  "fury:precision": [
+    0,
+    3
+  ],
+  "fury:death-wish": 1,
+  "fury:improved-intercept": 0,
+  "fury:improved-berserker-rage": [
+    0,
+    2
+  ],
+  "fury:flurry": 5,
+  "fury:bloodthirst": 1,
+  "arms:two-handed-weapon-specialization": 0,
+  "arms:deflection": 0,
+  "arms:improved-charge": 0
+}

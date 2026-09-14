@@ -1,0 +1,387 @@
+// Permanent profile snapshots, independent of saved profiles and future default changes.
+// Source: data/forever/dual-wield-talents-result.json, with Death Wish moved to 31s before fight end.
+var profilePresets = [
+    {
+        "id": "forever-dual-wield-fury",
+        "description": "Level 60 Human · Death Wish 31s before fight end",
+        "profile": {
+            "level": "60",
+            "race": "Human",
+            "simulations": "50000",
+            "timesecsmin": "50",
+            "timesecsmax": "60",
+            "executeperc": "20",
+            "startrage": "0",
+            "targetlevel": "63",
+            "targetbasearmor": "3731",
+            "targetcustomarmor": "",
+            "targetresistance": "24",
+            "targetspeed": "0",
+            "targetmindmg": "200",
+            "targetmaxdmg": "300",
+            "adjacent": "0",
+            "aqbooks": "No",
+            "reactionmin": "200",
+            "reactionmax": "300",
+            "batching": "10",
+            "bleedreduction": "1",
+            "spellqueueing": "Yes",
+            "talentSchema": "forever-v1",
+            "maxhealth": "",
+            "targetcreaturetype": "Other",
+            "profilename": "Dual Wield Fury (13/38/0)",
+            "talents": [
+                {
+                    "n": "Arms",
+                    "t": [
+                        2,
+                        0,
+                        3,
+                        0,
+                        3,
+                        2,
+                        0,
+                        3,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "keys": [
+                        "arms:improved-heroic-strike",
+                        "arms:deflection",
+                        "arms:improved-rend",
+                        "arms:improved-charge",
+                        "arms:improved-tactical-mastery",
+                        "arms:improved-overpower",
+                        "arms:anger-management",
+                        "arms:deep-wounds",
+                        "arms:spearing-strike",
+                        "arms:two-handed-weapon-specialization",
+                        "arms:impale",
+                        "arms:bloodthrill",
+                        "arms:sweeping-strikes",
+                        "arms:weaponmaster",
+                        "arms:improved-slam",
+                        "arms:improved-hamstring",
+                        "arms:mortal-strike"
+                    ]
+                },
+                {
+                    "n": "Fury",
+                    "t": [
+                        0,
+                        5,
+                        0,
+                        5,
+                        3,
+                        0,
+                        0,
+                        2,
+                        5,
+                        1,
+                        5,
+                        2,
+                        3,
+                        1,
+                        0,
+                        0,
+                        5,
+                        1
+                    ],
+                    "keys": [
+                        "fury:booming-voice",
+                        "fury:cruelty",
+                        "fury:iron-will",
+                        "fury:unbridled-wrath",
+                        "fury:improved-cleave",
+                        "fury:piercing-howl",
+                        "fury:blood-craze",
+                        "fury:boundless-rage",
+                        "fury:dual-wield-specialization",
+                        "fury:raging-blows",
+                        "fury:enrage",
+                        "fury:improved-execute",
+                        "fury:precision",
+                        "fury:death-wish",
+                        "fury:improved-intercept",
+                        "fury:improved-berserker-rage",
+                        "fury:flurry",
+                        "fury:bloodthirst"
+                    ]
+                },
+                {
+                    "n": "Protection",
+                    "t": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "keys": [
+                        "protection:shield-specialization",
+                        "protection:anticipation",
+                        "protection:improved-bloodrage",
+                        "protection:toughness",
+                        "protection:improved-thunder-clap",
+                        "protection:last-stand",
+                        "protection:master-of-defense",
+                        "protection:improved-revenge",
+                        "protection:defiance",
+                        "protection:improved-sunder-armor",
+                        "protection:improved-disarm",
+                        "protection:vanguard",
+                        "protection:improved-shield-wall",
+                        "protection:concussion-blow",
+                        "protection:improved-shield-bash",
+                        "protection:vitality",
+                        "protection:focused-rage",
+                        "protection:bastion",
+                        "protection:shield-slam"
+                    ]
+                }
+            ],
+            "buffs": [
+                null,
+                "9885",
+                "20217",
+                "19838",
+                "10614",
+                "13452",
+                "12451",
+                "12460",
+                "2458"
+            ],
+            "rotation": [
+                {
+                    "id": "11567",
+                    "name": "Heroic Strike",
+                    "classname": "HeroicStrike",
+                    "iconname": "ability_rogue_ambush",
+                    "minrage": "40",
+                    "minrageactive": true,
+                    "unqueue": 15,
+                    "unqueueactive": false,
+                    "maincd": "2",
+                    "maincdactive": false,
+                    "exmacro": true,
+                    "minlevel": 56,
+                    "value1": 138,
+                    "active": true,
+                    "aq": false
+                },
+                {
+                    "id": "2687",
+                    "name": "Bloodrage",
+                    "classname": "Bloodrage",
+                    "iconname": "ability_racial_bloodrage",
+                    "timetoend": 35,
+                    "timetoendactive": false,
+                    "timetostart": 0,
+                    "timetostartactive": true,
+                    "buff": true,
+                    "active": true
+                },
+                {
+                    "id": "11597",
+                    "name": "Sunder Armor",
+                    "classname": "SunderArmor",
+                    "iconname": "ability_warrior_sunder",
+                    "minrage": 50,
+                    "minrageactive": false,
+                    "duration": 15,
+                    "durationactive": false,
+                    "globals": "1",
+                    "globalsactive": false,
+                    "active": true,
+                    "priority": 6,
+                    "expriority": 0
+                },
+                {
+                    "id": "11585",
+                    "name": "Overpower",
+                    "classname": "Overpower",
+                    "iconname": "ability_meleedamage",
+                    "maxrage": "25",
+                    "maxrageactive": false,
+                    "maincd": 2,
+                    "maincdactive": false,
+                    "value1": 35,
+                    "minlevel": 60,
+                    "active": true,
+                    "priority": 6,
+                    "expriority": 0
+                },
+                {
+                    "id": "20662",
+                    "name": "Execute",
+                    "classname": "Execute",
+                    "iconname": "inv_sword_48",
+                    "minlevel": 56,
+                    "swingtimer": 2.5,
+                    "swingtimeractive": false,
+                    "value1": 600,
+                    "value2": 15,
+                    "active": true,
+                    "priority": 8,
+                    "expriority": 8,
+                    "minrageactive": false,
+                    "minrage": 50,
+                    "starttime": "52"
+                },
+                {
+                    "id": 18499,
+                    "name": "Berserker Rage",
+                    "classname": "BerserkerRage",
+                    "iconname": "spell_nature_ancestralguardian",
+                    "minlevel": 32,
+                    "maxrage": 25,
+                    "maxrageactive": false,
+                    "active": true,
+                    "buff": true,
+                    "zerkerpriority": false
+                },
+                {
+                    "id": "1680",
+                    "name": "Whirlwind",
+                    "classname": "Whirlwind",
+                    "iconname": "ability_whirlwind",
+                    "minrage": "50",
+                    "minrageactive": false,
+                    "maxrage": 25,
+                    "maxrageactive": false,
+                    "maincd": "2",
+                    "maincdactive": true,
+                    "minlevel": 36,
+                    "active": true,
+                    "priority": 7,
+                    "expriority": 0
+                },
+                {
+                    "id": "23894",
+                    "name": "Bloodthirst",
+                    "classname": "Bloodthirst",
+                    "iconname": "spell_nature_bloodlust",
+                    "minrage": 30,
+                    "minrageactive": false,
+                    "active": true,
+                    "priority": 9,
+                    "expriority": 0
+                },
+                {
+                    "id": "12328",
+                    "name": "Death Wish",
+                    "classname": "DeathWish",
+                    "iconname": "spell_shadow_deathpact",
+                    "timetoend": 31,
+                    "timetoendactive": true,
+                    "timetostart": 0,
+                    "timetostartactive": false,
+                    "aura": true,
+                    "active": true,
+                    "buff": true,
+                    "time": "29"
+                },
+                {
+                    "id": "17528",
+                    "name": "Mighty Rage Potion",
+                    "classname": "MightyRagePotion",
+                    "iconname": "inv_potion_41",
+                    "timetoend": 21,
+                    "timetoendactive": false,
+                    "timetostart": 0,
+                    "timetostartactive": false,
+                    "aura": true,
+                    "minlevel": 46,
+                    "value1": 45,
+                    "value2": 75,
+                    "active": true,
+                    "buff": true,
+                    "time": "39"
+                },
+                {
+                    "id": 16322,
+                    "name": "Juju Flurry",
+                    "classname": "JujuFlurry",
+                    "iconname": "inv_misc_monsterscales_17",
+                    "minlevel": 55,
+                    "timetoend": 11,
+                    "timetoendactive": false,
+                    "timetostart": 0,
+                    "timetostartactive": false,
+                    "active": true,
+                    "aura": true,
+                    "buff": true
+                }
+            ],
+            "gear": {
+                "head": 12640,
+                "neck": 18404,
+                "shoulder": 12927,
+                "back": 13340,
+                "chest": 11726,
+                "wrist": 12936,
+                "hands": 15063,
+                "waist": 13959,
+                "legs": 15062,
+                "feet": 14616,
+                "ranged": 17069,
+                "mainhand": 17075,
+                "offhand": 19104
+            },
+            "enchant": {
+                "mainhand": [
+                    18262,
+                    20034
+                ],
+                "offhand": [
+                    18262,
+                    20034
+                ],
+                "twohand": [],
+                "head": [
+                    11645
+                ],
+                "shoulder": [],
+                "back": [
+                    13882
+                ],
+                "chest": [
+                    13941
+                ],
+                "wrist": [
+                    20010
+                ],
+                "hands": [
+                    20013
+                ],
+                "legs": [
+                    11645
+                ],
+                "feet": [
+                    13890
+                ]
+            }
+        }
+    }
+];
