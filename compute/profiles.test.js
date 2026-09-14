@@ -94,7 +94,7 @@ test('Forever preset creates independent profiles, survives edits/deletion/reloa
         expected.rotation.filter(spell => spell.active !== false).map(spell => String(spell.id)).sort());
     for (const spell of expected.rotation) {
         const saved = loaded.saved.rotation.find(value => String(value.id) === String(spell.id));
-        for (const option of ['priority', 'expriority', 'minrage', 'minrageactive', 'globals', 'globalsactive']) {
+        for (const option of ['priority', 'expriority', 'minrage', 'minrageactive', 'maxrage', 'maxrageactive', 'globals', 'globalsactive']) {
             if (spell[option] !== undefined) assert.equal(String(saved[option]), String(spell[option]), `${spell.name}: ${option}`);
         }
     }

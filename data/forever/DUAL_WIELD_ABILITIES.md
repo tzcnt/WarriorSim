@@ -6,7 +6,7 @@ The Night Elf **Dual Wield Fury (13/38/0)** preset now uses:
 | --- | ---: | ---: | --- |
 | Bloodthirst | 9 | Not used | Existing settings |
 | Whirlwind | 7 | Not used | Keep the 2-second main-ability cooldown restriction |
-| Overpower | 6 | 1 | Fallback after Execute during Execute phase |
+| Overpower | 6 | 1 | Fallback after Execute; don't switch stance above 52 rage |
 | Hamstring | 2 | Not used | Enabled at 10 rage; no duration restriction |
 | Sunder Armor | Highest (10), disabled | Not used | Only use on first 1 globals |
 | Execute | 8, unavailable before Execute phase | 8 | Existing settings |
@@ -25,8 +25,9 @@ cast; that configuration measured identically to disabling Sunder.
 ## Production measurements
 
 The preset's weapons were subsequently changed to Deathbringer main hand and
-Brutality Blade off hand. The measurements below retain the earlier weapon pair;
-the ability search has not been rerun for the new weapons.
+Brutality Blade off hand, and its [Overpower stance-switch limit](OVERPOWER_RAGE.md)
+was set to 52 rage. The measurements below retain the earlier weapons and
+unrestricted Overpower; the full priority search has not been rerun for those changes.
 
 All combat used the deployed application at <https://fleetcode.com/WarriorSim/>
 on September 14, 2026 UTC (September 13 Pacific), bundle
