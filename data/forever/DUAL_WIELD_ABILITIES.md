@@ -8,7 +8,7 @@ The Night Elf **Dual Wield Fury (13/38/0)** preset now uses:
 | Whirlwind | 7 | Not used | Keep the 2-second main-ability cooldown restriction |
 | Overpower | 6 | 1 | Fallback after Execute during Execute phase |
 | Hamstring | 2 | Not used | Enabled at 10 rage; no duration restriction |
-| Sunder Armor | 1 | Not used | Only use on first 1 globals |
+| Sunder Armor | Highest (10), disabled | Not used | Only use on first 1 globals |
 | Execute | 8, unavailable before Execute phase | 8 | Existing settings |
 | Heroic Strike | Separate swing queue | Existing behavior | Keep the 40-rage threshold |
 | Berserker Rage | Disabled | Disabled | No Improved Berserker Rage talent points |
@@ -18,13 +18,15 @@ Death Wish remains scheduled **31 seconds before fight end**. The user's race,
 description, talents, gear, enchants, buffs, fight settings, and other spell
 options were preserved.
 
-Sunder's one-use limit is enabled as requested. At its new priority below
-Hamstring, Sunder never casts in this profile: whenever its 15-rage requirement
-is met, the higher-priority 10-rage Hamstring is available. This configuration
-was measured to give the same result as disabling Sunder. Keeping its settings
-makes the requested one-use limit visible in the preset.
+Sunder is disabled, with Highest priority and the one-use limit saved for anyone
+who enables it. The earlier search placed it below Hamstring, where it never
+cast; that configuration measured identically to disabling Sunder.
 
 ## Production measurements
+
+The preset's weapons were subsequently changed to Deathbringer main hand and
+Brutality Blade off hand. The measurements below retain the earlier weapon pair;
+the ability search has not been rerun for the new weapons.
 
 All combat used the deployed application at <https://fleetcode.com/WarriorSim/>
 on September 14, 2026 UTC (September 13 Pacific), bundle

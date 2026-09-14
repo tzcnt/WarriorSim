@@ -268,7 +268,10 @@ var session = {
             "classname": "SunderArmor",
             "iconname": "ability_warrior_sunder",
             "globals": "1",
-            "active": true
+            "globalsactive": true,
+            "priority": 10,
+            "expriority": 0,
+            "active": false
         },
         {
             "id": 7384,
@@ -1301,6 +1304,7 @@ var session = {
             },
             {
                 "id": 17068,
+                "selected": true,
                 "dps": "918.80"
             },
             {
@@ -1513,7 +1517,6 @@ var session = {
             },
             {
                 "id": 17075,
-                "selected": true,
                 "dps": "936.82"
             },
             {
@@ -1640,7 +1643,6 @@ var session = {
             },
             {
                 "id": 19104,
-                "selected": true,
                 "dps": "936.99"
             },
             {
@@ -1653,6 +1655,7 @@ var session = {
             },
             {
                 "id": 18832,
+                "selected": true,
                 "dps": "962.90"
             },
             {

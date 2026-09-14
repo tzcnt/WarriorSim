@@ -375,7 +375,8 @@ SIM.PROFILES = {
             for (let spell of storage.rotation) {
                 let newspell = minified.rotation.filter(s => s.id == spell.id)[0];
                 if (newspell) {
-                    spell.active = true;
+                    // Legacy exports omit active; presets can retain disabled spell settings.
+                    spell.active = newspell.active !== false;
                     if (typeof newspell.duration !== 'undefined') spell.duration = newspell.duration;
                     if (typeof newspell.durationactive !== 'undefined') spell.durationactive = newspell.durationactive;
                     if (typeof newspell.timetoend !== 'undefined') spell.timetoend = newspell.timetoend;

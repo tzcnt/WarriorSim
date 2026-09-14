@@ -229,8 +229,8 @@ var profilePresets = [
                     "durationactive": false,
                     "globals": "1",
                     "globalsactive": true,
-                    "active": true,
-                    "priority": 1,
+                    "active": false,
+                    "priority": 10,
                     "expriority": 0
                 },
                 {
@@ -365,8 +365,8 @@ var profilePresets = [
                 "legs": 15062,
                 "feet": 14616,
                 "ranged": 17069,
-                "mainhand": 17075,
-                "offhand": 19104
+                "mainhand": 17068,
+                "offhand": 18832
             },
             "enchant": {
                 "mainhand": [

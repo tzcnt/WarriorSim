@@ -45,6 +45,10 @@ test('Forever preset creates independent profiles, survives edits/deletion/reloa
         await page.waitForFunction(() => typeof SIM !== 'undefined' && SIM.PROFILES?.container?.find('.profile').length > 0);
     };
     await ready('forever');
+    assert.deepEqual(await page.evaluate(() => {
+        const spell = JSON.parse(localStorage.forever0).rotation.find(s => s.id == 11597);
+        return {active: spell.active, priority: spell.priority, globalsactive: spell.globalsactive, globals: spell.globals};
+    }), {active: false, priority: 10, globalsactive: true, globals: '1'});
     const preset = page.locator('.presets [data-preset="forever-dual-wield-fury"]');
     assert.equal(await preset.count(), 1);
 
@@ -87,7 +91,7 @@ test('Forever preset creates independent profiles, survives edits/deletion/reloa
     assert.equal(loaded.config.target.creaturetype, expected.targetcreaturetype);
     for (const id of expected.buffs.filter(Boolean)) assert(loaded.saved.buffs.some(value => String(value) === String(id)));
     assert.deepEqual(loaded.saved.rotation.filter(spell => spell.active).map(spell => String(spell.id)).sort(),
-        expected.rotation.map(spell => String(spell.id)).sort());
+        expected.rotation.filter(spell => spell.active !== false).map(spell => String(spell.id)).sort());
     for (const spell of expected.rotation) {
         const saved = loaded.saved.rotation.find(value => String(value.id) === String(spell.id));
         for (const option of ['priority', 'expriority', 'minrage', 'minrageactive', 'globals', 'globalsactive']) {
@@ -109,6 +113,22 @@ test('Forever preset creates independent profiles, survives edits/deletion/reloa
     assert.deepEqual(scheduled, [19000, 29000, 0], 'Death Wish follows fight end and clamps short fights to the pull');
     assert.equal(loaded.saved.rotation.find(s => s.name === 'Mighty Rage Potion').timetostartactive, false);
     assert.equal(loaded.saved.rotation.find(s => s.name === 'Spearing Strike').active, false);
+    const sunder = loaded.saved.rotation.find(s => s.name === 'Sunder Armor');
+    assert.equal(sunder.active, false);
+    assert.equal(sunder.priority, 10);
+    assert.equal(sunder.globalsactive, true);
+    assert.equal(String(sunder.globals), '1');
+    const enabledSunder = await page.evaluate(() => {
+        const spell = spells.find(s => s.id == 11597);
+        const before = new Player(undefined, undefined, undefined, Player.getConfig());
+        spell.active = true;
+        try {
+            const after = new Player(undefined, undefined, undefined, Player.getConfig());
+            return {disabled: !before.spells.sunderarmor, first: after.normalspells[0].name,
+                globals: after.spells.sunderarmor.globals};
+        } finally { spell.active = false; }
+    });
+    assert.deepEqual(enabledSunder, {disabled: true, first: 'Sunder Armor', globals: '1'});
     for (const [slot, id] of Object.entries(expected.gear)) {
         assert.deepEqual(loaded.saved.gear[slot].filter(item => item.selected).map(item => item.id), [id]);
     }
@@ -134,6 +154,16 @@ test('Forever preset creates independent profiles, survives edits/deletion/reloa
     await preset.click();
     assert.equal(await page.evaluate(() => globalThis.profileid), 2);
     assert.deepEqual(await page.evaluate(() => talentSelection().map(tree => tree.t)), expected.talents.map(tree => tree.t));
+
+    const legacyActive = await page.evaluate(() => {
+        const profile = structuredClone(profilePresets[0].profile);
+        profile.rotation = profile.rotation.filter(spell => spell.active !== false);
+        for (const spell of profile.rotation) delete spell.active;
+        SIM.PROFILES.importProfile(JSON.stringify(profile), 3);
+        return JSON.parse(localStorage.forever3).rotation.filter(spell => spell.active).map(spell => String(spell.id)).sort();
+    });
+    assert.deepEqual(legacyActive, expected.rotation.filter(spell => spell.active !== false).map(spell => String(spell.id)).sort(),
+        'legacy imports without active flags still enable their listed abilities');
 
     await ready('classic');
     assert.equal(await page.locator('[data-preset]').count(), 0);
