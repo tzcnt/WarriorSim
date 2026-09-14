@@ -486,7 +486,6 @@ bool auraStep(PlayerState& player, AuraState& aura) {
         return stepWithUpdate(player, aura, &PlayerState::updateBonusDmg, true);
     case AuraKind::Annihilator:
     case AuraKind::Rivenspike:
-        return stepWithUpdate(player, aura, &PlayerState::updateArmorReduction, true);
     case AuraKind::Bonereaver:
         if (player.step >= aura.timer) aura.stacks = 0;
         return stepWithUpdate(player, aura, &PlayerState::updateArmorReduction, true);

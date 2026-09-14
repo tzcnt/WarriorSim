@@ -3,16 +3,16 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 const {extraFixtures} = require('./extra-fixtures');
-const {bonereaverCases} = require('./ability-proc-fixtures');
+const {armorProcCases} = require('./ability-proc-fixtures');
 const {assertNativeReports} = require('./report-assertions');
 const {
     createConfiguredPlayer, createReferenceEngine, runReference,
     runPartitioned, loadFixtures, traceAuraLifecycle,
 } = require('./reference-engine');
 
-for (const fixture of bonereaverCases) {
-    test(`${fixture.name}: Bonereaver stacks reflect only the current buff`, () => {
-        const {events} = traceAuraLifecycle(fixture, ['bonereaver']);
+for (const fixture of armorProcCases) {
+    test(`${fixture.name}: armor proc stacks reflect only the current aura`, () => {
+        const {events} = traceAuraLifecycle(fixture, [fixture.armorProc.key]);
         const expiresBetweenProcs = fixture.name.endsWith('expiry');
         const procsPerFight = expiresBetweenProcs ? 4 : 9;
         const procs = events.filter(event => event.method === 'use');
@@ -27,35 +27,38 @@ for (const fixture of bonereaverCases) {
     });
 }
 
-for (const fixture of bonereaverCases.filter(value => value.name.endsWith('expiry'))) {
-    test(`${fixture.mode}: Bonereaver refreshes all stacks and clears armor penetration at expiration`, () => {
+for (const fixture of armorProcCases.filter(value => value.name.endsWith('expiry'))) {
+    test(`${fixture.name}: refreshes all stacks and restores armor at expiration`, () => {
         const engine = createReferenceEngine(fixture.mode);
         const player = createConfiguredPlayer(engine, fixture);
         engine.evaluate('step = 0');
         player.reset(0);
-        const aura = player.auras.bonereaver;
+        const aura = player.auras[fixture.armorProc.key];
+        const duration = fixture.armorProc.duration * 1000;
+        const reduction = fixture.armorProc.armor;
         const armor = player.target.armor;
         for (const time of [0, 3000, 6000, 9000]) {
             engine.evaluate('step = time', {time});
             aura.use();
             assert.equal(aura.stacks, Math.min(time / 3000 + 1, 3));
-            assert.equal(aura.timer, time + 10000);
-            assert.equal(player.target.armor, armor - aura.stacks * 700);
+            assert.equal(aura.timer, time + duration);
+            assert.equal(player.target.armor, armor - aura.stacks * reduction);
         }
-        engine.evaluate('step = 18999');
+        const expiration = 9000 + duration;
+        engine.evaluate('step = expiration - 1', {expiration});
         player.stepauras();
         assert.equal(aura.stacks, 3);
-        assert.equal(player.target.armor, armor - 2100);
-        engine.evaluate('step = 19000');
+        assert.equal(player.target.armor, armor - 3 * reduction);
+        engine.evaluate('step = expiration');
         player.stepauras();
         assert.equal(aura.timer, 0);
         assert.equal(aura.stacks, 0);
         assert.equal(player.target.armor, armor);
-        assert.equal(aura.uptime, 19000);
-        engine.evaluate('step = 20000');
+        assert.equal(aura.uptime, expiration);
+        engine.evaluate('step = expiration + 1000');
         aura.use();
         assert.equal(aura.stacks, 1);
-        assert.equal(player.target.armor, armor - 700);
+        assert.equal(player.target.armor, armor - reduction);
     });
 }
 

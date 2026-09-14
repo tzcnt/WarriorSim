@@ -85,15 +85,23 @@ const aliasCases = [
     aliasCase('stanceswitch', 0xA11A5003),
 ];
 
-const bonereaverCases = ['classic', 'forever'].flatMap(mode => [4, 11].map(speed => {
-    const fixture = bounded(dualWield, `${mode}-bonereaver-${speed === 11 ? 'expiry' : 'refresh'}`, 0xB0E00001, 8);
+const armorProcs = [
+    {key: 'bonereaver', slot: 'twohand', id: 17076, duration: 10, armor: 700},
+    {key: 'annihilator', slot: 'mainhand', id: 12798, duration: 45, armor: 200},
+    {key: 'rivenspike', slot: 'mainhand', id: 13286, duration: 30, armor: 200},
+];
+
+const armorProcCases = armorProcs.flatMap(proc => ['classic', 'forever'].flatMap(mode => [false, true].map(expires => {
+    const speed = expires ? proc.duration + 1 : 4;
+    const fixture = bounded(dualWield, `${mode}-${proc.key}-${expires ? 'expiry' : 'refresh'}`, 0xB0E00001, 8);
+    fixture.armorProc = proc;
     fixture.mode = mode;
-    fixture.gear = {mainhand: [], offhand: [], twohand: [17076]};
+    fixture.gear = {mainhand: [], offhand: [], twohand: [], [proc.slot]: [proc.id]};
     fixture.buffs = [];
     delete fixture.buffsAdd;
     fixture.player.target.basearmor = 4000;
-    fixture.sim.timesecsmin = fixture.sim.timesecsmax = 34;
-    fixture.expect = {auras: ['bonereaver']};
+    fixture.sim.timesecsmin = fixture.sim.timesecsmax = expires ? 3 * speed + 1 : 34;
+    fixture.expect = {auras: [proc.key]};
     fixture.mutatePlayer = player => {
         // Guaranteed procs on isolated swings exercise either full expiration
         // between procs or repeated refreshes at the three-stack cap.
@@ -101,6 +109,8 @@ const bonereaverCases = ['classic', 'forever'].flatMap(mode => [4, 11].map(speed
         player.base.hit = 100;
         player.base.haste = 1;
         player.target.dodge = 100;
+        player.target.binaryresist = 0;
+        player.faeriefire = false;
         player.talents.swordproc = 0;
         player.mh.speed = speed;
         player.mh.proc1.chance = 10000;
@@ -108,12 +118,12 @@ const bonereaverCases = ['classic', 'forever'].flatMap(mode => [4, 11].map(speed
         player.trinketproc1 = player.trinketproc2 = null;
         player.attackproc1 = player.attackproc2 = null;
         player.spells = {stanceswitch: player.spells.stanceswitch};
-        player.auras = {bonereaver: player.auras.bonereaver};
+        player.auras = {[proc.key]: player.auras[proc.key]};
         player.preporder = [];
         player.sortSpells();
     };
     return fixture;
-}));
+})));
 
 const orderedProcs = bounded(adjacentCleave, 'classic-ordered-multi-procs', 0xC01DF00D, 12);
 orderedProcs.mutatePlayer = (player, engine) => {
@@ -141,8 +151,8 @@ orderedProcs.mutatePlayer = (player, engine) => {
 
 module.exports = {
     aliasCases,
+    armorProcCases,
     bloodrageCases,
-    bonereaverCases,
     orderedProcs,
     stanceCases,
 };
