@@ -185,6 +185,12 @@
 
         .spell {
             transition: all 0.2s ease-in;
+            // Keep the full icon clickable when it uses a local tooltip.
+            .icon > a {
+                position: absolute;
+                inset: 0;
+                z-index: 1;
+            }
             &:hover, &.open {
                 .icon {
                     border-color: #ffcd45;

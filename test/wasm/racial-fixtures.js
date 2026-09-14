@@ -13,8 +13,8 @@ function racialFixtures() {
         f.rotation = {
             20572: {active: true, timetostartactive: true, timetostart: 0},
             26296: {active: true, timetostartactive: true, timetostart: 0, haste: 99},
-            'forever:elunes-light': {active: true, timetostartactive: true, timetostart: 0},
-            'forever:eureka': {active: true, timetostartactive: true, timetostart: 0},
+            'forever:elunes-light': {active: true, timetostartactive: true, timetostart: 0, timetoendactive: false},
+            'forever:eureka': {active: true, timetostartactive: true, timetostart: 0, timetoendactive: false},
         };
         delete f.expect;
         const key = {Orc: 'bloodfury', Troll: 'berserking', 'Night Elf': 'eluneslight', Gnome: 'eureka', Undead: 'touchofthegrave'}[race];
@@ -30,7 +30,7 @@ function racialFixtures() {
     const rend = foreverFixtures()[0];
     rend.name = 'forever-racial-gnome-rend-slam-sweeping';
     rend.player.race = 'Gnome';
-    rend.rotation['forever:eureka'] = {active: true, timetostartactive: true, timetostart: 0};
+    rend.rotation['forever:eureka'] = {active: true, timetostartactive: true, timetostart: 0, timetoendactive: false};
     fixtures.push(rend);
     const cleave = structuredClone(fixtures.find(f => f.player.race === 'Gnome'));
     cleave.name = 'forever-racial-gnome-cleave';

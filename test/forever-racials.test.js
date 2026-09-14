@@ -10,13 +10,50 @@ function setup(race = 'Human', mode = 'forever', creaturetype = 'Other') {
     fixture.player.race = race;
     fixture.player.target.creaturetype = creaturetype;
     fixture.rotation = {20572: {active: true, timetostartactive: true, timetostart: 0},
-        26296: {active: true, haste: 99, timetostartactive: true, timetostart: 0}};
+        26296: {active: true, haste: 99, timetostartactive: true, timetostart: 0},
+        'forever:elunes-light': {active: true, timetostartactive: true, timetostart: 0, timetoendactive: false},
+        'forever:eureka': {active: true, timetostartactive: true, timetostart: 0, timetoendactive: false}};
     const player = createConfiguredPlayer(engine, fixture);
     engine.evaluate('step = 0; setSimulationSeed(123)', {p: player});
     player.reset(100);
     return {player, engine, fixture, run: code => engine.evaluate(code)};
 }
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} != ${expected}`);
+
+for (const mode of ['classic', 'forever']) test(`${mode}: selecting a race enables its racial with the default end schedule`, () => {
+    const {engine, fixture, run} = setup('Human', mode);
+    const cases = [['Orc', 20572, 'bloodfury', 16], ['Troll', 26296, 'berserking', 11]];
+    if (mode === 'forever') cases.push(['Night Elf', 'forever:elunes-light', 'eluneslight', 16], ['Gnome', 'forever:eureka', 'eureka', 9]);
+    const otherSpells = run('JSON.stringify(spells.filter(s => !racialSpellRules[s.id]))');
+    for (const [race, id, key, seconds] of cases) {
+        engine.evaluate('selectRacialSpells(race, mode)', {race});
+        const player = engine.createPlayer({...fixture.player, race, mode});
+        const aura = player.auras[key];
+        assert.ok(aura, `${race}: racial enabled`);
+        assert.equal(aura.timetoend, seconds * 1000);
+        assert.equal(aura.timetostart, undefined);
+        aura.prep(60000);
+        assert.equal(aura.usestep, (60 - seconds) * 1000);
+        if (key !== 'eureka') assert.equal(seconds, aura.duration + 1);
+        assert.equal(run('spells.filter(s => racialSpellRules[s.id] && s.active).length'), 1);
+
+        // A later race selection restores defaults even after manual edits or disabling.
+        engine.evaluate(`Object.assign(spells.find(s => s.id == id), {
+            active: false, timetoend: 99, timetoendactive: false, timetostart: 7, timetostartactive: true
+        }); selectRacialSpells('Human', mode);`, {id});
+        assert.equal(run('spells.filter(s => racialSpellRules[s.id] && s.active).length'), 0);
+        engine.evaluate('selectRacialSpells(race, mode)');
+        const restored = engine.createPlayer({...fixture.player, race, mode}).auras[key];
+        assert.ok(restored);
+        assert.equal(restored.timetoend, seconds * 1000);
+        assert.equal(restored.timetostart, undefined);
+    }
+    assert.equal(run('JSON.stringify(spells.filter(s => !racialSpellRules[s.id]))'), otherSpells);
+    if (mode === 'classic') {
+        run("selectRacialSpells('Gnome', mode)");
+        assert.equal(run('spells.filter(s => racialSpellRules[s.id] && s.active).length'), 0);
+    }
+});
 
 test('Forever replaces Human/Orc skill racials; Classic retains them', () => {
     for (const [race, skill] of [['Human', 'skill_1'], ['Orc', 'skill_3']]) {

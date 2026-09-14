@@ -196,6 +196,7 @@ SIM.SETTINGS = {
         view.fight.on('change', 'select[name="race"]', function (e) {
             var val = $(this).val();
             view.bg.attr('data-race', val);
+            selectRacialSpells(val, mode);
 
             e.stopPropagation();
             SIM.UI.updateSession();
