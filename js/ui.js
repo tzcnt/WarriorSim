@@ -672,13 +672,15 @@ SIM.UI = {
         view.sidebar.find('#ap').text(player.stats.ap);
         view.sidebar.find('#skill').html(player.stats['skill_' + player.mh.type] + ' <small>MH</small>' + (player.oh ? space + player.stats['skill_' + player.oh.type] + ' <small>OH</small>' : ''));
         view.sidebar.find('#hit').html((player.stats.hit || 0) + '%');
-        view.sidebar.find('#miss').html(Math.max(player.mh.miss, 0).toFixed(2) + '% <small>1H</small>' + (player.oh ? space + Math.max(player.mh.dwmiss, 0).toFixed(2) + '% <small>DW</small>' : ''));
+        let mhmiss = Math.max(player.mh.dwmiss, 0);
+        let ohmiss = player.oh ? Math.max(player.oh.dwmiss, 0) : 0;
+        view.sidebar.find('#miss').attr('title', 'Auto-attack miss chance for each equipped weapon').html(mhmiss.toFixed(2) + '% <small>MH</small>' + (player.oh ? space + ohmiss.toFixed(2) + '% <small>OH</small>' : ''));
         view.sidebar.find('#dodge').html(player.mh.dodge.toFixed(2) + '% <small>MH</small>' + (player.oh ? space + player.oh.dodge.toFixed(2) + '% <small>OH</small>' : ''));
         let mhcrit = player.crit + player.mh.crit + (player.mode === 'forever' ? player.mh.racialcrit || 0 : 0);
         let ohcrit = player.crit + (player.oh ? player.oh.crit : 0) + (player.mode === 'forever' ? player.oh?.racialcrit || 0 : 0);
         view.sidebar.find('#crit').html(mhcrit.toFixed(2) + '% <small>MH</small>' + (player.oh ? space + ohcrit.toFixed(2) + '% <small>OH</small>' : ''));
-        let mhcap = Math.max(0, 100 - player.mh.dwmiss - player.mh.dodge - player.mh.glanceChance);
-        let ohcap = Math.max(0, player.oh ? 100 - player.oh.dwmiss - player.oh.dodge - player.oh.glanceChance : 0);
+        let mhcap = Math.max(0, 100 - mhmiss - player.mh.dodge - player.mh.glanceChance);
+        let ohcap = Math.max(0, player.oh ? 100 - ohmiss - player.oh.dodge - player.oh.glanceChance : 0);
         view.sidebar.find('#critcap').html(mhcap.toFixed(2) + '% <small>MH</small>'+ (player.oh ? space + ohcap.toFixed(2) + '% <small>OH</small>' : ''));
         let mhdmg = player.stats.dmgmod * player.mh.modifier * 100;
         let ohdmg = player.stats.dmgmod * (player.oh ? player.oh.modifier * 100 : 0);
