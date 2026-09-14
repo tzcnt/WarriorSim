@@ -784,6 +784,65 @@ class Flurry extends Aura {
     }
 }
 
+// Rolling damage pool from the SoD DeepWounds implementation in ad5ac8b.
+class DeepWounds extends Aura {
+    constructor(player, id, adjacent) {
+        super(player, id, 'Deep Wounds' + (adjacent ? ' ' + adjacent : ''));
+        this.duration = 12;
+        this.idmg = 0;
+        this.totaldmg = 0;
+        this.saveddmg = 0;
+        this.ticksleft = 0;
+        this.nexttick = 0;
+    }
+    procDamage(offhand) {
+        const weapon = offhand ? this.player.oh : this.player.mh;
+        const min = weapon.mindmg + weapon.bonusdmg + this.player.stats.moddmgdone + (this.player.stats.ap / 14) * weapon.speed;
+        const max = weapon.maxdmg + weapon.bonusdmg + this.player.stats.moddmgdone + (this.player.stats.ap / 14) * weapon.speed;
+        return (min + max) / 2 * weapon.modifier * this.player.stats.dmgmod * this.player.talents.deepwounds * this.player.bleedmod;
+    }
+    use(offhand) {
+        if (this.timer) this.uptime += (step - this.starttimer);
+        this.saveddmg += this.procDamage(offhand);
+        this.ticksleft = 4;
+        if (!this.nexttick) this.nexttick = step + 3000;
+        // Keep the pending tick and spread the remaining pool over four ticks.
+        this.timer = this.nexttick - 3000 + this.duration * 1000;
+        this.starttimer = step;
+        this.player.updateDmgMod();
+        /* start-log */ if (this.player.logging) this.player.log(`${this.name} applied`); /* end-log */
+    }
+    step() {
+        if (!this.timer) return;
+        while (step >= this.nexttick && this.ticksleft) {
+            this.player.stepauras(true);
+            let dmg = this.saveddmg / this.ticksleft;
+            // Only base damage leaves the pool; tick crits never feed it back.
+            this.saveddmg -= dmg;
+            this.ticksleft--;
+            const crit = rng10k() <
+                (this.player.crit + this.player.mh.crit + (this.player.mh.racialcrit || 0)) * 100;
+            if (crit) dmg *= 1 + (1 + this.player.talents.abilitiescrit);
+            this.idmg += dmg;
+            this.totaldmg += dmg;
+            this.nexttick += 3000;
+            /* start-log */ if (this.player.logging) this.player.log(`${this.name} tick for ${dmg.toFixed(2)}${crit ? ' (CRIT)' : ''}`); /* end-log */
+        }
+        if (step >= this.timer) {
+            this.uptime += (this.timer - this.starttimer);
+            this.timer = this.nexttick = this.saveddmg = this.ticksleft = 0;
+            this.firstuse = false;
+            this.player.updateDmgMod();
+            /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
+        }
+    }
+    end() {
+        if (this.timer) this.uptime += (step - this.starttimer);
+        this.timer = this.nexttick = this.saveddmg = this.ticksleft = 0;
+        this.player.updateDmgMod();
+    }
+}
+
 class OldDeepWounds extends Aura {
     constructor(player, id, adjacent) {
         super(player, id, 'Deep Wounds' + (adjacent ? ' ' + adjacent : ''));
@@ -797,14 +856,10 @@ class OldDeepWounds extends Aura {
             let max = this.player.mh.maxdmg + this.player.mh.bonusdmg+ this.player.stats.moddmgdone + (this.player.stats.ap / 14) * this.player.mh.speed;
             let dmg = (min + max) / 2;
             dmg *= this.player.mh.modifier * this.player.stats.dmgmod * this.player.talents.deepwounds * this.player.bleedmod;
-            // Forever bleed ticks can crit with Impale, without triggering crit procs.
-            const crit = this.player.mode === 'forever' && rng10k() <
-                (this.player.crit + this.player.mh.crit + (this.player.mh.racialcrit || 0)) * 100;
-            if (crit) dmg *= 1 + (1 + this.player.talents.abilitiescrit);
             this.idmg += dmg / 4;
             this.totaldmg += dmg / 4;
 
-            /* start-log */ if (this.player.logging) this.player.log(`${this.name} tick for ${(dmg / 4).toFixed(2)}${crit ? ' (CRIT)' : ''}`); /* end-log */
+            /* start-log */ if (this.player.logging) this.player.log(`${this.name} tick for ${(dmg / 4).toFixed(2)}`); /* end-log */
 
             this.nexttick += 3000;
         }

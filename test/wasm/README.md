@@ -17,6 +17,12 @@ Forever, using current main-hand ability crit chance and Impale's bonus damage.
 Bleed crits do not trigger Deep Wounds or other attack crit procs. Rend's initial
 application cannot crit, and Classic bleeds remain unable to crit. The bleed
 fixtures cover both modes and all Impale ranks through JS/native partition checks.
+Forever Deep Wounds restores the rolling pool from the SoD implementation in
+`ad5ac8b5dd76db3f0fa7c41de52c0b0b60a5a4d8`: each proc snapshots damage from the
+triggering weapon, adds it to the unpaid damage, and spreads that pool over four
+ticks while preserving the next scheduled tick. Tick crit bonuses do not change
+the remaining pool. Tests also cover refresh timing, separate target pools,
+off-hand contributions, expiration, and clearing unpaid damage between fights.
 
 `test/sweeping-strikes.test.js` checks Classic talent/rotation gating, activation during an existing GCD, charge consumption, exact 20-second expiry, 30-second cooldown and fight reset. `sweeping-fixtures.js` adds JS/native partition coverage for Cleave, expiry without intervening attacks, and zero adjacent targets. Forever retains its separate timing rules.
 

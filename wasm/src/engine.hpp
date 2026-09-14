@@ -33,7 +33,7 @@ enum class SpellKind : std::uint8_t {
 };
 
 enum class AuraKind : std::uint8_t {
-    Aura, Recklessness, Flurry, OldDeepWounds, Crusader, Cloudkeeper, Felstriker,
+    Aura, Recklessness, Flurry, DeepWounds, OldDeepWounds, Crusader, Cloudkeeper, Felstriker,
     DeathWish, BattleStance, DefensiveStance, BerserkerStance, MightyRagePotion,
     BloodFury, Berserking, Empyrean, Eskhandar, Zeal, Annihilator, Rivenspike,
     Bonereaver, Destiny, Untamed, Pummeler, Windfury, Swarmguard, Flask, Slayer, Spider,
@@ -304,6 +304,8 @@ struct AuraState {
     double mintime = 0;
     double cooldownTimer = 0;
     double nexttick = 0;
+    double savedDamage = 0;
+    int ticksleft = 0;
     bool firstuse = true;
     double uptime = 0;
     double totaldmg = 0;

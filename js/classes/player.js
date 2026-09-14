@@ -151,10 +151,11 @@ class Player {
         this.setSkills();
         if (this.talents.flurry) this.auras.flurry = new Flurry(this);
         if (this.mode === 'forever' && this.talents.enrage) this.auras.enrage = new Enrage(this);
-        if (this.talents.deepwounds) this.auras.deepwounds = new OldDeepWounds(this);
+        const DeepWoundsAura = this.mode === 'forever' ? DeepWounds : OldDeepWounds;
+        if (this.talents.deepwounds) this.auras.deepwounds = new DeepWoundsAura(this);
         if (this.adjacent && this.talents.deepwounds) {
             for (let i = 2; i <= (this.adjacent + 1); i++)
-                this.auras['deepwounds' + i] = new OldDeepWounds(this, null, i);
+                this.auras['deepwounds' + i] = new DeepWoundsAura(this, null, i);
         }
 
         this.spells.stanceswitch = new StanceSwitch(this);
@@ -604,6 +605,8 @@ class Player {
             aura.maxdelay = this.reactionmin;
             if (aura.mintime !== undefined) aura.mintime = 0;
             if (aura.nexttick) aura.nexttick = 0;
+            if (aura.saveddmg) aura.saveddmg = 0;
+            if (aura.ticksleft) aura.ticksleft = 0;
             if (aura.cooldowntimer) aura.cooldowntimer = 0;
         }
         if (this.trinketproc1 && this.trinketproc1.usestep) this.trinketproc1.usestep = 0;
@@ -1214,7 +1217,7 @@ class Player {
         else if (result == RESULT.CRIT) {
             let critmod = 1 + 1 * (1 + this.talents.abilitiescrit);
             dmg *= critmod;
-            this.proccrit(false, adjacent);
+            this.proccrit(true, adjacent);
         }
 
         let done = this.dealdamage(dmg, result, this.oh, spell, adjacent);
