@@ -102,6 +102,8 @@ test('Improved Bloodrage scales the initial gain and all ten fractional ticks', 
 
 test('all active rage generators respect the raised cap, including refunds and reset', () => {
     const {run, player} = setup();
+    // This test invokes Berserker Rage even when the default rotation disables it.
+    run('p.auras.berserkerrage = new BerserkerRageAura(p)');
     player.ragecap = 130;
     for (const expression of ['new Bloodrage(p,2687)', 'new BerserkerRage(p,18499)',
         'new RagePotion(p,6613)', 'new GrilekFury(p,0)']) {

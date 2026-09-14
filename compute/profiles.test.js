@@ -13,7 +13,7 @@ const presetContext = {};
 vm.runInNewContext(fs.readFileSync(path.join(root, 'js/data/presets_forever.js'), 'utf8'), presetContext);
 const expected = JSON.parse(JSON.stringify(presetContext.profilePresets[0].profile));
 
-test('Forever preset creates independent profiles, survives edits/deletion/reload, and stays out of Classic', async t => {
+test('Forever default matches its preset, preserves saved profiles, and stays out of Classic', async t => {
     const types = {'.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json',
         '.css': 'text/css', '.wasm': 'application/wasm'};
     const server = http.createServer((req, res) => {
@@ -45,6 +45,14 @@ test('Forever preset creates independent profiles, survives edits/deletion/reloa
         await page.waitForFunction(() => typeof SIM !== 'undefined' && SIM.PROFILES?.container?.find('.profile').length > 0);
     };
     await ready('forever');
+    const firstVisit = await page.evaluate(() => {
+        setSimulationSeed(0);
+        return {saved: JSON.parse(localStorage.forever0),
+            spec: new Player(undefined, undefined, undefined, Player.getConfig())
+                .serializeSimulationSpec(Simulation.getConfig())};
+    });
+    assert.equal(firstVisit.saved.profilename, 'Default');
+    assert.equal(firstVisit.saved.race, expected.race);
     assert.deepEqual(await page.evaluate(() => {
         const spell = JSON.parse(localStorage.forever0).rotation.find(s => s.id == 11597);
         return {active: spell.active, priority: spell.priority, globalsactive: spell.globalsactive, globals: spell.globals};
@@ -66,6 +74,9 @@ test('Forever preset creates independent profiles, survives edits/deletion/reloa
         SIM.PROFILES.loadProfile(SIM.PROFILES.container.find('[data-index="0"]'));
         return localStorage.forever0;
     });
+    await ready('forever');
+    assert.equal(await page.evaluate(() => localStorage.forever0), personal,
+        'returning visitors keep their saved profile instead of receiving the new default');
     const open = async () => {
         if (!await page.locator('section.profiles').evaluate(el => el.classList.contains('active'))) {
             await page.locator('.js-profiles').click();
@@ -82,6 +93,13 @@ test('Forever preset creates independent profiles, survives edits/deletion/reloa
         template: JSON.stringify(profilePresets[0]),
     }));
     assert.equal(loaded.selected, 1);
+    const presetSpec = await page.evaluate(() => {
+        setSimulationSeed(0);
+        return new Player(undefined, undefined, undefined, Player.getConfig())
+            .serializeSimulationSpec(Simulation.getConfig());
+    });
+    assert.deepEqual(firstVisit.spec, presetSpec,
+        'a first visit and loading the preset must produce identical simulation inputs');
     assert.equal(loaded.personal, personal, 'using a preset does not overwrite the personal profile');
     assert.equal(loaded.saved.profilename, 'Dual Wield Fury (13/38/0)');
     assert.deepEqual(loaded.ranks, expected.talents.map(tree => tree.t));
