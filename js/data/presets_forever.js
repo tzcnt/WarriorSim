@@ -322,6 +322,20 @@ var profilePresets = [
                     "time": "29"
                 },
                 {
+                    "id": "forever:elunes-light",
+                    "name": "Elune’s Light",
+                    "classname": "ElunesLight",
+                    "iconname": "spell_holy_elunesgrace",
+                    "mode": "forever",
+                    "timetoend": 16,
+                    "timetoendactive": true,
+                    "timetostart": 0,
+                    "timetostartactive": false,
+                    "active": true,
+                    "aura": true,
+                    "buff": true
+                },
+                {
                     "id": "17528",
                     "name": "Mighty Rage Potion",
                     "classname": "MightyRagePotion",

@@ -133,6 +133,33 @@ test('Forever preset creates independent profiles, survives edits/deletion/reloa
         assert.deepEqual(loaded.saved.gear[slot].filter(item => item.selected).map(item => item.id), [id]);
     }
 
+    // Loading the Night Elf preset must include the same racial as selecting
+    // Night Elf in the race dropdown; otherwise a round trip silently gains DPS.
+    const racialRoundTrip = await page.evaluate(() => {
+        const snapshot = () => {
+            setSimulationSeed(0);
+            return new Player(undefined, undefined, undefined, Player.getConfig())
+                .serializeSimulationSpec(Simulation.getConfig());
+        };
+        const initial = snapshot();
+        $('select[name="race"]').val('Human').trigger('change');
+        const human = snapshot();
+        $('select[name="race"]').val('Night Elf').trigger('change');
+        const returned = snapshot();
+        const aura = new Player(undefined, undefined, undefined, Player.getConfig()).auras.eluneslight;
+        const schedule = [50000, 60000, 10000].map(duration => {
+            aura.prep(duration, 0);
+            return aura.usestep;
+        });
+        return {initial, human, returned, schedule};
+    });
+    assert.deepEqual(racialRoundTrip.initial, racialRoundTrip.returned,
+        'Night Elf → Human → Night Elf must restore the exact preset simulation inputs');
+    assert.ok(racialRoundTrip.initial.player.auras.some(aura => aura.key === 'eluneslight'));
+    assert.ok(!racialRoundTrip.human.player.auras.some(aura => aura.key === 'eluneslight'));
+    assert.deepEqual(racialRoundTrip.schedule, [34000, 44000, 0],
+        'Elune’s Light uses the default 16 seconds before fight end, clamped to the pull');
+
     await page.evaluate(() => {
         const saved = JSON.parse(localStorage.forever1);
         saved.profilename = 'Edited copy'; saved.talents[0].t[0] = 0;
