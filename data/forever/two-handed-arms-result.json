@@ -1,0 +1,3425 @@
+{
+  "created": "2026-09-14T04:25:41.512Z",
+  "completed": "2026-09-14T04:34:25.657Z",
+  "site": "https://fleetcode.com/WarriorSim/",
+  "buildId": "1caf05580e76c3c7588da2876ce3abb7c5e37dbf18fa9cc30e8ffed3e23386aa",
+  "scope": "Clone the two-handed Fury preset; keep Bonereaver's Edge, level 60 Night Elf, all gear, enchants, buffs, fight settings and available cooldown/consumable schedules. Require 51 points, at least 31 Arms and Mortal Strike. Main search uses Arms/Fury; separately audit seven-point Protection allocations with Improved Bloodrage.",
+  "objective": "Mean of individual fights' DPS. UI damage / duration is also reported.",
+  "search": {
+    "talents": "Multistart eight-member beam search across legal Arms allocations, followed by one-point transfers alternating with ability searches. Canonical filler choices omit irrelevant utility and offhand-only talents. Separately compare 68 allocations with 7 Protection points, and 224 combined Spearing Strike talent/rotation changes.",
+    "abilities": "Three conditional passes through all 1,957 ordered subsets of Mortal Strike, Whirlwind, Slam, Overpower, Hamstring and Rend in normal phase. Each execute pass tests 4,240 distinct orders after omitting unreachable fallbacks costing at least as much rage as Execute. Rage thresholds, main-ability cooldown restrictions, after-swing Slam, Heroic Strike/Berserker Rage toggles, and Rend settings; finer thresholds and order changes in final refinement.",
+    "sampleSizes": {
+      "talentScreen": 2500,
+      "talentRefinement": [
+        50000,
+        100000
+      ],
+      "abilityScreen": 5000,
+      "abilityRefinement": 75000,
+      "polishScreen": 100000,
+      "polishRefinement": 500000,
+      "validationPerSeed": 500000
+    },
+    "seeds": [
+      20260917,
+      2436180021,
+      557131829,
+      2973050933,
+      1094002741
+    ],
+    "validation": "Selection frozen before three nonoverlapping seed blocks; 1,500,000 fights per comparison.",
+    "limitations": "Conditional and local search, not an exhaustive global optimum. Available cooldown/consumable schedules were fixed. Bloodthirst and Death Wish are unavailable within the Arms constraint. Small differences between close configurations can be sampling noise.",
+    "candidates": 21351,
+    "acceptedFights": 231715000,
+    "compute": {
+      "remoteIterations": 220220297,
+      "localIterations": 11494703
+    }
+  },
+  "inputPreset": {
+    "id": "forever-two-handed-fury",
+    "description": "2H Fury P1 - Level 60 Night Elf",
+    "profile": {
+      "level": "60",
+      "race": "Night Elf",
+      "simulations": "50000",
+      "timesecsmin": "50",
+      "timesecsmax": "60",
+      "executeperc": "20",
+      "startrage": "0",
+      "targetlevel": "63",
+      "targetbasearmor": "3731",
+      "targetcustomarmor": "",
+      "targetresistance": "24",
+      "targetspeed": "0",
+      "targetmindmg": "200",
+      "targetmaxdmg": "300",
+      "adjacent": "0",
+      "aqbooks": "No",
+      "reactionmin": "200",
+      "reactionmax": "300",
+      "batching": "10",
+      "bleedreduction": "1",
+      "spellqueueing": "Yes",
+      "talentSchema": "forever-v1",
+      "maxhealth": "",
+      "targetcreaturetype": "Other",
+      "profilename": "Two-Handed Fury (20/31/0)",
+      "talents": [
+        {
+          "n": "Arms",
+          "t": [
+            2,
+            0,
+            3,
+            0,
+            5,
+            2,
+            1,
+            2,
+            0,
+            3,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "keys": [
+            "arms:improved-heroic-strike",
+            "arms:deflection",
+            "arms:improved-rend",
+            "arms:improved-charge",
+            "arms:improved-tactical-mastery",
+            "arms:improved-overpower",
+            "arms:anger-management",
+            "arms:deep-wounds",
+            "arms:spearing-strike",
+            "arms:two-handed-weapon-specialization",
+            "arms:impale",
+            "arms:bloodthrill",
+            "arms:sweeping-strikes",
+            "arms:weaponmaster",
+            "arms:improved-slam",
+            "arms:improved-hamstring",
+            "arms:mortal-strike"
+          ]
+        },
+        {
+          "n": "Fury",
+          "t": [
+            0,
+            5,
+            0,
+            5,
+            3,
+            0,
+            0,
+            3,
+            0,
+            0,
+            5,
+            2,
+            1,
+            1,
+            0,
+            0,
+            5,
+            1
+          ],
+          "keys": [
+            "fury:booming-voice",
+            "fury:cruelty",
+            "fury:iron-will",
+            "fury:unbridled-wrath",
+            "fury:improved-cleave",
+            "fury:piercing-howl",
+            "fury:blood-craze",
+            "fury:boundless-rage",
+            "fury:dual-wield-specialization",
+            "fury:raging-blows",
+            "fury:enrage",
+            "fury:improved-execute",
+            "fury:precision",
+            "fury:death-wish",
+            "fury:improved-intercept",
+            "fury:improved-berserker-rage",
+            "fury:flurry",
+            "fury:bloodthirst"
+          ]
+        },
+        {
+          "n": "Protection",
+          "t": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "keys": [
+            "protection:shield-specialization",
+            "protection:anticipation",
+            "protection:improved-bloodrage",
+            "protection:toughness",
+            "protection:improved-thunder-clap",
+            "protection:last-stand",
+            "protection:master-of-defense",
+            "protection:improved-revenge",
+            "protection:defiance",
+            "protection:improved-sunder-armor",
+            "protection:improved-disarm",
+            "protection:vanguard",
+            "protection:improved-shield-wall",
+            "protection:concussion-blow",
+            "protection:improved-shield-bash",
+            "protection:vitality",
+            "protection:focused-rage",
+            "protection:bastion",
+            "protection:shield-slam"
+          ]
+        }
+      ],
+      "buffs": [
+        null,
+        "9885",
+        "20217",
+        "19838",
+        "10614",
+        "13452",
+        "12451",
+        "12460",
+        "2458",
+        "11597",
+        "9907",
+        "11717"
+      ],
+      "rotation": [
+        {
+          "id": "11551",
+          "name": "Battle Shout",
+          "classname": "BattleShout",
+          "iconname": "Ability_Warrior_BattleShout",
+          "value1": 185,
+          "value2": 1,
+          "minlevel": 52,
+          "aq": false,
+          "buff": true,
+          "aura": true,
+          "active": false
+        },
+        {
+          "id": "11567",
+          "name": "Heroic Strike",
+          "classname": "HeroicStrike",
+          "iconname": "ability_rogue_ambush",
+          "minrage": 130,
+          "minrageactive": true,
+          "unqueue": 15,
+          "unqueueactive": false,
+          "maincd": "2",
+          "maincdactive": false,
+          "exmacro": true,
+          "minlevel": 56,
+          "value1": 138,
+          "active": true,
+          "aq": false
+        },
+        {
+          "id": "2687",
+          "name": "Bloodrage",
+          "classname": "Bloodrage",
+          "iconname": "ability_racial_bloodrage",
+          "timetoend": 35,
+          "timetoendactive": false,
+          "timetostart": 0,
+          "timetostartactive": true,
+          "buff": true,
+          "active": true
+        },
+        {
+          "id": "11597",
+          "name": "Sunder Armor",
+          "classname": "SunderArmor",
+          "iconname": "ability_warrior_sunder",
+          "minrage": 50,
+          "minrageactive": false,
+          "duration": 15,
+          "durationactive": false,
+          "globals": "1",
+          "globalsactive": true,
+          "active": false,
+          "priority": 0,
+          "expriority": 0
+        },
+        {
+          "id": "11585",
+          "name": "Overpower",
+          "classname": "Overpower",
+          "iconname": "ability_meleedamage",
+          "maxrage": 70,
+          "maxrageactive": true,
+          "maincd": 0,
+          "maincdactive": false,
+          "value1": 35,
+          "minlevel": 60,
+          "active": true,
+          "priority": 9,
+          "expriority": 10
+        },
+        {
+          "id": "7373",
+          "name": "Hamstring",
+          "classname": "Hamstring",
+          "iconname": "ability_shockwave",
+          "minrage": 10,
+          "minrageactive": true,
+          "duration": 15,
+          "durationactive": false,
+          "minlevel": 54,
+          "value1": 45,
+          "active": true,
+          "priority": 6,
+          "expriority": 0
+        },
+        {
+          "id": "20662",
+          "name": "Execute",
+          "classname": "Execute",
+          "iconname": "inv_sword_48",
+          "minlevel": 56,
+          "swingtimer": 2.5,
+          "swingtimeractive": false,
+          "value1": 600,
+          "value2": 15,
+          "active": true,
+          "priority": 0,
+          "expriority": 9,
+          "minrageactive": false,
+          "minrage": 50,
+          "starttime": "52"
+        },
+        {
+          "id": "1680",
+          "name": "Whirlwind",
+          "classname": "Whirlwind",
+          "iconname": "ability_whirlwind",
+          "minrage": "50",
+          "minrageactive": false,
+          "maxrage": 25,
+          "maxrageactive": false,
+          "maincd": "2",
+          "maincdactive": false,
+          "minlevel": 36,
+          "active": true,
+          "priority": 8,
+          "expriority": 0
+        },
+        {
+          "id": "23894",
+          "name": "Bloodthirst",
+          "classname": "Bloodthirst",
+          "iconname": "spell_nature_bloodlust",
+          "minrage": 30,
+          "minrageactive": false,
+          "active": true,
+          "priority": 10,
+          "expriority": 0
+        },
+        {
+          "id": "12328",
+          "name": "Death Wish",
+          "classname": "DeathWish",
+          "iconname": "spell_shadow_deathpact",
+          "timetoend": 31,
+          "timetoendactive": true,
+          "timetostart": 0,
+          "timetostartactive": false,
+          "aura": true,
+          "active": true,
+          "buff": true,
+          "time": "29"
+        },
+        {
+          "id": "forever:elunes-light",
+          "name": "Elune’s Light",
+          "classname": "ElunesLight",
+          "iconname": "spell_holy_elunesgrace",
+          "mode": "forever",
+          "aura": true,
+          "buff": true,
+          "active": true,
+          "timetostart": 0,
+          "timetostartactive": false,
+          "timetoend": 16,
+          "timetoendactive": true,
+          "localDescription": "Increases critical strike chance by 10% for 15 seconds. 3-minute cooldown."
+        },
+        {
+          "id": "17528",
+          "name": "Mighty Rage Potion",
+          "classname": "MightyRagePotion",
+          "iconname": "inv_potion_41",
+          "timetoend": 21,
+          "timetoendactive": false,
+          "timetostart": 0,
+          "timetostartactive": false,
+          "aura": true,
+          "minlevel": 46,
+          "value1": 45,
+          "value2": 75,
+          "active": true,
+          "buff": true,
+          "time": "39"
+        },
+        {
+          "id": 16322,
+          "name": "Juju Flurry",
+          "classname": "JujuFlurry",
+          "iconname": "inv_misc_monsterscales_17",
+          "minlevel": 55,
+          "timetoend": 11,
+          "timetoendactive": false,
+          "timetostart": 0,
+          "timetostartactive": false,
+          "active": true,
+          "aura": true,
+          "buff": true
+        },
+        {
+          "id": 11605,
+          "name": "Slam",
+          "classname": "Slam",
+          "iconname": "ability_warrior_decisivestrike",
+          "minrage": 70,
+          "minrageactive": true,
+          "value1": 87,
+          "minlevel": 54,
+          "maincd": 2,
+          "maincdactive": true,
+          "afterswing": false,
+          "active": true,
+          "priority": 7,
+          "expriority": 0
+        }
+      ],
+      "gear": {
+        "head": 12640,
+        "neck": 18404,
+        "shoulder": 12927,
+        "back": 13340,
+        "chest": 11726,
+        "wrist": 12936,
+        "hands": 15063,
+        "waist": 13959,
+        "legs": 15062,
+        "feet": 14616,
+        "ranged": 17069,
+        "twohand": 17076
+      },
+      "enchant": {
+        "mainhand": [],
+        "offhand": [],
+        "twohand": [
+          18262,
+          20034
+        ],
+        "head": [
+          11645
+        ],
+        "shoulder": [],
+        "back": [
+          13882
+        ],
+        "chest": [
+          13941
+        ],
+        "wrist": [
+          20010
+        ],
+        "hands": [
+          20013
+        ],
+        "legs": [
+          11645
+        ],
+        "feet": [
+          13890
+        ]
+      }
+    }
+  },
+  "initialArms": {
+    "id": "forever-two-handed-arms",
+    "description": "2H Fury P1 - Level 60 Night Elf",
+    "profile": {
+      "level": "60",
+      "race": "Night Elf",
+      "simulations": "50000",
+      "timesecsmin": "50",
+      "timesecsmax": "60",
+      "executeperc": "20",
+      "startrage": "0",
+      "targetlevel": "63",
+      "targetbasearmor": "3731",
+      "targetcustomarmor": "",
+      "targetresistance": "24",
+      "targetspeed": "0",
+      "targetmindmg": "200",
+      "targetmaxdmg": "300",
+      "adjacent": "0",
+      "aqbooks": "No",
+      "reactionmin": "200",
+      "reactionmax": "300",
+      "batching": "10",
+      "bleedreduction": "1",
+      "spellqueueing": "Yes",
+      "talentSchema": "forever-v1",
+      "maxhealth": "",
+      "targetcreaturetype": "Other",
+      "profilename": "Two-Handed Arms (31/20/0)",
+      "talents": [
+        {
+          "n": "Arms",
+          "t": [
+            2,
+            0,
+            3,
+            0,
+            5,
+            2,
+            1,
+            3,
+            0,
+            3,
+            2,
+            1,
+            1,
+            5,
+            2,
+            0,
+            1
+          ],
+          "keys": [
+            "arms:improved-heroic-strike",
+            "arms:deflection",
+            "arms:improved-rend",
+            "arms:improved-charge",
+            "arms:improved-tactical-mastery",
+            "arms:improved-overpower",
+            "arms:anger-management",
+            "arms:deep-wounds",
+            "arms:spearing-strike",
+            "arms:two-handed-weapon-specialization",
+            "arms:impale",
+            "arms:bloodthrill",
+            "arms:sweeping-strikes",
+            "arms:weaponmaster",
+            "arms:improved-slam",
+            "arms:improved-hamstring",
+            "arms:mortal-strike"
+          ]
+        },
+        {
+          "n": "Fury",
+          "t": [
+            0,
+            5,
+            0,
+            5,
+            3,
+            0,
+            0,
+            3,
+            0,
+            0,
+            2,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "keys": [
+            "fury:booming-voice",
+            "fury:cruelty",
+            "fury:iron-will",
+            "fury:unbridled-wrath",
+            "fury:improved-cleave",
+            "fury:piercing-howl",
+            "fury:blood-craze",
+            "fury:boundless-rage",
+            "fury:dual-wield-specialization",
+            "fury:raging-blows",
+            "fury:enrage",
+            "fury:improved-execute",
+            "fury:precision",
+            "fury:death-wish",
+            "fury:improved-intercept",
+            "fury:improved-berserker-rage",
+            "fury:flurry",
+            "fury:bloodthirst"
+          ]
+        },
+        {
+          "n": "Protection",
+          "t": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "keys": [
+            "protection:shield-specialization",
+            "protection:anticipation",
+            "protection:improved-bloodrage",
+            "protection:toughness",
+            "protection:improved-thunder-clap",
+            "protection:last-stand",
+            "protection:master-of-defense",
+            "protection:improved-revenge",
+            "protection:defiance",
+            "protection:improved-sunder-armor",
+            "protection:improved-disarm",
+            "protection:vanguard",
+            "protection:improved-shield-wall",
+            "protection:concussion-blow",
+            "protection:improved-shield-bash",
+            "protection:vitality",
+            "protection:focused-rage",
+            "protection:bastion",
+            "protection:shield-slam"
+          ]
+        }
+      ],
+      "buffs": [
+        null,
+        "9885",
+        "20217",
+        "19838",
+        "10614",
+        "13452",
+        "12451",
+        "12460",
+        "2458",
+        "11597",
+        "9907",
+        "11717"
+      ],
+      "rotation": [
+        {
+          "id": "11551",
+          "name": "Battle Shout",
+          "classname": "BattleShout",
+          "iconname": "Ability_Warrior_BattleShout",
+          "value1": 185,
+          "value2": 1,
+          "minlevel": 52,
+          "aq": false,
+          "buff": true,
+          "aura": true,
+          "active": false
+        },
+        {
+          "id": "11567",
+          "name": "Heroic Strike",
+          "classname": "HeroicStrike",
+          "iconname": "ability_rogue_ambush",
+          "minrage": 130,
+          "minrageactive": true,
+          "unqueue": 15,
+          "unqueueactive": false,
+          "maincd": "2",
+          "maincdactive": false,
+          "exmacro": true,
+          "minlevel": 56,
+          "value1": 138,
+          "active": true,
+          "aq": false
+        },
+        {
+          "id": "2687",
+          "name": "Bloodrage",
+          "classname": "Bloodrage",
+          "iconname": "ability_racial_bloodrage",
+          "timetoend": 35,
+          "timetoendactive": false,
+          "timetostart": 0,
+          "timetostartactive": true,
+          "buff": true,
+          "active": true
+        },
+        {
+          "id": "11597",
+          "name": "Sunder Armor",
+          "classname": "SunderArmor",
+          "iconname": "ability_warrior_sunder",
+          "minrage": 50,
+          "minrageactive": false,
+          "duration": 15,
+          "durationactive": false,
+          "globals": "1",
+          "globalsactive": true,
+          "active": false,
+          "priority": 0,
+          "expriority": 0
+        },
+        {
+          "id": "11585",
+          "name": "Overpower",
+          "classname": "Overpower",
+          "iconname": "ability_meleedamage",
+          "maxrage": 70,
+          "maxrageactive": true,
+          "maincd": 0,
+          "maincdactive": false,
+          "value1": 35,
+          "minlevel": 60,
+          "active": true,
+          "priority": 9,
+          "expriority": 10
+        },
+        {
+          "id": "7373",
+          "name": "Hamstring",
+          "classname": "Hamstring",
+          "iconname": "ability_shockwave",
+          "minrage": 10,
+          "minrageactive": true,
+          "duration": 15,
+          "durationactive": false,
+          "minlevel": 54,
+          "value1": 45,
+          "active": true,
+          "priority": 6,
+          "expriority": 0
+        },
+        {
+          "id": "20662",
+          "name": "Execute",
+          "classname": "Execute",
+          "iconname": "inv_sword_48",
+          "minlevel": 56,
+          "swingtimer": 2.5,
+          "swingtimeractive": false,
+          "value1": 600,
+          "value2": 15,
+          "active": true,
+          "priority": 0,
+          "expriority": 9,
+          "minrageactive": false,
+          "minrage": 50,
+          "starttime": "52"
+        },
+        {
+          "id": "1680",
+          "name": "Whirlwind",
+          "classname": "Whirlwind",
+          "iconname": "ability_whirlwind",
+          "minrage": "50",
+          "minrageactive": false,
+          "maxrage": 25,
+          "maxrageactive": false,
+          "maincd": "2",
+          "maincdactive": false,
+          "minlevel": 36,
+          "active": true,
+          "priority": 8,
+          "expriority": 0
+        },
+        {
+          "id": "23894",
+          "name": "Bloodthirst",
+          "classname": "Bloodthirst",
+          "iconname": "spell_nature_bloodlust",
+          "minrage": 30,
+          "minrageactive": false,
+          "active": false,
+          "priority": 10,
+          "expriority": 0
+        },
+        {
+          "id": "12328",
+          "name": "Death Wish",
+          "classname": "DeathWish",
+          "iconname": "spell_shadow_deathpact",
+          "timetoend": 31,
+          "timetoendactive": true,
+          "timetostart": 0,
+          "timetostartactive": false,
+          "aura": true,
+          "active": false,
+          "buff": true,
+          "time": "29"
+        },
+        {
+          "id": "forever:elunes-light",
+          "name": "Elune’s Light",
+          "classname": "ElunesLight",
+          "iconname": "spell_holy_elunesgrace",
+          "mode": "forever",
+          "aura": true,
+          "buff": true,
+          "active": true,
+          "timetostart": 0,
+          "timetostartactive": false,
+          "timetoend": 16,
+          "timetoendactive": true,
+          "localDescription": "Increases critical strike chance by 10% for 15 seconds. 3-minute cooldown."
+        },
+        {
+          "id": "17528",
+          "name": "Mighty Rage Potion",
+          "classname": "MightyRagePotion",
+          "iconname": "inv_potion_41",
+          "timetoend": 21,
+          "timetoendactive": false,
+          "timetostart": 0,
+          "timetostartactive": false,
+          "aura": true,
+          "minlevel": 46,
+          "value1": 45,
+          "value2": 75,
+          "active": true,
+          "buff": true,
+          "time": "39"
+        },
+        {
+          "id": 16322,
+          "name": "Juju Flurry",
+          "classname": "JujuFlurry",
+          "iconname": "inv_misc_monsterscales_17",
+          "minlevel": 55,
+          "timetoend": 11,
+          "timetoendactive": false,
+          "timetostart": 0,
+          "timetostartactive": false,
+          "active": true,
+          "aura": true,
+          "buff": true
+        },
+        {
+          "id": 11605,
+          "name": "Slam",
+          "classname": "Slam",
+          "iconname": "ability_warrior_decisivestrike",
+          "minrage": 70,
+          "minrageactive": true,
+          "value1": 87,
+          "minlevel": 54,
+          "maincd": 2,
+          "maincdactive": true,
+          "afterswing": false,
+          "active": true,
+          "priority": 7,
+          "expriority": 0
+        },
+        {
+          "id": 27580,
+          "name": "Mortal Strike",
+          "classname": "MortalStrike",
+          "iconname": "ability_warrior_savageblow",
+          "minrage": 30,
+          "minrageactive": false,
+          "value1": 160,
+          "minlevel": 60,
+          "active": true,
+          "priority": 10,
+          "expriority": 0
+        }
+      ],
+      "gear": {
+        "head": 12640,
+        "neck": 18404,
+        "shoulder": 12927,
+        "back": 13340,
+        "chest": 11726,
+        "wrist": 12936,
+        "hands": 15063,
+        "waist": 13959,
+        "legs": 15062,
+        "feet": 14616,
+        "ranged": 17069,
+        "twohand": 17076
+      },
+      "enchant": {
+        "mainhand": [],
+        "offhand": [],
+        "twohand": [
+          18262,
+          20034
+        ],
+        "head": [
+          11645
+        ],
+        "shoulder": [],
+        "back": [
+          13882
+        ],
+        "chest": [
+          13941
+        ],
+        "wrist": [
+          20010
+        ],
+        "hands": [
+          20013
+        ],
+        "legs": [
+          11645
+        ],
+        "feet": [
+          13890
+        ]
+      }
+    }
+  },
+  "preset": {
+    "id": "forever-two-handed-arms",
+    "description": "2H Fury P1 - Level 60 Night Elf",
+    "profile": {
+      "level": "60",
+      "race": "Night Elf",
+      "simulations": "50000",
+      "timesecsmin": "50",
+      "timesecsmax": "60",
+      "executeperc": "20",
+      "startrage": "0",
+      "targetlevel": "63",
+      "targetbasearmor": "3731",
+      "targetcustomarmor": "",
+      "targetresistance": "24",
+      "targetspeed": "0",
+      "targetmindmg": "200",
+      "targetmaxdmg": "300",
+      "adjacent": "0",
+      "aqbooks": "No",
+      "reactionmin": "200",
+      "reactionmax": "300",
+      "batching": "10",
+      "bleedreduction": "1",
+      "spellqueueing": "Yes",
+      "talentSchema": "forever-v1",
+      "maxhealth": "",
+      "targetcreaturetype": "Other",
+      "profilename": "Two-Handed Arms (34/17/0)",
+      "talents": [
+        {
+          "n": "Arms",
+          "t": [
+            2,
+            0,
+            3,
+            0,
+            5,
+            2,
+            1,
+            3,
+            0,
+            3,
+            2,
+            5,
+            1,
+            5,
+            1,
+            0,
+            1
+          ],
+          "keys": [
+            "arms:improved-heroic-strike",
+            "arms:deflection",
+            "arms:improved-rend",
+            "arms:improved-charge",
+            "arms:improved-tactical-mastery",
+            "arms:improved-overpower",
+            "arms:anger-management",
+            "arms:deep-wounds",
+            "arms:spearing-strike",
+            "arms:two-handed-weapon-specialization",
+            "arms:impale",
+            "arms:bloodthrill",
+            "arms:sweeping-strikes",
+            "arms:weaponmaster",
+            "arms:improved-slam",
+            "arms:improved-hamstring",
+            "arms:mortal-strike"
+          ]
+        },
+        {
+          "n": "Fury",
+          "t": [
+            0,
+            5,
+            0,
+            5,
+            2,
+            0,
+            0,
+            3,
+            0,
+            0,
+            0,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "keys": [
+            "fury:booming-voice",
+            "fury:cruelty",
+            "fury:iron-will",
+            "fury:unbridled-wrath",
+            "fury:improved-cleave",
+            "fury:piercing-howl",
+            "fury:blood-craze",
+            "fury:boundless-rage",
+            "fury:dual-wield-specialization",
+            "fury:raging-blows",
+            "fury:enrage",
+            "fury:improved-execute",
+            "fury:precision",
+            "fury:death-wish",
+            "fury:improved-intercept",
+            "fury:improved-berserker-rage",
+            "fury:flurry",
+            "fury:bloodthirst"
+          ]
+        },
+        {
+          "n": "Protection",
+          "t": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "keys": [
+            "protection:shield-specialization",
+            "protection:anticipation",
+            "protection:improved-bloodrage",
+            "protection:toughness",
+            "protection:improved-thunder-clap",
+            "protection:last-stand",
+            "protection:master-of-defense",
+            "protection:improved-revenge",
+            "protection:defiance",
+            "protection:improved-sunder-armor",
+            "protection:improved-disarm",
+            "protection:vanguard",
+            "protection:improved-shield-wall",
+            "protection:concussion-blow",
+            "protection:improved-shield-bash",
+            "protection:vitality",
+            "protection:focused-rage",
+            "protection:bastion",
+            "protection:shield-slam"
+          ]
+        }
+      ],
+      "buffs": [
+        null,
+        "9885",
+        "20217",
+        "19838",
+        "10614",
+        "13452",
+        "12451",
+        "12460",
+        "2458",
+        "11597",
+        "9907",
+        "11717"
+      ],
+      "rotation": [
+        {
+          "id": "11551",
+          "name": "Battle Shout",
+          "classname": "BattleShout",
+          "iconname": "Ability_Warrior_BattleShout",
+          "value1": 185,
+          "value2": 1,
+          "minlevel": 52,
+          "aq": false,
+          "buff": true,
+          "aura": true,
+          "active": false
+        },
+        {
+          "id": "11567",
+          "name": "Heroic Strike",
+          "classname": "HeroicStrike",
+          "iconname": "ability_rogue_ambush",
+          "minrage": 80,
+          "minrageactive": true,
+          "unqueue": 15,
+          "unqueueactive": false,
+          "maincd": "2",
+          "maincdactive": false,
+          "exmacro": true,
+          "minlevel": 56,
+          "value1": 138,
+          "active": true,
+          "aq": false
+        },
+        {
+          "id": "2687",
+          "name": "Bloodrage",
+          "classname": "Bloodrage",
+          "iconname": "ability_racial_bloodrage",
+          "timetoend": 35,
+          "timetoendactive": false,
+          "timetostart": 0,
+          "timetostartactive": true,
+          "buff": true,
+          "active": true
+        },
+        {
+          "id": "11597",
+          "name": "Sunder Armor",
+          "classname": "SunderArmor",
+          "iconname": "ability_warrior_sunder",
+          "minrage": 50,
+          "minrageactive": false,
+          "duration": 15,
+          "durationactive": false,
+          "globals": "1",
+          "globalsactive": true,
+          "active": false,
+          "priority": 0,
+          "expriority": 0
+        },
+        {
+          "id": "11585",
+          "name": "Overpower",
+          "classname": "Overpower",
+          "iconname": "ability_meleedamage",
+          "maxrage": 65,
+          "maxrageactive": true,
+          "maincd": 0,
+          "maincdactive": false,
+          "value1": 35,
+          "minlevel": 60,
+          "active": true,
+          "priority": 9,
+          "expriority": 10
+        },
+        {
+          "id": "7373",
+          "name": "Hamstring",
+          "classname": "Hamstring",
+          "iconname": "ability_shockwave",
+          "minrage": 20,
+          "minrageactive": true,
+          "duration": 15,
+          "durationactive": false,
+          "minlevel": 54,
+          "value1": 45,
+          "active": true,
+          "priority": 5,
+          "expriority": 0
+        },
+        {
+          "id": "20662",
+          "name": "Execute",
+          "classname": "Execute",
+          "iconname": "inv_sword_48",
+          "minlevel": 56,
+          "swingtimer": 2.5,
+          "swingtimeractive": false,
+          "value1": 600,
+          "value2": 15,
+          "active": true,
+          "priority": 0,
+          "expriority": 9,
+          "minrageactive": false,
+          "minrage": 50,
+          "starttime": "52"
+        },
+        {
+          "id": "1680",
+          "name": "Whirlwind",
+          "classname": "Whirlwind",
+          "iconname": "ability_whirlwind",
+          "minrage": "50",
+          "minrageactive": false,
+          "maxrage": 25,
+          "maxrageactive": false,
+          "maincd": "2",
+          "maincdactive": false,
+          "minlevel": 36,
+          "active": true,
+          "priority": 7,
+          "expriority": 0
+        },
+        {
+          "id": "23894",
+          "name": "Bloodthirst",
+          "classname": "Bloodthirst",
+          "iconname": "spell_nature_bloodlust",
+          "minrage": 30,
+          "minrageactive": false,
+          "active": false,
+          "priority": 0,
+          "expriority": 0
+        },
+        {
+          "id": "12328",
+          "name": "Death Wish",
+          "classname": "DeathWish",
+          "iconname": "spell_shadow_deathpact",
+          "timetoend": 31,
+          "timetoendactive": true,
+          "timetostart": 0,
+          "timetostartactive": false,
+          "aura": true,
+          "active": false,
+          "buff": true,
+          "time": "29"
+        },
+        {
+          "id": "forever:elunes-light",
+          "name": "Elune’s Light",
+          "classname": "ElunesLight",
+          "iconname": "spell_holy_elunesgrace",
+          "mode": "forever",
+          "aura": true,
+          "buff": true,
+          "active": true,
+          "timetostart": 0,
+          "timetostartactive": false,
+          "timetoend": 16,
+          "timetoendactive": true,
+          "localDescription": "Increases critical strike chance by 10% for 15 seconds. 3-minute cooldown."
+        },
+        {
+          "id": "17528",
+          "name": "Mighty Rage Potion",
+          "classname": "MightyRagePotion",
+          "iconname": "inv_potion_41",
+          "timetoend": 21,
+          "timetoendactive": false,
+          "timetostart": 0,
+          "timetostartactive": false,
+          "aura": true,
+          "minlevel": 46,
+          "value1": 45,
+          "value2": 75,
+          "active": true,
+          "buff": true,
+          "time": "39"
+        },
+        {
+          "id": 16322,
+          "name": "Juju Flurry",
+          "classname": "JujuFlurry",
+          "iconname": "inv_misc_monsterscales_17",
+          "minlevel": 55,
+          "timetoend": 11,
+          "timetoendactive": false,
+          "timetostart": 0,
+          "timetostartactive": false,
+          "active": true,
+          "aura": true,
+          "buff": true
+        },
+        {
+          "id": 11605,
+          "name": "Slam",
+          "classname": "Slam",
+          "iconname": "ability_warrior_decisivestrike",
+          "minrage": 20,
+          "minrageactive": true,
+          "value1": 87,
+          "minlevel": 54,
+          "maincd": 2,
+          "maincdactive": false,
+          "afterswing": false,
+          "active": true,
+          "priority": 8,
+          "expriority": 0
+        },
+        {
+          "id": 11574,
+          "name": "Rend",
+          "classname": "Rend",
+          "iconname": "ability_gouge",
+          "minlevel": 60,
+          "value1": 147,
+          "value2": 7,
+          "duration": 16,
+          "durationactive": false,
+          "maxrage": 40,
+          "maxrageactive": true,
+          "active": true,
+          "aura": true,
+          "priority": 6,
+          "expriority": 0
+        },
+        {
+          "id": "27580",
+          "name": "Mortal Strike",
+          "classname": "MortalStrike",
+          "iconname": "ability_warrior_savageblow",
+          "minrage": 30,
+          "minrageactive": true,
+          "value1": 160,
+          "minlevel": 60,
+          "active": true,
+          "priority": 10,
+          "expriority": 0
+        }
+      ],
+      "gear": {
+        "head": 12640,
+        "neck": 18404,
+        "shoulder": 12927,
+        "back": 13340,
+        "chest": 11726,
+        "wrist": 12936,
+        "hands": 15063,
+        "waist": 13959,
+        "legs": 15062,
+        "feet": 14616,
+        "ranged": 17069,
+        "twohand": 17076
+      },
+      "enchant": {
+        "mainhand": [],
+        "offhand": [],
+        "twohand": [
+          18262,
+          20034
+        ],
+        "head": [
+          11645
+        ],
+        "shoulder": [],
+        "back": [
+          13882
+        ],
+        "chest": [
+          13941
+        ],
+        "wrist": [
+          20010
+        ],
+        "hands": [
+          20013
+        ],
+        "legs": [
+          11645
+        ],
+        "feet": [
+          13890
+        ]
+      }
+    }
+  },
+  "comparisons": [
+    {
+      "name": "Without Improved Slam (points in unused Improved Hamstring)",
+      "row": {
+        "ranks": [
+          [
+            2,
+            0,
+            3,
+            0,
+            5,
+            2,
+            1,
+            3,
+            0,
+            3,
+            2,
+            5,
+            1,
+            5,
+            0,
+            1,
+            1
+          ],
+          [
+            0,
+            5,
+            0,
+            5,
+            2,
+            0,
+            0,
+            3,
+            0,
+            0,
+            0,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "normal": [
+          "MortalStrike",
+          "Overpower",
+          "Slam",
+          "Whirlwind",
+          "Rend",
+          "Hamstring"
+        ],
+        "execute": [
+          "Overpower",
+          "Execute"
+        ],
+        "settings": {
+          "Slam": {
+            "afterswing": false,
+            "minrageactive": true,
+            "maincdactive": false,
+            "minrage": 20
+          },
+          "Whirlwind": {
+            "maincdactive": false
+          },
+          "Rend": {
+            "durationactive": false,
+            "maxrage": 40,
+            "maxrageactive": true
+          },
+          "SpearingStrike": {
+            "minrageactive": false
+          },
+          "BerserkerRage": {
+            "active": false,
+            "maxrageactive": true,
+            "maxrage": 25
+          },
+          "HeroicStrike": {
+            "active": true,
+            "minrage": 80,
+            "minrageactive": true
+          },
+          "Hamstring": {
+            "minrage": 20,
+            "minrageactive": true
+          },
+          "Overpower": {
+            "maxrage": 65,
+            "maxrageactive": true
+          },
+          "MortalStrike": {
+            "minrage": 30,
+            "minrageactive": true
+          }
+        }
+      },
+      "mean": 606.7400495990178,
+      "se": 0.06564127824926573,
+      "ci95": 0.12865690536856084,
+      "dps": 606.6797745193611,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 50055161268.369835,
+        "totalduration": 82506724.91600001,
+        "sumdps": 910110074.3985267,
+        "sumdps2": 561894974390.9061
+      },
+      "seeds": [
+        {
+          "seed": 557131829,
+          "iterations": 500000,
+          "mean": 606.5455199250337,
+          "ci95": 0.22287405932877433,
+          "sumdps": 303272759.96251684,
+          "sumdps2": 187181289770.18942,
+          "totaldmg": 16677832483.870163,
+          "totalduration": 27498811.651999995
+        },
+        {
+          "seed": 2973050933,
+          "iterations": 500000,
+          "mean": 606.8938143803808,
+          "ci95": 0.22293209654178292,
+          "sumdps": 303446907.19019043,
+          "sumdps2": 187394290623.95834,
+          "totaldmg": 16689922498.810188,
+          "totalduration": 27503209.301999997
+        },
+        {
+          "seed": 1094002741,
+          "iterations": 500000,
+          "mean": 606.7808144916388,
+          "ci95": 0.2227140344907524,
+          "sumdps": 303390407.2458194,
+          "sumdps2": 187319393996.75833,
+          "totaldmg": 16687406285.689482,
+          "totalduration": 27504703.96200001
+        }
+      ]
+    },
+    {
+      "name": "Source two-handed Fury preset",
+      "row": {
+        "control": true,
+        "ranks": [
+          [
+            2,
+            0,
+            3,
+            0,
+            5,
+            2,
+            1,
+            2,
+            0,
+            3,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            5,
+            0,
+            5,
+            3,
+            0,
+            0,
+            3,
+            0,
+            0,
+            5,
+            2,
+            1,
+            1,
+            0,
+            0,
+            5,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "normal": [
+          "Bloodthirst",
+          "Overpower",
+          "Whirlwind",
+          "Slam",
+          "Hamstring"
+        ],
+        "execute": [
+          "Overpower",
+          "Execute"
+        ],
+        "settings": {
+          "BattleShout": {
+            "id": "11551",
+            "name": "Battle Shout",
+            "classname": "BattleShout",
+            "iconname": "Ability_Warrior_BattleShout",
+            "value1": 185,
+            "value2": 1,
+            "minlevel": 52,
+            "aq": false,
+            "buff": true,
+            "aura": true,
+            "active": false
+          },
+          "HeroicStrike": {
+            "id": "11567",
+            "name": "Heroic Strike",
+            "classname": "HeroicStrike",
+            "iconname": "ability_rogue_ambush",
+            "minrage": 130,
+            "minrageactive": true,
+            "unqueue": 15,
+            "unqueueactive": false,
+            "maincd": "2",
+            "maincdactive": false,
+            "exmacro": true,
+            "minlevel": 56,
+            "value1": 138,
+            "active": true,
+            "aq": false
+          },
+          "Bloodrage": {
+            "id": "2687",
+            "name": "Bloodrage",
+            "classname": "Bloodrage",
+            "iconname": "ability_racial_bloodrage",
+            "timetoend": 35,
+            "timetoendactive": false,
+            "timetostart": 0,
+            "timetostartactive": true,
+            "buff": true,
+            "active": true
+          },
+          "SunderArmor": {
+            "id": "11597",
+            "name": "Sunder Armor",
+            "classname": "SunderArmor",
+            "iconname": "ability_warrior_sunder",
+            "minrage": 50,
+            "minrageactive": false,
+            "duration": 15,
+            "durationactive": false,
+            "globals": "1",
+            "globalsactive": true,
+            "active": false,
+            "priority": 0,
+            "expriority": 0
+          },
+          "Overpower": {
+            "id": "11585",
+            "name": "Overpower",
+            "classname": "Overpower",
+            "iconname": "ability_meleedamage",
+            "maxrage": 70,
+            "maxrageactive": true,
+            "maincd": 0,
+            "maincdactive": false,
+            "value1": 35,
+            "minlevel": 60,
+            "active": true,
+            "priority": 9,
+            "expriority": 10
+          },
+          "Hamstring": {
+            "id": "7373",
+            "name": "Hamstring",
+            "classname": "Hamstring",
+            "iconname": "ability_shockwave",
+            "minrage": 10,
+            "minrageactive": true,
+            "duration": 15,
+            "durationactive": false,
+            "minlevel": 54,
+            "value1": 45,
+            "active": true,
+            "priority": 6,
+            "expriority": 0
+          },
+          "Execute": {
+            "id": "20662",
+            "name": "Execute",
+            "classname": "Execute",
+            "iconname": "inv_sword_48",
+            "minlevel": 56,
+            "swingtimer": 2.5,
+            "swingtimeractive": false,
+            "value1": 600,
+            "value2": 15,
+            "active": true,
+            "priority": 0,
+            "expriority": 9,
+            "minrageactive": false,
+            "minrage": 50,
+            "starttime": "52"
+          },
+          "Whirlwind": {
+            "id": "1680",
+            "name": "Whirlwind",
+            "classname": "Whirlwind",
+            "iconname": "ability_whirlwind",
+            "minrage": "50",
+            "minrageactive": false,
+            "maxrage": 25,
+            "maxrageactive": false,
+            "maincd": "2",
+            "maincdactive": false,
+            "minlevel": 36,
+            "active": true,
+            "priority": 8,
+            "expriority": 0
+          },
+          "Bloodthirst": {
+            "id": "23894",
+            "name": "Bloodthirst",
+            "classname": "Bloodthirst",
+            "iconname": "spell_nature_bloodlust",
+            "minrage": 30,
+            "minrageactive": false,
+            "active": true,
+            "priority": 10,
+            "expriority": 0
+          },
+          "DeathWish": {
+            "id": "12328",
+            "name": "Death Wish",
+            "classname": "DeathWish",
+            "iconname": "spell_shadow_deathpact",
+            "timetoend": 31,
+            "timetoendactive": true,
+            "timetostart": 0,
+            "timetostartactive": false,
+            "aura": true,
+            "active": true,
+            "buff": true,
+            "time": "29"
+          },
+          "ElunesLight": {
+            "id": "forever:elunes-light",
+            "name": "Elune’s Light",
+            "classname": "ElunesLight",
+            "iconname": "spell_holy_elunesgrace",
+            "mode": "forever",
+            "aura": true,
+            "buff": true,
+            "active": true,
+            "timetostart": 0,
+            "timetostartactive": false,
+            "timetoend": 16,
+            "timetoendactive": true,
+            "localDescription": "Increases critical strike chance by 10% for 15 seconds. 3-minute cooldown."
+          },
+          "MightyRagePotion": {
+            "id": "17528",
+            "name": "Mighty Rage Potion",
+            "classname": "MightyRagePotion",
+            "iconname": "inv_potion_41",
+            "timetoend": 21,
+            "timetoendactive": false,
+            "timetostart": 0,
+            "timetostartactive": false,
+            "aura": true,
+            "minlevel": 46,
+            "value1": 45,
+            "value2": 75,
+            "active": true,
+            "buff": true,
+            "time": "39"
+          },
+          "JujuFlurry": {
+            "id": 16322,
+            "name": "Juju Flurry",
+            "classname": "JujuFlurry",
+            "iconname": "inv_misc_monsterscales_17",
+            "minlevel": 55,
+            "timetoend": 11,
+            "timetoendactive": false,
+            "timetostart": 0,
+            "timetostartactive": false,
+            "active": true,
+            "aura": true,
+            "buff": true
+          },
+          "Slam": {
+            "id": 11605,
+            "name": "Slam",
+            "classname": "Slam",
+            "iconname": "ability_warrior_decisivestrike",
+            "minrage": 70,
+            "minrageactive": true,
+            "value1": 87,
+            "minlevel": 54,
+            "maincd": 2,
+            "maincdactive": true,
+            "afterswing": false,
+            "active": true,
+            "priority": 7,
+            "expriority": 0
+          }
+        }
+      },
+      "mean": 684.0011866197459,
+      "se": 0.07549215785100474,
+      "ci95": 0.14796462938796928,
+      "dps": 683.7090201950215,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 56410592051.81853,
+        "totalduration": 82506724.91600001,
+        "sumdps": 1026001779.9296188,
+        "sumdps2": 714609324665.4841
+      },
+      "seeds": [
+        {
+          "seed": 557131829,
+          "iterations": 500000,
+          "mean": 683.9037274665884,
+          "ci95": 0.2565207925773346,
+          "sumdps": 341951863.7332942,
+          "sumdps2": 238144405459.02573,
+          "totaldmg": 18798725978.905785,
+          "totalduration": 27498811.651999995
+        },
+        {
+          "seed": 2973050933,
+          "iterations": 500000,
+          "mean": 684.139802020424,
+          "ci95": 0.2563076029935404,
+          "sumdps": 342069901.010212,
+          "sumdps2": 238298770753.50195,
+          "totaldmg": 18807839472.287987,
+          "totalduration": 27503209.301999997
+        },
+        {
+          "seed": 1094002741,
+          "iterations": 500000,
+          "mean": 683.9600303722254,
+          "ci95": 0.2560181803638587,
+          "sumdps": 341980015.1861127,
+          "sumdps2": 238166148452.95642,
+          "totaldmg": 18804026600.624752,
+          "totalduration": 27504703.962000012
+        }
+      ]
+    },
+    {
+      "name": "Without Rend",
+      "row": {
+        "ranks": [
+          [
+            2,
+            0,
+            3,
+            0,
+            5,
+            2,
+            1,
+            3,
+            0,
+            3,
+            2,
+            5,
+            1,
+            5,
+            1,
+            0,
+            1
+          ],
+          [
+            0,
+            5,
+            0,
+            5,
+            2,
+            0,
+            0,
+            3,
+            0,
+            0,
+            0,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "normal": [
+          "MortalStrike",
+          "Overpower",
+          "Slam",
+          "Whirlwind",
+          "Hamstring"
+        ],
+        "execute": [
+          "Overpower",
+          "Execute"
+        ],
+        "settings": {
+          "Slam": {
+            "afterswing": false,
+            "minrageactive": true,
+            "maincdactive": false,
+            "minrage": 20
+          },
+          "Whirlwind": {
+            "maincdactive": false
+          },
+          "Rend": {
+            "durationactive": false,
+            "maxrage": 40,
+            "maxrageactive": true
+          },
+          "SpearingStrike": {
+            "minrageactive": false
+          },
+          "BerserkerRage": {
+            "active": false,
+            "maxrageactive": true,
+            "maxrage": 25
+          },
+          "HeroicStrike": {
+            "active": true,
+            "minrage": 80,
+            "minrageactive": true
+          },
+          "Hamstring": {
+            "minrage": 20,
+            "minrageactive": true
+          },
+          "Overpower": {
+            "maxrage": 65,
+            "maxrageactive": true
+          },
+          "MortalStrike": {
+            "minrage": 30,
+            "minrageactive": true
+          }
+        }
+      },
+      "mean": 611.659526693611,
+      "se": 0.0662874163168331,
+      "ci95": 0.12992333598099287,
+      "dps": 611.5521913949567,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 50457168427.20066,
+        "totalduration": 82506724.91599998,
+        "sumdps": 917489290.0404166,
+        "sumdps2": 571077606815.9587
+      },
+      "seeds": [
+        {
+          "seed": 557131829,
+          "iterations": 500000,
+          "mean": 611.5065701935672,
+          "ci95": 0.22464649893345937,
+          "sumdps": 305753285.0967836,
+          "sumdps2": 190254317814.10364,
+          "totaldmg": 16812696357.317993,
+          "totalduration": 27498811.651999984
+        },
+        {
+          "seed": 2973050933,
+          "iterations": 500000,
+          "mean": 611.706139186332,
+          "ci95": 0.22503374624353076,
+          "sumdps": 305853069.59316605,
+          "sumdps2": 190387707808.3656,
+          "totaldmg": 16820948668.177832,
+          "totalduration": 27503209.301999986
+        },
+        {
+          "seed": 1094002741,
+          "iterations": 500000,
+          "mean": 611.765870700934,
+          "ci95": 0.22542036705720175,
+          "sumdps": 305882935.35046697,
+          "sumdps2": 190435581193.48953,
+          "totaldmg": 16823523401.704832,
+          "totalduration": 27504703.962000005
+        }
+      ]
+    },
+    {
+      "name": "Initial Arms conversion",
+      "row": {},
+      "mean": 589.6282106476111,
+      "se": 0.06973711052182785,
+      "ci95": 0.13668473662278258,
+      "dps": 589.5275856534605,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 48639990339.90369,
+        "totalduration": 82506724.916,
+        "sumdps": 884442315.9714167,
+        "sumdps2": 532434478206.20935
+      },
+      "seeds": [
+        {
+          "seed": 557131829,
+          "iterations": 500000,
+          "mean": 589.4899935969942,
+          "ci95": 0.23664830992821248,
+          "sumdps": 294744996.7984971,
+          "sumdps2": 177393691510.48755,
+          "totaldmg": 16207572417.028921,
+          "totalduration": 27498811.651999988
+        },
+        {
+          "seed": 2973050933,
+          "iterations": 500000,
+          "mean": 589.6051324568178,
+          "ci95": 0.23668556968719584,
+          "sumdps": 294802566.22840893,
+          "sumdps2": 177462719061.2177,
+          "totaldmg": 16213237152.112326,
+          "totalduration": 27503209.301999994
+        },
+        {
+          "seed": 1094002741,
+          "iterations": 500000,
+          "mean": 589.7895058890213,
+          "ci95": 0.23690050015601385,
+          "sumdps": 294894752.94451064,
+          "sumdps2": 177578067634.50406,
+          "totaldmg": 16219180770.762436,
+          "totalduration": 27504703.962000012
+        }
+      ]
+    },
+    {
+      "name": "Selected",
+      "row": {
+        "ranks": [
+          [
+            2,
+            0,
+            3,
+            0,
+            5,
+            2,
+            1,
+            3,
+            0,
+            3,
+            2,
+            5,
+            1,
+            5,
+            1,
+            0,
+            1
+          ],
+          [
+            0,
+            5,
+            0,
+            5,
+            2,
+            0,
+            0,
+            3,
+            0,
+            0,
+            0,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "normal": [
+          "MortalStrike",
+          "Overpower",
+          "Slam",
+          "Whirlwind",
+          "Rend",
+          "Hamstring"
+        ],
+        "execute": [
+          "Overpower",
+          "Execute"
+        ],
+        "settings": {
+          "Slam": {
+            "afterswing": false,
+            "minrageactive": true,
+            "maincdactive": false,
+            "minrage": 20
+          },
+          "Whirlwind": {
+            "maincdactive": false
+          },
+          "Rend": {
+            "durationactive": false,
+            "maxrage": 40,
+            "maxrageactive": true
+          },
+          "SpearingStrike": {
+            "minrageactive": false
+          },
+          "BerserkerRage": {
+            "active": false,
+            "maxrageactive": true,
+            "maxrage": 25
+          },
+          "HeroicStrike": {
+            "active": true,
+            "minrage": 80,
+            "minrageactive": true
+          },
+          "Hamstring": {
+            "minrage": 20,
+            "minrageactive": true
+          },
+          "Overpower": {
+            "maxrage": 65,
+            "maxrageactive": true
+          },
+          "MortalStrike": {
+            "minrage": 30,
+            "minrageactive": true
+          }
+        }
+      },
+      "mean": 632.8799587510358,
+      "se": 0.06591616162409124,
+      "ci95": 0.12919567678321883,
+      "dps": 632.7735015934907,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 52208069230.108215,
+        "totalduration": 82506724.916,
+        "sumdps": 949319938.1265538,
+        "sumdps2": 610581672582.9786
+      },
+      "seeds": [
+        {
+          "seed": 557131829,
+          "iterations": 500000,
+          "mean": 632.7437270502337,
+          "ci95": 0.2238650366592807,
+          "sumdps": 316371863.52511686,
+          "sumdps2": 203443678054.52487,
+          "totaldmg": 17396899074.45883,
+          "totalduration": 27498811.651999988
+        },
+        {
+          "seed": 2973050933,
+          "iterations": 500000,
+          "mean": 632.9978160023586,
+          "ci95": 0.22353225783671637,
+          "sumdps": 316498908.0011793,
+          "sumdps2": 203594794590.9314,
+          "totaldmg": 17406377669.157124,
+          "totalduration": 27503209.301999994
+        },
+        {
+          "seed": 1094002741,
+          "iterations": 500000,
+          "mean": 632.8983332005154,
+          "ci95": 0.22392282052550483,
+          "sumdps": 316449166.6002577,
+          "sumdps2": 203543199937.52237,
+          "totaldmg": 17404792486.492268,
+          "totalduration": 27504703.962000016
+        }
+      ]
+    },
+    {
+      "name": "Selected talents, inherited rotation",
+      "row": {
+        "ranks": [
+          [
+            2,
+            0,
+            3,
+            0,
+            5,
+            2,
+            1,
+            3,
+            0,
+            3,
+            2,
+            5,
+            1,
+            5,
+            1,
+            0,
+            1
+          ],
+          [
+            0,
+            5,
+            0,
+            5,
+            2,
+            0,
+            0,
+            3,
+            0,
+            0,
+            0,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "mean": 589.486550422017,
+      "se": 0.06964225762674986,
+      "ci95": 0.13649882494842971,
+      "dps": 589.3851715242288,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 48628240216.51901,
+        "totalduration": 82506724.91599998,
+        "sumdps": 884229825.6330254,
+        "sumdps2": 532154181524.1465
+      },
+      "seeds": [
+        {
+          "seed": 557131829,
+          "iterations": 500000,
+          "mean": 589.3895683440205,
+          "ci95": 0.23640685474915163,
+          "sumdps": 294694784.17201024,
+          "sumdps2": 177327063680.0541,
+          "totaldmg": 16204780368.472277,
+          "totalduration": 27498811.651999984
+        },
+        {
+          "seed": 2973050933,
+          "iterations": 500000,
+          "mean": 589.4326089317836,
+          "ci95": 0.23637183150181418,
+          "sumdps": 294716304.46589184,
+          "sumdps2": 177351354720.14905,
+          "totaldmg": 16208470831.984083,
+          "totalduration": 27503209.301999986
+        },
+        {
+          "seed": 1094002741,
+          "iterations": 500000,
+          "mean": 589.6374739902469,
+          "ci95": 0.23648990077024698,
+          "sumdps": 294818736.99512345,
+          "sumdps2": 177475763123.9434,
+          "totaldmg": 16214989016.062649,
+          "totalduration": 27504703.962000012
+        }
+      ]
+    },
+    {
+      "name": "Without Slam",
+      "row": {
+        "ranks": [
+          [
+            2,
+            0,
+            3,
+            0,
+            5,
+            2,
+            1,
+            3,
+            0,
+            3,
+            2,
+            5,
+            1,
+            5,
+            1,
+            0,
+            1
+          ],
+          [
+            0,
+            5,
+            0,
+            5,
+            2,
+            0,
+            0,
+            3,
+            0,
+            0,
+            0,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "normal": [
+          "MortalStrike",
+          "Overpower",
+          "Whirlwind",
+          "Rend",
+          "Hamstring"
+        ],
+        "execute": [
+          "Overpower",
+          "Execute"
+        ],
+        "settings": {
+          "Slam": {
+            "afterswing": false,
+            "minrageactive": true,
+            "maincdactive": false,
+            "minrage": 20
+          },
+          "Whirlwind": {
+            "maincdactive": false
+          },
+          "Rend": {
+            "durationactive": false,
+            "maxrage": 40,
+            "maxrageactive": true
+          },
+          "SpearingStrike": {
+            "minrageactive": false
+          },
+          "BerserkerRage": {
+            "active": false,
+            "maxrageactive": true,
+            "maxrage": 25
+          },
+          "HeroicStrike": {
+            "active": true,
+            "minrage": 80,
+            "minrageactive": true
+          },
+          "Hamstring": {
+            "minrage": 20,
+            "minrageactive": true
+          },
+          "Overpower": {
+            "maxrage": 65,
+            "maxrageactive": true
+          },
+          "MortalStrike": {
+            "minrage": 30,
+            "minrageactive": true
+          }
+        }
+      },
+      "mean": 613.7233971042594,
+      "se": 0.06529632721540703,
+      "ci95": 0.12798080134219778,
+      "dps": 613.6056921658379,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 50626596050.41855,
+        "totalduration": 82506724.91599998,
+        "sumdps": 920585095.6563891,
+        "sumdps2": 574577729116.9717
+      },
+      "seeds": [
+        {
+          "seed": 557131829,
+          "iterations": 500000,
+          "mean": 613.7140096525206,
+          "ci95": 0.22196635251420763,
+          "sumdps": 306857004.8262603,
+          "sumdps2": 191528721658.2013,
+          "totaldmg": 16873256465.010366,
+          "totalduration": 27498811.651999984
+        },
+        {
+          "seed": 2973050933,
+          "iterations": 500000,
+          "mean": 613.6904573272384,
+          "ci95": 0.22152768073504417,
+          "sumdps": 306845228.6636192,
+          "sumdps2": 191501606938.12625,
+          "totaldmg": 16875323698.290852,
+          "totalduration": 27503209.301999986
+        },
+        {
+          "seed": 1094002741,
+          "iterations": 500000,
+          "mean": 613.765724333019,
+          "ci95": 0.22151381085620425,
+          "sumdps": 306882862.1665095,
+          "sumdps2": 191547400520.6441,
+          "totaldmg": 16878015887.117336,
+          "totalduration": 27504703.962000012
+        }
+      ]
+    },
+    {
+      "name": "Without Heroic Strike",
+      "row": {
+        "ranks": [
+          [
+            2,
+            0,
+            3,
+            0,
+            5,
+            2,
+            1,
+            3,
+            0,
+            3,
+            2,
+            5,
+            1,
+            5,
+            1,
+            0,
+            1
+          ],
+          [
+            0,
+            5,
+            0,
+            5,
+            2,
+            0,
+            0,
+            3,
+            0,
+            0,
+            0,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "normal": [
+          "MortalStrike",
+          "Overpower",
+          "Slam",
+          "Whirlwind",
+          "Rend",
+          "Hamstring"
+        ],
+        "execute": [
+          "Overpower",
+          "Execute"
+        ],
+        "settings": {
+          "Slam": {
+            "afterswing": false,
+            "minrageactive": true,
+            "maincdactive": false,
+            "minrage": 20
+          },
+          "Whirlwind": {
+            "maincdactive": false
+          },
+          "Rend": {
+            "durationactive": false,
+            "maxrage": 40,
+            "maxrageactive": true
+          },
+          "SpearingStrike": {
+            "minrageactive": false
+          },
+          "BerserkerRage": {
+            "active": false,
+            "maxrageactive": true,
+            "maxrage": 25
+          },
+          "HeroicStrike": {
+            "active": false,
+            "minrage": 80,
+            "minrageactive": true
+          },
+          "Hamstring": {
+            "minrage": 20,
+            "minrageactive": true
+          },
+          "Overpower": {
+            "maxrage": 65,
+            "maxrageactive": true
+          },
+          "MortalStrike": {
+            "minrage": 30,
+            "minrageactive": true
+          }
+        }
+      },
+      "mean": 632.591816015781,
+      "se": 0.06567686090007491,
+      "ci95": 0.12872664736414682,
+      "dps": 632.4718750588479,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 52178538264.998566,
+        "totalduration": 82499381.11500001,
+        "sumdps": 948887724.0236714,
+        "sumdps2": 609963864694.8379
+      },
+      "seeds": [
+        {
+          "seed": 557131829,
+          "iterations": 500000,
+          "mean": 632.456791592393,
+          "ci95": 0.22254559977514832,
+          "sumdps": 316228395.79619646,
+          "sumdps2": 203223831609.30676,
+          "totaldmg": 17388632895.821457,
+          "totalduration": 27499055.297000002
+        },
+        {
+          "seed": 2973050933,
+          "iterations": 500000,
+          "mean": 632.6219302164822,
+          "ci95": 0.223262308847786,
+          "sumdps": 316310965.1082411,
+          "sumdps2": 203349081313.6827,
+          "totaldmg": 17394675055.68142,
+          "totalduration": 27501441.210999988
+        },
+        {
+          "seed": 1094002741,
+          "iterations": 500000,
+          "mean": 632.6967262384677,
+          "ci95": 0.22307467893650068,
+          "sumdps": 316348363.11923385,
+          "sumdps2": 203390951771.84845,
+          "totaldmg": 17395230313.49569,
+          "totalduration": 27498884.607000016
+        }
+      ]
+    }
+  ],
+  "improvement": {
+    "meanDps": 43.25174810342469,
+    "percent": 7.335427193335886,
+    "unpairedCi95": 0.18808040866904077
+  },
+  "versusFury": {
+    "meanDps": -51.12122786871009,
+    "percent": -7.473850757678546,
+    "unpairedCi95": 0.1964307879365988
+  },
+  "selectedDamageReports": [
+    {
+      "seed": 557131829,
+      "player": {
+        "auras": {
+          "bonereaver": {
+            "name": "Bonereaver",
+            "uptime": 16198443706,
+            "totaldmg": 0,
+            "data": []
+          },
+          "crusader1": {
+            "name": "Crusader (MH)",
+            "uptime": 12708226720,
+            "totaldmg": 0,
+            "data": []
+          },
+          "windfury": {
+            "name": "Windfury",
+            "uptime": 5757125082,
+            "totaldmg": 0,
+            "data": []
+          },
+          "rend": {
+            "name": "Rend",
+            "uptime": 20923422997,
+            "totaldmg": 197852370.24012068,
+            "data": [
+              1011552,
+              0,
+              70419,
+              0,
+              0
+            ]
+          },
+          "mightyragepotion": {
+            "name": "Mighty Rage Potion",
+            "uptime": 0,
+            "totaldmg": 0,
+            "data": []
+          },
+          "jujuflurry": {
+            "name": "Juju Flurry",
+            "uptime": 0,
+            "totaldmg": 0,
+            "data": []
+          },
+          "eluneslight": {
+            "name": "Elune’s Light",
+            "uptime": 7677603667,
+            "totaldmg": 0,
+            "data": []
+          },
+          "deepwounds": {
+            "name": "Deep Wounds",
+            "uptime": 25615269650,
+            "totaldmg": 476979776.2579555,
+            "data": []
+          },
+          "bloodrage": {
+            "name": "Bloodrage",
+            "uptime": 5000000000,
+            "totaldmg": 0,
+            "data": []
+          },
+          "battlestance": {
+            "name": "Battle Stance",
+            "uptime": 0,
+            "totaldmg": 0,
+            "data": []
+          },
+          "berserkerstance": {
+            "name": "Berserker Stance",
+            "uptime": 0,
+            "totaldmg": 0,
+            "data": []
+          },
+          "defensivestance": {
+            "name": "Defensive Stance",
+            "uptime": 0,
+            "totaldmg": 0,
+            "data": []
+          }
+        },
+        "spells": {
+          "heroicstrike": {
+            "name": "Heroic Strike",
+            "cost": 13,
+            "totalusedrage": 0,
+            "totaldmg": 163629335.38205898,
+            "data": [
+              121916,
+              0,
+              11736,
+              47572,
+              0
+            ]
+          },
+          "bloodrage": {
+            "name": "Bloodrage",
+            "cost": 0,
+            "totalusedrage": 0,
+            "totaldmg": 0,
+            "data": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          "overpower": {
+            "name": "Overpower",
+            "cost": 5,
+            "totalusedrage": 0,
+            "totaldmg": 2565546330.06611,
+            "data": [
+              604801,
+              0,
+              0,
+              1783990,
+              0
+            ]
+          },
+          "hamstring": {
+            "name": "Hamstring",
+            "cost": 10,
+            "totalusedrage": 0,
+            "totaldmg": 164205409.60207373,
+            "data": [
+              1950673,
+              0,
+              188604,
+              755552,
+              0
+            ]
+          },
+          "execute": {
+            "name": "Execute",
+            "cost": 9,
+            "totalusedrage": 40797520,
+            "totaldmg": 2533025906.9811134,
+            "data": [
+              1305617,
+              0,
+              139071,
+              690687,
+              0
+            ]
+          },
+          "whirlwind": {
+            "name": "Whirlwind",
+            "cost": 25,
+            "totalusedrage": 0,
+            "totaldmg": 972050875.3772522,
+            "data": [
+              980696,
+              0,
+              94324,
+              380809,
+              0
+            ]
+          },
+          "mortalstrike": {
+            "name": "Mortal Strike",
+            "cost": 30,
+            "totalusedrage": 0,
+            "totaldmg": 2063858026.720242,
+            "data": [
+              1607598,
+              0,
+              154645,
+              622566,
+              0
+            ]
+          },
+          "slam": {
+            "name": "Slam",
+            "cost": 15,
+            "totalusedrage": 0,
+            "totaldmg": 1104091845.4568048,
+            "data": [
+              961089,
+              0,
+              92995,
+              374384,
+              0
+            ]
+          },
+          "stanceswitch": {
+            "name": "Stance Switch",
+            "cost": 0,
+            "totalusedrage": 0,
+            "totaldmg": 0,
+            "data": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "mh": {
+          "name": "Bonereaver's Edge",
+          "totaldmg": 7155659198.374966,
+          "totalprocdmg": 0,
+          "data": [
+            3121106,
+            0,
+            773433,
+            3246276,
+            4758408
+          ]
+        }
+      }
+    },
+    {
+      "seed": 2973050933,
+      "player": {
+        "auras": {
+          "bonereaver": {
+            "name": "Bonereaver",
+            "uptime": 16210257906,
+            "totaldmg": 0,
+            "data": []
+          },
+          "crusader1": {
+            "name": "Crusader (MH)",
+            "uptime": 12701577176,
+            "totaldmg": 0,
+            "data": []
+          },
+          "windfury": {
+            "name": "Windfury",
+            "uptime": 5765687504,
+            "totaldmg": 0,
+            "data": []
+          },
+          "rend": {
+            "name": "Rend",
+            "uptime": 20918289581,
+            "totaldmg": 197808444.96012074,
+            "data": [
+              1011282,
+              0,
+              69577,
+              0,
+              0
+            ]
+          },
+          "mightyragepotion": {
+            "name": "Mighty Rage Potion",
+            "uptime": 0,
+            "totaldmg": 0,
+            "data": []
+          },
+          "jujuflurry": {
+            "name": "Juju Flurry",
+            "uptime": 0,
+            "totaldmg": 0,
+            "data": []
+          },
+          "eluneslight": {
+            "name": "Elune’s Light",
+            "uptime": 7676656368,
+            "totaldmg": 0,
+            "data": []
+          },
+          "deepwounds": {
+            "name": "Deep Wounds",
+            "uptime": 25621937547,
+            "totaldmg": 476981013.40125555,
+            "data": []
+          },
+          "bloodrage": {
+            "name": "Bloodrage",
+            "uptime": 5000000000,
+            "totaldmg": 0,
+            "data": []
+          },
+          "battlestance": {
+            "name": "Battle Stance",
+            "uptime": 0,
+            "totaldmg": 0,
+            "data": []
+          },
+          "berserkerstance": {
+            "name": "Berserker Stance",
+            "uptime": 0,
+            "totaldmg": 0,
+            "data": []
+          },
+          "defensivestance": {
+            "name": "Defensive Stance",
+            "uptime": 0,
+            "totaldmg": 0,
+            "data": []
+          }
+        },
+        "spells": {
+          "heroicstrike": {
+            "name": "Heroic Strike",
+            "cost": 13,
+            "totalusedrage": 0,
+            "totaldmg": 163871640.0002615,
+            "data": [
+              121807,
+              0,
+              11672,
+              47807,
+              0
+            ]
+          },
+          "bloodrage": {
+            "name": "Bloodrage",
+            "cost": 0,
+            "totalusedrage": 0,
+            "totaldmg": 0,
+            "data": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          "overpower": {
+            "name": "Overpower",
+            "cost": 5,
+            "totalusedrage": 0,
+            "totaldmg": 2568807013.689198,
+            "data": [
+              604309,
+              0,
+              0,
+              1786782,
+              0
+            ]
+          },
+          "hamstring": {
+            "name": "Hamstring",
+            "cost": 10,
+            "totalusedrage": 0,
+            "totaldmg": 164376068.27525416,
+            "data": [
+              1951549,
+              0,
+              188891,
+              756895,
+              0
+            ]
+          },
+          "execute": {
+            "name": "Execute",
+            "cost": 9,
+            "totalusedrage": 40834583,
+            "totaldmg": 2535868635.27363,
+            "data": [
+              1304577,
+              0,
+              139400,
+              692653,
+              0
+            ]
+          },
+          "whirlwind": {
+            "name": "Whirlwind",
+            "cost": 25,
+            "totalusedrage": 0,
+            "totaldmg": 971010225.0542314,
+            "data": [
+              980610,
+              0,
+              94815,
+              379897,
+              0
+            ]
+          },
+          "mortalstrike": {
+            "name": "Mortal Strike",
+            "cost": 30,
+            "totalusedrage": 0,
+            "totaldmg": 2062881303.7544968,
+            "data": [
+              1607555,
+              0,
+              154471,
+              621922,
+              0
+            ]
+          },
+          "slam": {
+            "name": "Slam",
+            "cost": 15,
+            "totalusedrage": 0,
+            "totaldmg": 1104573148.814882,
+            "data": [
+              960876,
+              0,
+              92849,
+              375029,
+              0
+            ]
+          },
+          "stanceswitch": {
+            "name": "Stance Switch",
+            "cost": 0,
+            "totalusedrage": 0,
+            "totaldmg": 0,
+            "data": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "mh": {
+          "name": "Bonereaver's Edge",
+          "totaldmg": 7160200175.933658,
+          "totalprocdmg": 0,
+          "data": [
+            3122874,
+            0,
+            773603,
+            3248827,
+            4759679
+          ]
+        }
+      }
+    },
+    {
+      "seed": 1094002741,
+      "player": {
+        "auras": {
+          "bonereaver": {
+            "name": "Bonereaver",
+            "uptime": 16217647708,
+            "totaldmg": 0,
+            "data": []
+          },
+          "crusader1": {
+            "name": "Crusader (MH)",
+            "uptime": 12708868859,
+            "totaldmg": 0,
+            "data": []
+          },
+          "windfury": {
+            "name": "Windfury",
+            "uptime": 5765844968,
+            "totaldmg": 0,
+            "data": []
+          },
+          "rend": {
+            "name": "Rend",
+            "uptime": 20922712686,
+            "totaldmg": 197834691.6001208,
+            "data": [
+              1011577,
+              0,
+              69742,
+              0,
+              0
+            ]
+          },
+          "mightyragepotion": {
+            "name": "Mighty Rage Potion",
+            "uptime": 0,
+            "totaldmg": 0,
+            "data": []
+          },
+          "jujuflurry": {
+            "name": "Juju Flurry",
+            "uptime": 0,
+            "totaldmg": 0,
+            "data": []
+          },
+          "eluneslight": {
+            "name": "Elune’s Light",
+            "uptime": 7676742290,
+            "totaldmg": 0,
+            "data": []
+          },
+          "deepwounds": {
+            "name": "Deep Wounds",
+            "uptime": 25618809526,
+            "totaldmg": 477046720.44581234,
+            "data": []
+          },
+          "bloodrage": {
+            "name": "Bloodrage",
+            "uptime": 5000000000,
+            "totaldmg": 0,
+            "data": []
+          },
+          "battlestance": {
+            "name": "Battle Stance",
+            "uptime": 0,
+            "totaldmg": 0,
+            "data": []
+          },
+          "berserkerstance": {
+            "name": "Berserker Stance",
+            "uptime": 0,
+            "totaldmg": 0,
+            "data": []
+          },
+          "defensivestance": {
+            "name": "Defensive Stance",
+            "uptime": 0,
+            "totaldmg": 0,
+            "data": []
+          }
+        },
+        "spells": {
+          "heroicstrike": {
+            "name": "Heroic Strike",
+            "cost": 13,
+            "totalusedrage": 0,
+            "totaldmg": 163841502.12087303,
+            "data": [
+              122247,
+              0,
+              11875,
+              47567,
+              0
+            ]
+          },
+          "bloodrage": {
+            "name": "Bloodrage",
+            "cost": 0,
+            "totalusedrage": 0,
+            "totaldmg": 0,
+            "data": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          "overpower": {
+            "name": "Overpower",
+            "cost": 5,
+            "totalusedrage": 0,
+            "totaldmg": 2568037910.8759484,
+            "data": [
+              604632,
+              0,
+              0,
+              1786165,
+              0
+            ]
+          },
+          "hamstring": {
+            "name": "Hamstring",
+            "cost": 10,
+            "totalusedrage": 0,
+            "totaldmg": 164306241.4061863,
+            "data": [
+              1950948,
+              0,
+              188607,
+              756467,
+              0
+            ]
+          },
+          "execute": {
+            "name": "Execute",
+            "cost": 9,
+            "totalusedrage": 40823200,
+            "totaldmg": 2536358661.6571317,
+            "data": [
+              1305513,
+              0,
+              138887,
+              692828,
+              0
+            ]
+          },
+          "whirlwind": {
+            "name": "Whirlwind",
+            "cost": 25,
+            "totalusedrage": 0,
+            "totaldmg": 971265808.6507431,
+            "data": [
+              981803,
+              0,
+              95037,
+              379650,
+              0
+            ]
+          },
+          "mortalstrike": {
+            "name": "Mortal Strike",
+            "cost": 30,
+            "totalusedrage": 0,
+            "totaldmg": 2062937435.3802342,
+            "data": [
+              1607618,
+              0,
+              155209,
+              621879,
+              0
+            ]
+          },
+          "slam": {
+            "name": "Slam",
+            "cost": 15,
+            "totalusedrage": 0,
+            "totaldmg": 1104101379.0695183,
+            "data": [
+              961600,
+              0,
+              92606,
+              374180,
+              0
+            ]
+          },
+          "stanceswitch": {
+            "name": "Stance Switch",
+            "cost": 0,
+            "totalusedrage": 0,
+            "totaldmg": 0,
+            "data": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "mh": {
+          "name": "Bonereaver's Edge",
+          "totaldmg": 7159062135.285568,
+          "totalprocdmg": 0,
+          "data": [
+            3121544,
+            0,
+            774777,
+            3247490,
+            4762046
+          ]
+        }
+      }
+    }
+  ],
+  "importVerification": {
+    "buildId": "1caf05580e76c3c7588da2876ce3abb7c5e37dbf18fa9cc30e8ffed3e23386aa",
+    "exactSimulationSpecMatch": true,
+    "existingPresetsUnchanged": true,
+    "sourceFuryComparisonSpecMatches": true,
+    "weapons": {
+      "mh": "Bonereaver's Edge",
+      "twohand": true,
+      "oh": false
+    },
+    "ranks": [
+      [
+        2,
+        0,
+        3,
+        0,
+        5,
+        2,
+        1,
+        3,
+        0,
+        3,
+        2,
+        5,
+        1,
+        5,
+        1,
+        0,
+        1
+      ],
+      [
+        0,
+        5,
+        0,
+        5,
+        2,
+        0,
+        0,
+        3,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    "normal": [
+      "MortalStrike",
+      "Overpower",
+      "Slam",
+      "Whirlwind",
+      "Rend",
+      "Hamstring"
+    ],
+    "execute": [
+      "Overpower",
+      "Execute"
+    ]
+  }
+}

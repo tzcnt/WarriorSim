@@ -1,0 +1,1681 @@
+{
+  "created": "2026-09-14T04:51:48.246Z",
+  "completed": "2026-09-14T04:52:39.541Z",
+  "site": "https://fleetcode.com/WarriorSim/",
+  "buildId": "1caf05580e76c3c7588da2876ce3abb7c5e37dbf18fa9cc30e8ffed3e23386aa",
+  "scope": "Race comparison with the exact optimized 34/17/0 Arms preset. Talents, Bonereaver's Edge, enchants, other gear, buffs, core ability priorities/thresholds, fight settings, and nonracial cooldown schedules are fixed. Enable each race's applicable racial and tune only its activation time. Target type Other; computed maximum health, without an override.",
+  "preset": {
+    "id": "forever-two-handed-arms",
+    "description": "2H Fury P1 - Level 60 Night Elf",
+    "profile": {
+      "level": "60",
+      "race": "Night Elf",
+      "simulations": "50000",
+      "timesecsmin": "50",
+      "timesecsmax": "60",
+      "executeperc": "20",
+      "startrage": "0",
+      "targetlevel": "63",
+      "targetbasearmor": "3731",
+      "targetcustomarmor": "",
+      "targetresistance": "24",
+      "targetspeed": "0",
+      "targetmindmg": "200",
+      "targetmaxdmg": "300",
+      "adjacent": "0",
+      "aqbooks": "No",
+      "reactionmin": "200",
+      "reactionmax": "300",
+      "batching": "10",
+      "bleedreduction": "1",
+      "spellqueueing": "Yes",
+      "talentSchema": "forever-v1",
+      "maxhealth": "",
+      "targetcreaturetype": "Other",
+      "profilename": "Two-Handed Arms (34/17/0)",
+      "talents": [
+        {
+          "n": "Arms",
+          "t": [
+            2,
+            0,
+            3,
+            0,
+            5,
+            2,
+            1,
+            3,
+            0,
+            3,
+            2,
+            5,
+            1,
+            5,
+            1,
+            0,
+            1
+          ],
+          "keys": [
+            "arms:improved-heroic-strike",
+            "arms:deflection",
+            "arms:improved-rend",
+            "arms:improved-charge",
+            "arms:improved-tactical-mastery",
+            "arms:improved-overpower",
+            "arms:anger-management",
+            "arms:deep-wounds",
+            "arms:spearing-strike",
+            "arms:two-handed-weapon-specialization",
+            "arms:impale",
+            "arms:bloodthrill",
+            "arms:sweeping-strikes",
+            "arms:weaponmaster",
+            "arms:improved-slam",
+            "arms:improved-hamstring",
+            "arms:mortal-strike"
+          ]
+        },
+        {
+          "n": "Fury",
+          "t": [
+            0,
+            5,
+            0,
+            5,
+            2,
+            0,
+            0,
+            3,
+            0,
+            0,
+            0,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "keys": [
+            "fury:booming-voice",
+            "fury:cruelty",
+            "fury:iron-will",
+            "fury:unbridled-wrath",
+            "fury:improved-cleave",
+            "fury:piercing-howl",
+            "fury:blood-craze",
+            "fury:boundless-rage",
+            "fury:dual-wield-specialization",
+            "fury:raging-blows",
+            "fury:enrage",
+            "fury:improved-execute",
+            "fury:precision",
+            "fury:death-wish",
+            "fury:improved-intercept",
+            "fury:improved-berserker-rage",
+            "fury:flurry",
+            "fury:bloodthirst"
+          ]
+        },
+        {
+          "n": "Protection",
+          "t": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "keys": [
+            "protection:shield-specialization",
+            "protection:anticipation",
+            "protection:improved-bloodrage",
+            "protection:toughness",
+            "protection:improved-thunder-clap",
+            "protection:last-stand",
+            "protection:master-of-defense",
+            "protection:improved-revenge",
+            "protection:defiance",
+            "protection:improved-sunder-armor",
+            "protection:improved-disarm",
+            "protection:vanguard",
+            "protection:improved-shield-wall",
+            "protection:concussion-blow",
+            "protection:improved-shield-bash",
+            "protection:vitality",
+            "protection:focused-rage",
+            "protection:bastion",
+            "protection:shield-slam"
+          ]
+        }
+      ],
+      "buffs": [
+        null,
+        "9885",
+        "20217",
+        "19838",
+        "10614",
+        "13452",
+        "12451",
+        "12460",
+        "2458",
+        "11597",
+        "9907",
+        "11717"
+      ],
+      "rotation": [
+        {
+          "id": "11551",
+          "name": "Battle Shout",
+          "classname": "BattleShout",
+          "iconname": "Ability_Warrior_BattleShout",
+          "value1": 185,
+          "value2": 1,
+          "minlevel": 52,
+          "aq": false,
+          "buff": true,
+          "aura": true,
+          "active": false
+        },
+        {
+          "id": "11567",
+          "name": "Heroic Strike",
+          "classname": "HeroicStrike",
+          "iconname": "ability_rogue_ambush",
+          "minrage": 80,
+          "minrageactive": true,
+          "unqueue": 15,
+          "unqueueactive": false,
+          "maincd": "2",
+          "maincdactive": false,
+          "exmacro": true,
+          "minlevel": 56,
+          "value1": 138,
+          "active": true,
+          "aq": false
+        },
+        {
+          "id": "2687",
+          "name": "Bloodrage",
+          "classname": "Bloodrage",
+          "iconname": "ability_racial_bloodrage",
+          "timetoend": 35,
+          "timetoendactive": false,
+          "timetostart": 0,
+          "timetostartactive": true,
+          "buff": true,
+          "active": true
+        },
+        {
+          "id": "11597",
+          "name": "Sunder Armor",
+          "classname": "SunderArmor",
+          "iconname": "ability_warrior_sunder",
+          "minrage": 50,
+          "minrageactive": false,
+          "duration": 15,
+          "durationactive": false,
+          "globals": "1",
+          "globalsactive": true,
+          "active": false,
+          "priority": 0,
+          "expriority": 0
+        },
+        {
+          "id": "11585",
+          "name": "Overpower",
+          "classname": "Overpower",
+          "iconname": "ability_meleedamage",
+          "maxrage": 65,
+          "maxrageactive": true,
+          "maincd": 0,
+          "maincdactive": false,
+          "value1": 35,
+          "minlevel": 60,
+          "active": true,
+          "priority": 9,
+          "expriority": 10
+        },
+        {
+          "id": "7373",
+          "name": "Hamstring",
+          "classname": "Hamstring",
+          "iconname": "ability_shockwave",
+          "minrage": 20,
+          "minrageactive": true,
+          "duration": 15,
+          "durationactive": false,
+          "minlevel": 54,
+          "value1": 45,
+          "active": true,
+          "priority": 5,
+          "expriority": 0
+        },
+        {
+          "id": "20662",
+          "name": "Execute",
+          "classname": "Execute",
+          "iconname": "inv_sword_48",
+          "minlevel": 56,
+          "swingtimer": 2.5,
+          "swingtimeractive": false,
+          "value1": 600,
+          "value2": 15,
+          "active": true,
+          "priority": 0,
+          "expriority": 9,
+          "minrageactive": false,
+          "minrage": 50,
+          "starttime": "52"
+        },
+        {
+          "id": "1680",
+          "name": "Whirlwind",
+          "classname": "Whirlwind",
+          "iconname": "ability_whirlwind",
+          "minrage": "50",
+          "minrageactive": false,
+          "maxrage": 25,
+          "maxrageactive": false,
+          "maincd": "2",
+          "maincdactive": false,
+          "minlevel": 36,
+          "active": true,
+          "priority": 7,
+          "expriority": 0
+        },
+        {
+          "id": "23894",
+          "name": "Bloodthirst",
+          "classname": "Bloodthirst",
+          "iconname": "spell_nature_bloodlust",
+          "minrage": 30,
+          "minrageactive": false,
+          "active": false,
+          "priority": 0,
+          "expriority": 0
+        },
+        {
+          "id": "12328",
+          "name": "Death Wish",
+          "classname": "DeathWish",
+          "iconname": "spell_shadow_deathpact",
+          "timetoend": 31,
+          "timetoendactive": true,
+          "timetostart": 0,
+          "timetostartactive": false,
+          "aura": true,
+          "active": false,
+          "buff": true,
+          "time": "29"
+        },
+        {
+          "id": "forever:elunes-light",
+          "name": "Elune’s Light",
+          "classname": "ElunesLight",
+          "iconname": "spell_holy_elunesgrace",
+          "mode": "forever",
+          "aura": true,
+          "buff": true,
+          "active": true,
+          "timetostart": 0,
+          "timetostartactive": false,
+          "timetoend": 16,
+          "timetoendactive": true,
+          "localDescription": "Increases critical strike chance by 10% for 15 seconds. 3-minute cooldown."
+        },
+        {
+          "id": "17528",
+          "name": "Mighty Rage Potion",
+          "classname": "MightyRagePotion",
+          "iconname": "inv_potion_41",
+          "timetoend": 21,
+          "timetoendactive": false,
+          "timetostart": 0,
+          "timetostartactive": false,
+          "aura": true,
+          "minlevel": 46,
+          "value1": 45,
+          "value2": 75,
+          "active": true,
+          "buff": true,
+          "time": "39"
+        },
+        {
+          "id": 16322,
+          "name": "Juju Flurry",
+          "classname": "JujuFlurry",
+          "iconname": "inv_misc_monsterscales_17",
+          "minlevel": 55,
+          "timetoend": 11,
+          "timetoendactive": false,
+          "timetostart": 0,
+          "timetostartactive": false,
+          "active": true,
+          "aura": true,
+          "buff": true
+        },
+        {
+          "id": 11605,
+          "name": "Slam",
+          "classname": "Slam",
+          "iconname": "ability_warrior_decisivestrike",
+          "minrage": 20,
+          "minrageactive": true,
+          "value1": 87,
+          "minlevel": 54,
+          "maincd": 2,
+          "maincdactive": false,
+          "afterswing": false,
+          "active": true,
+          "priority": 8,
+          "expriority": 0
+        },
+        {
+          "id": 11574,
+          "name": "Rend",
+          "classname": "Rend",
+          "iconname": "ability_gouge",
+          "minlevel": 60,
+          "value1": 147,
+          "value2": 7,
+          "duration": 16,
+          "durationactive": false,
+          "maxrage": 40,
+          "maxrageactive": true,
+          "active": true,
+          "aura": true,
+          "priority": 6,
+          "expriority": 0
+        },
+        {
+          "id": "27580",
+          "name": "Mortal Strike",
+          "classname": "MortalStrike",
+          "iconname": "ability_warrior_savageblow",
+          "minrage": 30,
+          "minrageactive": true,
+          "value1": 160,
+          "minlevel": 60,
+          "active": true,
+          "priority": 10,
+          "expriority": 0
+        }
+      ],
+      "gear": {
+        "head": 12640,
+        "neck": 18404,
+        "shoulder": 12927,
+        "back": 13340,
+        "chest": 11726,
+        "wrist": 12936,
+        "hands": 15063,
+        "waist": 13959,
+        "legs": 15062,
+        "feet": 14616,
+        "ranged": 17069,
+        "twohand": 17076
+      },
+      "enchant": {
+        "mainhand": [],
+        "offhand": [],
+        "twohand": [
+          18262,
+          20034
+        ],
+        "head": [
+          11645
+        ],
+        "shoulder": [],
+        "back": [
+          13882
+        ],
+        "chest": [
+          13941
+        ],
+        "wrist": [
+          20010
+        ],
+        "hands": [
+          20013
+        ],
+        "legs": [
+          11645
+        ],
+        "feet": [
+          13890
+        ]
+      }
+    }
+  },
+  "seeds": [
+    20260918,
+    2436180022,
+    557131830,
+    2973050934,
+    1094002742
+  ],
+  "method": {
+    "defaultScreen": 100000,
+    "racialTimingScreen": 20000,
+    "racialTimingRefinement": 200000,
+    "racialTimingPolish": 500000,
+    "timings": "For each active racial: defaults, disabled, every integer 1–60 seconds before fight end, and 0–50 seconds after the pull in five-second increments. Refine the top 16 and candidates within two combined standard errors; polish the top eight. Freeze selection before independent validation.",
+    "validation": "Three nonoverlapping seed blocks, 500,000 fights each per configuration; mean of individual fights' DPS, with approximate 95% sampling intervals.",
+    "limitations": "The core Arms build is held fixed across races, not reoptimized per race. These are the current simulator's provisional Forever racial rules; Undead and Skyborne assumptions are documented in RACIALS.md."
+  },
+  "ranking": [
+    {
+      "race": "Night Elf",
+      "timing": "racial default",
+      "mean": 632.8528583089629,
+      "ci95": 0.12912578720312054,
+      "dps": 632.7399298289042,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 52200066284.74797,
+        "totalduration": 82498454.458,
+        "sumdps": 949279287.4634444,
+        "sumdps2": 610519645614.4548
+      },
+      "seeds": [
+        {
+          "seed": 557131830,
+          "mean": 632.7398486278844,
+          "ci95": 0.2234760130777963,
+          "iterations": 500000,
+          "sumdps": 316369924.3139422,
+          "sumdps2": 203429898924.22455,
+          "totaldmg": 17396565134.97452,
+          "totalduration": 27498941.969000004
+        },
+        {
+          "seed": 2973050934,
+          "mean": 632.9933614312681,
+          "ci95": 0.22355952673946158,
+          "iterations": 500000,
+          "sumdps": 316496680.71563405,
+          "sumdps2": 203592768265.53583,
+          "totaldmg": 17404882369.283997,
+          "totalduration": 27501051.544000007
+        },
+        {
+          "seed": 1094002742,
+          "mean": 632.8253648677361,
+          "ci95": 0.2239213575020417,
+          "iterations": 500000,
+          "sumdps": 316412682.43386805,
+          "sumdps2": 203496978424.6944,
+          "totaldmg": 17398618780.489456,
+          "totalduration": 27498460.94499999
+        }
+      ]
+    },
+    {
+      "race": "Human",
+      "timing": "racial default",
+      "mean": 625.3857634492963,
+      "ci95": 0.12591251551837193,
+      "dps": 625.3215923518962,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 51588064908.24695,
+        "totalduration": 82498454.45799999,
+        "sumdps": 938078645.1739445,
+        "sumdps2": 595946585117.2085
+      },
+      "seeds": [
+        {
+          "seed": 557131830,
+          "mean": 625.2686779362608,
+          "ci95": 0.2178200706953469,
+          "iterations": 500000,
+          "sumdps": 312634338.9681304,
+          "sumdps2": 198568072277.17426,
+          "totaldmg": 17192608771.159428,
+          "totalduration": 27498941.969000004
+        },
+        {
+          "seed": 2973050934,
+          "mean": 625.3989680228929,
+          "ci95": 0.21805638052461487,
+          "iterations": 500000,
+          "sumdps": 312699484.0114464,
+          "sumdps2": 198656250120.99524,
+          "totaldmg": 17197403248.004932,
+          "totalduration": 27501051.54400001
+        },
+        {
+          "seed": 1094002742,
+          "mean": 625.4896443887352,
+          "ci95": 0.21838380539705404,
+          "iterations": 500000,
+          "sumdps": 312744822.1943676,
+          "sumdps2": 198722262719.03906,
+          "totaldmg": 17198052889.082584,
+          "totalduration": 27498460.944999978
+        }
+      ]
+    },
+    {
+      "race": "Troll",
+      "timing": {
+        "kind": "end",
+        "seconds": 14
+      },
+      "mean": 622.7462936720589,
+      "ci95": 0.12537465801940603,
+      "dps": 622.6677754168104,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 51369129112.68791,
+        "totalduration": 82498454.458,
+        "sumdps": 934119440.5080882,
+        "sumdps2": 590925814515.8723
+      },
+      "seeds": [
+        {
+          "seed": 557131830,
+          "mean": 622.7498481704141,
+          "ci95": 0.21668279273381907,
+          "iterations": 500000,
+          "sumdps": 311374924.08520705,
+          "sumdps2": 196964141376.13968,
+          "totaldmg": 17122641011.453405,
+          "totalduration": 27498941.969000004
+        },
+        {
+          "seed": 2973050934,
+          "mean": 622.7274193678023,
+          "ci95": 0.2171680834030076,
+          "iterations": 500000,
+          "sumdps": 311363709.6839012,
+          "sumdps2": 196963875635.32867,
+          "totaldmg": 17123732349.405806,
+          "totalduration": 27501051.544000007
+        },
+        {
+          "seed": 1094002742,
+          "mean": 622.7616134779598,
+          "ci95": 0.21761438080733914,
+          "iterations": 500000,
+          "sumdps": 311380806.73897994,
+          "sumdps2": 196997797504.404,
+          "totaldmg": 17122755751.828701,
+          "totalduration": 27498460.945
+        }
+      ]
+    },
+    {
+      "race": "Gnome",
+      "timing": {
+        "kind": "end",
+        "seconds": 15
+      },
+      "mean": 622.003830920093,
+      "ci95": 0.12325548996004164,
+      "dps": 621.9010575451249,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 51305876073.26853,
+        "totalduration": 82498454.45800002,
+        "sumdps": 933005746.3801396,
+        "sumdps2": 589230948335.1375
+      },
+      "seeds": [
+        {
+          "seed": 557131830,
+          "mean": 621.8864730285184,
+          "ci95": 0.21338923498264906,
+          "iterations": 500000,
+          "sumdps": 310943236.51425916,
+          "sumdps2": 196334668030.83038,
+          "totaldmg": 17098430270.38881,
+          "totalduration": 27498941.968999997
+        },
+        {
+          "seed": 2973050934,
+          "mean": 622.0797106067524,
+          "ci95": 0.2134860063340728,
+          "iterations": 500000,
+          "sumdps": 311039855.3033762,
+          "sumdps2": 196457546818.8605,
+          "totaldmg": 17105096731.887072,
+          "totalduration": 27501051.54400001
+        },
+        {
+          "seed": 1094002742,
+          "mean": 622.0453091250084,
+          "ci95": 0.213579073805629,
+          "iterations": 500000,
+          "sumdps": 311022654.56250423,
+          "sumdps2": 196438733485.44647,
+          "totaldmg": 17102349070.992655,
+          "totalduration": 27498460.945000008
+        }
+      ]
+    },
+    {
+      "race": "Orc",
+      "timing": {
+        "kind": "start",
+        "seconds": 5
+      },
+      "mean": 619.4350830478286,
+      "ci95": 0.12338180851769195,
+      "dps": 619.3590247970689,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 51096162300.37228,
+        "totalduration": 82498454.458,
+        "sumdps": 929152624.5717429,
+        "sumdps2": 584465780172.1249
+      },
+      "seeds": [
+        {
+          "seed": 557131830,
+          "mean": 619.3221652532181,
+          "ci95": 0.21360018673928727,
+          "iterations": 500000,
+          "sumdps": 309661082.6266091,
+          "sumdps2": 194749109299.432,
+          "totaldmg": 17028469686.457983,
+          "totalduration": 27498941.969000004
+        },
+        {
+          "seed": 2973050934,
+          "mean": 619.5508980386027,
+          "ci95": 0.213449418154915,
+          "iterations": 500000,
+          "sumdps": 309775449.01930135,
+          "sumdps2": 194886604721.8847,
+          "totaldmg": 17036150018.832033,
+          "totalduration": 27501051.544000007
+        },
+        {
+          "seed": 1094002742,
+          "mean": 619.4321858516648,
+          "ci95": 0.21406056097456566,
+          "iterations": 500000,
+          "sumdps": 309716092.9258324,
+          "sumdps2": 194830066150.8082,
+          "totaldmg": 17031542595.082258,
+          "totalduration": 27498460.944999993
+        }
+      ]
+    },
+    {
+      "race": "Undead",
+      "timing": "racial default",
+      "mean": 617.6833473690447,
+      "ci95": 0.12434174579074052,
+      "dps": 617.6185358765381,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 50952574654.427216,
+        "totalduration": 82498454.458,
+        "sumdps": 926525021.0535669,
+        "sumdps2": 581354400701.3242
+      },
+      "seeds": [
+        {
+          "seed": 557131830,
+          "mean": 617.7754841210227,
+          "ci95": 0.21544171881717553,
+          "iterations": 500000,
+          "sumdps": 308887742.06051135,
+          "sumdps2": 193843828415.9291,
+          "totaldmg": 16986559935.903685,
+          "totalduration": 27498941.969000004
+        },
+        {
+          "seed": 2973050934,
+          "mean": 617.6323142934071,
+          "ci95": 0.21500655228491064,
+          "iterations": 500000,
+          "sumdps": 308816157.1467036,
+          "sumdps2": 193743201862.26718,
+          "totaldmg": 16983582779.086689,
+          "totalduration": 27501051.544000007
+        },
+        {
+          "seed": 1094002742,
+          "mean": 617.642243692704,
+          "ci95": 0.21565009459770937,
+          "iterations": 500000,
+          "sumdps": 308821121.84635204,
+          "sumdps2": 193767370423.12793,
+          "totaldmg": 16982431939.436846,
+          "totalduration": 27498460.94499999
+        }
+      ]
+    },
+    {
+      "race": "Skyborne",
+      "timing": "racial default",
+      "mean": 616.9146277557229,
+      "ci95": 0.12380785289664253,
+      "dps": 616.8522735318103,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 50889359195.27782,
+        "totalduration": 82498454.458,
+        "sumdps": 925371941.6335844,
+        "sumdps2": 579853215457.7485
+      },
+      "seeds": [
+        {
+          "seed": 557131830,
+          "mean": 616.8314306635222,
+          "ci95": 0.21426714899891194,
+          "iterations": 500000,
+          "sumdps": 308415715.33176106,
+          "sumdps2": 193228215129.4697,
+          "totaldmg": 16960534591.732418,
+          "totalduration": 27498941.969000004
+        },
+        {
+          "seed": 2973050934,
+          "mean": 616.980016132345,
+          "ci95": 0.21454499758499365,
+          "iterations": 500000,
+          "sumdps": 308490008.0661725,
+          "sumdps2": 193327631935.5106,
+          "totaldmg": 16965878082.505472,
+          "totalduration": 27501051.544000007
+        },
+        {
+          "seed": 1094002742,
+          "mean": 616.9324364713018,
+          "ci95": 0.21451244321312504,
+          "iterations": 500000,
+          "sumdps": 308466218.2356509,
+          "sumdps2": 193297368392.76825,
+          "totaldmg": 16962946521.039928,
+          "totalduration": 27498460.945
+        }
+      ]
+    },
+    {
+      "race": "Tauren",
+      "timing": "racial default",
+      "mean": 613.6297231148167,
+      "ci95": 0.12346578045629804,
+      "dps": 613.5671454181278,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 50618341203.20248,
+        "totalduration": 82498454.458,
+        "sumdps": 920444584.672225,
+        "sumdps2": 573740343045.8171
+      },
+      "seeds": [
+        {
+          "seed": 557131830,
+          "mean": 613.6460309410866,
+          "ci95": 0.21351472099949945,
+          "iterations": 500000,
+          "sumdps": 306823015.47054327,
+          "sumdps2": 191247487209.48438,
+          "totaldmg": 16872825989.65947,
+          "totalduration": 27498941.969000004
+        },
+        {
+          "seed": 2973050934,
+          "mean": 613.6095136971435,
+          "ci95": 0.21388452421197135,
+          "iterations": 500000,
+          "sumdps": 306804756.8485717,
+          "sumdps2": 191235364856.98883,
+          "totaldmg": 16873463062.635233,
+          "totalduration": 27501051.544000007
+        },
+        {
+          "seed": 1094002742,
+          "mean": 613.6336247062203,
+          "ci95": 0.21414771149831344,
+          "iterations": 500000,
+          "sumdps": 306816812.35311013,
+          "sumdps2": 191257490979.34387,
+          "totaldmg": 16872052150.907778,
+          "totalduration": 27498460.944999993
+        }
+      ]
+    },
+    {
+      "race": "Dwarf",
+      "timing": "racial default",
+      "mean": 612.1996508605358,
+      "ci95": 0.12340008937615546,
+      "dps": 612.1371277402783,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 50500366954.93228,
+        "totalduration": 82498454.458,
+        "sumdps": 918299476.2908038,
+        "sumdps2": 571101308063.9646
+      },
+      "seeds": [
+        {
+          "seed": 557131830,
+          "mean": 612.1527248694656,
+          "ci95": 0.21335708553549565,
+          "iterations": 500000,
+          "sumdps": 306076362.4347328,
+          "sumdps2": 190327861812.34216,
+          "totaldmg": 16831734526.480574,
+          "totalduration": 27498941.969
+        },
+        {
+          "seed": 2973050934,
+          "mean": 612.1896988215069,
+          "ci95": 0.2137301729487443,
+          "iterations": 500000,
+          "sumdps": 306094849.4107534,
+          "sumdps2": 190360865615.2742,
+          "totaldmg": 16834499148.531776,
+          "totalduration": 27501051.54400001
+        },
+        {
+          "seed": 1094002742,
+          "mean": 612.2565288906352,
+          "ci95": 0.21411806542420717,
+          "iterations": 500000,
+          "sumdps": 306128264.4453176,
+          "sumdps2": 190412580636.34827,
+          "totaldmg": 16834133279.919926,
+          "totalduration": 27498460.944999985
+        }
+      ]
+    }
+  ],
+  "defaults": [
+    {
+      "race": "Human",
+      "timing": "racial default",
+      "mean": 625.3857634492963,
+      "ci95": 0.12591251551837193,
+      "dps": 625.3215923518962,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 51588064908.24695,
+        "totalduration": 82498454.45799999,
+        "sumdps": 938078645.1739445,
+        "sumdps2": 595946585117.2085
+      },
+      "seeds": [
+        {
+          "seed": 557131830,
+          "mean": 625.2686779362608,
+          "ci95": 0.2178200706953469,
+          "iterations": 500000,
+          "sumdps": 312634338.9681304,
+          "sumdps2": 198568072277.17426,
+          "totaldmg": 17192608771.159428,
+          "totalduration": 27498941.969000004
+        },
+        {
+          "seed": 2973050934,
+          "mean": 625.3989680228929,
+          "ci95": 0.21805638052461487,
+          "iterations": 500000,
+          "sumdps": 312699484.0114464,
+          "sumdps2": 198656250120.99524,
+          "totaldmg": 17197403248.004932,
+          "totalduration": 27501051.54400001
+        },
+        {
+          "seed": 1094002742,
+          "mean": 625.4896443887352,
+          "ci95": 0.21838380539705404,
+          "iterations": 500000,
+          "sumdps": 312744822.1943676,
+          "sumdps2": 198722262719.03906,
+          "totaldmg": 17198052889.082584,
+          "totalduration": 27498460.944999978
+        }
+      ]
+    },
+    {
+      "race": "Dwarf",
+      "timing": "racial default",
+      "mean": 612.1996508605358,
+      "ci95": 0.12340008937615546,
+      "dps": 612.1371277402783,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 50500366954.93228,
+        "totalduration": 82498454.458,
+        "sumdps": 918299476.2908038,
+        "sumdps2": 571101308063.9646
+      },
+      "seeds": [
+        {
+          "seed": 557131830,
+          "mean": 612.1527248694656,
+          "ci95": 0.21335708553549565,
+          "iterations": 500000,
+          "sumdps": 306076362.4347328,
+          "sumdps2": 190327861812.34216,
+          "totaldmg": 16831734526.480574,
+          "totalduration": 27498941.969
+        },
+        {
+          "seed": 2973050934,
+          "mean": 612.1896988215069,
+          "ci95": 0.2137301729487443,
+          "iterations": 500000,
+          "sumdps": 306094849.4107534,
+          "sumdps2": 190360865615.2742,
+          "totaldmg": 16834499148.531776,
+          "totalduration": 27501051.54400001
+        },
+        {
+          "seed": 1094002742,
+          "mean": 612.2565288906352,
+          "ci95": 0.21411806542420717,
+          "iterations": 500000,
+          "sumdps": 306128264.4453176,
+          "sumdps2": 190412580636.34827,
+          "totaldmg": 16834133279.919926,
+          "totalduration": 27498460.944999985
+        }
+      ]
+    },
+    {
+      "race": "Gnome",
+      "timing": "racial default",
+      "mean": 620.338838162832,
+      "ci95": 0.12411897282715903,
+      "dps": 620.245518168332,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 51169296633.38875,
+        "totalduration": 82498454.458,
+        "sumdps": 930508257.2442479,
+        "sumdps2": 586253317170.5015
+      },
+      "seeds": [
+        {
+          "seed": 557131830,
+          "mean": 620.1476155058826,
+          "ci95": 0.21474101955296665,
+          "iterations": 500000,
+          "sumdps": 310073807.7529413,
+          "sumdps2": 195292470480.7051,
+          "totaldmg": 17050906604.741621,
+          "totalduration": 27498941.969
+        },
+        {
+          "seed": 2973050934,
+          "mean": 620.43791827393,
+          "ci95": 0.21479416477018892,
+          "iterations": 500000,
+          "sumdps": 310218959.136965,
+          "sumdps2": 195474028747.01126,
+          "totaldmg": 17060252924.54287,
+          "totalduration": 27501051.544000007
+        },
+        {
+          "seed": 1094002742,
+          "mean": 620.4309807086833,
+          "ci95": 0.2154047337151006,
+          "iterations": 500000,
+          "sumdps": 310215490.3543416,
+          "sumdps2": 195486817942.78506,
+          "totaldmg": 17058137104.104252,
+          "totalduration": 27498460.944999993
+        }
+      ]
+    },
+    {
+      "race": "Night Elf",
+      "timing": "racial default",
+      "mean": 632.8528583089629,
+      "ci95": 0.12912578720312054,
+      "dps": 632.7399298289042,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 52200066284.74797,
+        "totalduration": 82498454.458,
+        "sumdps": 949279287.4634444,
+        "sumdps2": 610519645614.4548
+      },
+      "seeds": [
+        {
+          "seed": 557131830,
+          "mean": 632.7398486278844,
+          "ci95": 0.2234760130777963,
+          "iterations": 500000,
+          "sumdps": 316369924.3139422,
+          "sumdps2": 203429898924.22455,
+          "totaldmg": 17396565134.97452,
+          "totalduration": 27498941.969000004
+        },
+        {
+          "seed": 2973050934,
+          "mean": 632.9933614312681,
+          "ci95": 0.22355952673946158,
+          "iterations": 500000,
+          "sumdps": 316496680.71563405,
+          "sumdps2": 203592768265.53583,
+          "totaldmg": 17404882369.283997,
+          "totalduration": 27501051.544000007
+        },
+        {
+          "seed": 1094002742,
+          "mean": 632.8253648677361,
+          "ci95": 0.2239213575020417,
+          "iterations": 500000,
+          "sumdps": 316412682.43386805,
+          "sumdps2": 203496978424.6944,
+          "totaldmg": 17398618780.489456,
+          "totalduration": 27498460.94499999
+        }
+      ]
+    },
+    {
+      "race": "Undead",
+      "timing": "racial default",
+      "mean": 617.6833473690447,
+      "ci95": 0.12434174579074052,
+      "dps": 617.6185358765381,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 50952574654.427216,
+        "totalduration": 82498454.458,
+        "sumdps": 926525021.0535669,
+        "sumdps2": 581354400701.3242
+      },
+      "seeds": [
+        {
+          "seed": 557131830,
+          "mean": 617.7754841210227,
+          "ci95": 0.21544171881717553,
+          "iterations": 500000,
+          "sumdps": 308887742.06051135,
+          "sumdps2": 193843828415.9291,
+          "totaldmg": 16986559935.903685,
+          "totalduration": 27498941.969000004
+        },
+        {
+          "seed": 2973050934,
+          "mean": 617.6323142934071,
+          "ci95": 0.21500655228491064,
+          "iterations": 500000,
+          "sumdps": 308816157.1467036,
+          "sumdps2": 193743201862.26718,
+          "totaldmg": 16983582779.086689,
+          "totalduration": 27501051.544000007
+        },
+        {
+          "seed": 1094002742,
+          "mean": 617.642243692704,
+          "ci95": 0.21565009459770937,
+          "iterations": 500000,
+          "sumdps": 308821121.84635204,
+          "sumdps2": 193767370423.12793,
+          "totaldmg": 16982431939.436846,
+          "totalduration": 27498460.94499999
+        }
+      ]
+    },
+    {
+      "race": "Orc",
+      "timing": "racial default",
+      "mean": 617.7441244171077,
+      "ci95": 0.1245539981777501,
+      "dps": 617.6702690456952,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 50956842560.9269,
+        "totalduration": 82498454.458,
+        "sumdps": 926616186.6256616,
+        "sumdps2": 581497970566.3284
+      },
+      "seeds": [
+        {
+          "seed": 557131830,
+          "mean": 617.6811673529543,
+          "ci95": 0.21548929903915853,
+          "iterations": 500000,
+          "sumdps": 308840583.67647713,
+          "sumdps2": 193786900600.45187,
+          "totaldmg": 16983395103.599709,
+          "totalduration": 27498941.969000004
+        },
+        {
+          "seed": 2973050934,
+          "mean": 617.7289650262263,
+          "ci95": 0.2156207106271859,
+          "iterations": 500000,
+          "sumdps": 308864482.51311314,
+          "sumdps2": 193820112258.49625,
+          "totaldmg": 16986426454.915806,
+          "totalduration": 27501051.544000007
+        },
+        {
+          "seed": 1094002742,
+          "mean": 617.8222408721429,
+          "ci95": 0.21609133339494072,
+          "iterations": 500000,
+          "sumdps": 308911120.43607146,
+          "sumdps2": 193890957707.38025,
+          "totaldmg": 16987021002.411388,
+          "totalduration": 27498460.944999993
+        }
+      ]
+    },
+    {
+      "race": "Tauren",
+      "timing": "racial default",
+      "mean": 613.6297231148167,
+      "ci95": 0.12346578045629804,
+      "dps": 613.5671454181278,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 50618341203.20248,
+        "totalduration": 82498454.458,
+        "sumdps": 920444584.672225,
+        "sumdps2": 573740343045.8171
+      },
+      "seeds": [
+        {
+          "seed": 557131830,
+          "mean": 613.6460309410866,
+          "ci95": 0.21351472099949945,
+          "iterations": 500000,
+          "sumdps": 306823015.47054327,
+          "sumdps2": 191247487209.48438,
+          "totaldmg": 16872825989.65947,
+          "totalduration": 27498941.969000004
+        },
+        {
+          "seed": 2973050934,
+          "mean": 613.6095136971435,
+          "ci95": 0.21388452421197135,
+          "iterations": 500000,
+          "sumdps": 306804756.8485717,
+          "sumdps2": 191235364856.98883,
+          "totaldmg": 16873463062.635233,
+          "totalduration": 27501051.544000007
+        },
+        {
+          "seed": 1094002742,
+          "mean": 613.6336247062203,
+          "ci95": 0.21414771149831344,
+          "iterations": 500000,
+          "sumdps": 306816812.35311013,
+          "sumdps2": 191257490979.34387,
+          "totaldmg": 16872052150.907778,
+          "totalduration": 27498460.944999993
+        }
+      ]
+    },
+    {
+      "race": "Troll",
+      "timing": "racial default",
+      "mean": 619.7568137048958,
+      "ci95": 0.12534887498147584,
+      "dps": 619.6335970803825,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 51118814089.38266,
+        "totalduration": 82498454.458,
+        "sumdps": 929635220.5573437,
+        "sumdps2": 585350371130.2136
+      },
+      "seeds": [
+        {
+          "seed": 557131830,
+          "mean": 619.690976359352,
+          "ci95": 0.21683449050584588,
+          "iterations": 500000,
+          "sumdps": 309845488.179676,
+          "sumdps2": 195068187461.60367,
+          "totaldmg": 17037454340.086561,
+          "totalduration": 27498941.969
+        },
+        {
+          "seed": 2973050934,
+          "mean": 619.8095033786686,
+          "ci95": 0.2170242199451006,
+          "iterations": 500000,
+          "sumdps": 309904751.68933433,
+          "sumdps2": 195147001467.11383,
+          "totaldmg": 17042223276.974932,
+          "totalduration": 27501051.544000007
+        },
+        {
+          "seed": 1094002742,
+          "mean": 619.7699613766669,
+          "ci95": 0.21747296016569873,
+          "iterations": 500000,
+          "sumdps": 309884980.68833345,
+          "sumdps2": 195135182201.49603,
+          "totaldmg": 17039136472.321165,
+          "totalduration": 27498460.94499999
+        }
+      ]
+    },
+    {
+      "race": "Skyborne",
+      "timing": "racial default",
+      "mean": 616.9146277557229,
+      "ci95": 0.12380785289664253,
+      "dps": 616.8522735318103,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 50889359195.27782,
+        "totalduration": 82498454.458,
+        "sumdps": 925371941.6335844,
+        "sumdps2": 579853215457.7485
+      },
+      "seeds": [
+        {
+          "seed": 557131830,
+          "mean": 616.8314306635222,
+          "ci95": 0.21426714899891194,
+          "iterations": 500000,
+          "sumdps": 308415715.33176106,
+          "sumdps2": 193228215129.4697,
+          "totaldmg": 16960534591.732418,
+          "totalduration": 27498941.969000004
+        },
+        {
+          "seed": 2973050934,
+          "mean": 616.980016132345,
+          "ci95": 0.21454499758499365,
+          "iterations": 500000,
+          "sumdps": 308490008.0661725,
+          "sumdps2": 193327631935.5106,
+          "totaldmg": 16965878082.505472,
+          "totalduration": 27501051.544000007
+        },
+        {
+          "seed": 1094002742,
+          "mean": 616.9324364713018,
+          "ci95": 0.21451244321312504,
+          "iterations": 500000,
+          "sumdps": 308466218.2356509,
+          "sumdps2": 193297368392.76825,
+          "totaldmg": 16962946521.039928,
+          "totalduration": 27498460.945
+        }
+      ]
+    }
+  ],
+  "racialDisabled": [
+    {
+      "race": "Orc",
+      "timing": {
+        "kind": "off"
+      },
+      "mean": 613.3670558669099,
+      "ci95": 0.12359320105194917,
+      "dps": 613.303737149029,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 50596610428.110374,
+        "totalduration": 82498454.458,
+        "sumdps": 920050583.800365,
+        "sumdps2": 573275343098.7823
+      },
+      "seeds": [
+        {
+          "seed": 557131830,
+          "mean": 613.3237421274829,
+          "ci95": 0.2137484704523619,
+          "iterations": 500000,
+          "sumdps": 306661871.06374145,
+          "sumdps2": 191056267290.46234,
+          "totaldmg": 16863900947.590073,
+          "totalduration": 27498941.969
+        },
+        {
+          "seed": 2973050934,
+          "mean": 613.357860598222,
+          "ci95": 0.21403621493281244,
+          "iterations": 500000,
+          "sumdps": 306678930.299111,
+          "sumdps2": 191085204033.4008,
+          "totaldmg": 16866550865.633541,
+          "totalduration": 27501051.544000007
+        },
+        {
+          "seed": 1094002742,
+          "mean": 613.4195648750251,
+          "ci95": 0.21442423195278024,
+          "iterations": 500000,
+          "sumdps": 306709782.4375126,
+          "sumdps2": 191133871774.91922,
+          "totaldmg": 16866158614.886763,
+          "totalduration": 27498460.944999997
+        }
+      ]
+    },
+    {
+      "race": "Troll",
+      "timing": {
+        "kind": "off"
+      },
+      "mean": 613.8641440681673,
+      "ci95": 0.12377836523940665,
+      "dps": 613.8015186645265,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 50637676633.79668,
+        "totalduration": 82498454.458,
+        "sumdps": 920796216.102251,
+        "sumdps2": 574217233616.7053
+      },
+      "seeds": [
+        {
+          "seed": 557131830,
+          "mean": 613.7897105486909,
+          "ci95": 0.21406702079872555,
+          "iterations": 500000,
+          "sumdps": 306894855.27434546,
+          "sumdps2": 191351034082.65878,
+          "totaldmg": 16876844076.603016,
+          "totalduration": 27498941.969000004
+        },
+        {
+          "seed": 2973050934,
+          "mean": 613.9122202337737,
+          "ci95": 0.2142656265979537,
+          "iterations": 500000,
+          "sumdps": 306956110.11688685,
+          "sumdps2": 191431772822.34744,
+          "totaldmg": 16881737855.71356,
+          "totalduration": 27501051.544000007
+        },
+        {
+          "seed": 1094002742,
+          "mean": 613.8905014220375,
+          "ci95": 0.21483813294367252,
+          "iterations": 500000,
+          "sumdps": 306945250.71101874,
+          "sumdps2": 191434426711.69907,
+          "totaldmg": 16879094701.4801,
+          "totalduration": 27498460.944999993
+        }
+      ]
+    },
+    {
+      "race": "Night Elf",
+      "timing": {
+        "kind": "off"
+      },
+      "mean": 612.0544143820764,
+      "ci95": 0.12364999147218207,
+      "dps": 611.9909024208936,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 50488303592.080414,
+        "totalduration": 82498454.458,
+        "sumdps": 918081621.5731146,
+        "sumdps2": 570870758254.0457
+      },
+      "seeds": [
+        {
+          "seed": 557131830,
+          "mean": 612.0142865945602,
+          "ci95": 0.21410205259373666,
+          "iterations": 500000,
+          "sumdps": 306007143.2972801,
+          "sumdps2": 190263849316.16876,
+          "totaldmg": 16828007086.60528,
+          "totalduration": 27498941.969000004
+        },
+        {
+          "seed": 2973050934,
+          "mean": 612.0713227515085,
+          "ci95": 0.21389227398826244,
+          "iterations": 500000,
+          "sumdps": 306035661.3757543,
+          "sumdps2": 190292915015.90564,
+          "totaldmg": 16831054913.132898,
+          "totalduration": 27501051.544000007
+        },
+        {
+          "seed": 1094002742,
+          "mean": 612.0776338001606,
+          "ci95": 0.21450980043903517,
+          "iterations": 500000,
+          "sumdps": 306038816.90008026,
+          "sumdps2": 190313993921.97122,
+          "totaldmg": 16829241592.34224,
+          "totalduration": 27498460.944999997
+        }
+      ]
+    },
+    {
+      "race": "Gnome",
+      "timing": {
+        "kind": "off"
+      },
+      "mean": 610.3155646185293,
+      "ci95": 0.12337453699101597,
+      "dps": 610.2539923473992,
+      "iterations": 1500000,
+      "report": {
+        "iterations": 1500000,
+        "totaldmg": 50345011195.48459,
+        "totalduration": 82498454.458,
+        "sumdps": 915473346.927794,
+        "sumdps2": 567642628723.5184
+      },
+      "seeds": [
+        {
+          "seed": 557131830,
+          "mean": 610.2546089738986,
+          "ci95": 0.21366507041800886,
+          "iterations": 500000,
+          "sumdps": 305127304.4869493,
+          "sumdps2": 189176285097.06427,
+          "totaldmg": 16779717972.105732,
+          "totalduration": 27498941.969000004
+        },
+        {
+          "seed": 2973050934,
+          "mean": 610.3483461389511,
+          "ci95": 0.21341594344660178,
+          "iterations": 500000,
+          "sumdps": 305174173.06947553,
+          "sumdps2": 189226569012.226,
+          "totaldmg": 16783689885.96617,
+          "totalduration": 27501051.544000007
+        },
+        {
+          "seed": 1094002742,
+          "mean": 610.3437387427383,
+          "ci95": 0.21399182208299444,
+          "iterations": 500000,
+          "sumdps": 305171869.3713692,
+          "sumdps2": 189239774614.22818,
+          "totaldmg": 16781603337.412685,
+          "totalduration": 27498460.944999997
+        }
+      ]
+    }
+  ],
+  "racialConfigurations": [
+    {
+      "race": "Human",
+      "maxhealth": 3739,
+      "ragecap": 130,
+      "racialActions": [],
+      "builtRacials": []
+    },
+    {
+      "race": "Dwarf",
+      "maxhealth": 3769,
+      "ragecap": 130,
+      "racialActions": [],
+      "builtRacials": []
+    },
+    {
+      "race": "Gnome",
+      "maxhealth": 3729,
+      "ragecap": 136.5,
+      "racialActions": [
+        {
+          "id": "forever:eureka",
+          "name": "Eureka!",
+          "classname": "Eureka",
+          "timetostart": 0,
+          "timetostartactive": false,
+          "timetoend": 15,
+          "timetoendactive": true
+        }
+      ],
+      "builtRacials": [
+        "Eureka"
+      ]
+    },
+    {
+      "race": "Night Elf",
+      "maxhealth": 3729,
+      "ragecap": 130,
+      "racialActions": [
+        {
+          "id": "forever:elunes-light",
+          "name": "Elune’s Light",
+          "classname": "ElunesLight",
+          "timetostart": 0,
+          "timetostartactive": false,
+          "timetoend": 16,
+          "timetoendactive": true
+        }
+      ],
+      "builtRacials": [
+        "ElunesLight"
+      ]
+    },
+    {
+      "race": "Undead",
+      "maxhealth": 3749,
+      "ragecap": 130,
+      "racialActions": [],
+      "builtRacials": [
+        "TouchOfTheGrave"
+      ]
+    },
+    {
+      "race": "Orc",
+      "maxhealth": 3759,
+      "ragecap": 130,
+      "racialActions": [
+        {
+          "id": "20572",
+          "name": "Blood Fury",
+          "classname": "BloodFury",
+          "timetostart": 5,
+          "timetostartactive": true,
+          "timetoend": 16,
+          "timetoendactive": false
+        }
+      ],
+      "builtRacials": [
+        "BloodFury"
+      ]
+    },
+    {
+      "race": "Tauren",
+      "maxhealth": 3947,
+      "ragecap": 130,
+      "racialActions": [],
+      "builtRacials": []
+    },
+    {
+      "race": "Troll",
+      "maxhealth": 3749,
+      "ragecap": 130,
+      "racialActions": [
+        {
+          "id": "26296",
+          "name": "Berserking",
+          "classname": "Berserking",
+          "timetostart": 0,
+          "timetostartactive": false,
+          "timetoend": 14,
+          "timetoendactive": true
+        }
+      ],
+      "builtRacials": [
+        "Berserking"
+      ]
+    },
+    {
+      "race": "Skyborne",
+      "maxhealth": 3739,
+      "ragecap": 130,
+      "racialActions": [],
+      "builtRacials": []
+    }
+  ],
+  "nightElfLead": {
+    "race": "Human",
+    "meanDps": 7.467094859666645,
+    "percent": 1.1939982161541574,
+    "unpairedCi95": 0.18035362620415987
+  },
+  "compute": {
+    "remoteIterations": 62382750,
+    "localIterations": 1357250
+  },
+  "candidates": 297,
+  "acceptedFights": 63740000,
+  "importVerification": {
+    "buildId": "1caf05580e76c3c7588da2876ce3abb7c5e37dbf18fa9cc30e8ffed3e23386aa",
+    "verified": [
+      "Human",
+      "Dwarf",
+      "Gnome",
+      "Night Elf",
+      "Undead",
+      "Orc",
+      "Tauren",
+      "Troll",
+      "Skyborne"
+    ],
+    "exactSimulationSpecMatch": true
+  }
+}
