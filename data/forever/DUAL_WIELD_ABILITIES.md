@@ -13,7 +13,9 @@ The Night Elf **Dual Wield Fury (13/38/0)** preset now uses:
 | Heroic Strike | Separate swing queue | Existing behavior | Keep the 40-rage threshold |
 | Berserker Rage | Disabled | Disabled | No Improved Berserker Rage talent points |
 
-Higher numbers take precedence. Bloodrage and Battle Shout remain enabled.
+Higher numbers take precedence. Bloodrage remains enabled. Battle Shout is now
+disabled in Default and the Night Elf preset, which already include Blessing of
+Might. The historical measurements below used Battle Shout enabled.
 Death Wish remains scheduled **31 seconds before fight end**. The user's race,
 description, talents, gear, enchants, buffs, fight settings, and other spell
 options were preserved.

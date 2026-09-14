@@ -149,8 +149,9 @@ bool spellCanUse(PlayerState& player, SpellState& spell) {
             player.isValidStance("battle");
 
     case SpellKind::BerserkerRage:
-        return spell.timer == 0 && player.timer == 0 &&
-            (!maxrage || player.isValidStance("zerk") || player.rage <= maxrage);
+        return spell.timer == 0 &&
+            (player.isValidStance("zerk") || player.stancetimer == 0) &&
+            (!spell.props.has("maxrage"_prop) || player.isValidStance("zerk") || player.rage <= maxrage);
 
     case SpellKind::RagePotion:
         return spell.timer == 0 && player.rage < minrage && player.step >= spell.useStep;
@@ -275,7 +276,6 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
         return;
 
     case SpellKind::BerserkerRage: {
-        player.timer = 1500;
         spell.timer = cooldown * 1000;
         if (!player.isValidStance("zerk")) player.switchStance("zerk");
         player.rage = std::min(player.rage + value(spell, "rage"_prop), player.prop("ragecap"_prop, 100));

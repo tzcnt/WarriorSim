@@ -5,6 +5,7 @@ const {racialFixtures} = require('./racial-fixtures');
 const {foreverFixtures} = require('./forever-fixtures');
 const {sweepingFixtures} = require('./sweeping-fixtures');
 const {queuedStrikeFixtures} = require('./queued-strike-fixtures');
+const {berserkerRageFixtures} = require('./berserker-rage-fixtures');
 const {
     bloodrageCases, stanceCases, aliasCases, orderedProcs,
 } = require('./ability-proc-fixtures');
@@ -105,7 +106,7 @@ function extraFixtures() {
     return [
         phantom, suppression, long, trinkets,
         earthstrike, priority, clocks, gabbar, hamstring, ...bloodrageCases, ...stanceCases,
-        ...aliasCases, orderedProcs, ...foreverFixtures(), ...racialFixtures(), ...swordResets, ...sweepingFixtures(), ...queuedStrikeFixtures(),
+        ...aliasCases, orderedProcs, ...foreverFixtures(), ...racialFixtures(), ...swordResets, ...sweepingFixtures(), ...queuedStrikeFixtures(), ...berserkerRageFixtures(),
     ];
 }
 

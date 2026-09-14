@@ -690,7 +690,7 @@ void PlayerState::buildConfiguredActionLists() {
     addAuras(configured.tickAuras, {"deepwounds"_action, "deepwounds2"_action, "deepwounds3"_action, "deepwounds4"_action});
     addSpells(configured.timedSpells, {"spearingstrike"_action, "bloodthirst"_action, "mortalstrike"_action,
         "shieldslam"_action, "whirlwind"_action,
-        "bloodrage"_action, "ragepotion"_action,
+        "bloodrage"_action, "berserkerrage"_action, "ragepotion"_action,
         "overpower"_action, "execute"_action, "slam"_action});
     addSpells(configured.stepSpells, {"spearingstrike"_action, "berserkerrage"_action,
         "bloodthirst"_action, "mortalstrike"_action, "shieldslam"_action,

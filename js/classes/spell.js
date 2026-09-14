@@ -423,7 +423,6 @@ class BerserkerRage extends Spell {
         this.offensive = false;
     }
     use() {
-        this.player.timer = 1500;
         this.timer = this.cooldown * 1000;
         if (!this.player.isValidStance('zerk')) this.player.switch('zerk');
         this.player.rage = Math.min(this.player.rage + this.rage, this.player.ragecap || 100);
@@ -431,8 +430,9 @@ class BerserkerRage extends Spell {
         this.maxdelay = rng(this.player.reactionmin, this.player.reactionmax);
     }
     canUse() {
-        return this.timer == 0 && !this.player.timer &&
-            (!this.maxrage || this.player.isValidStance('zerk') || this.player.rage <= this.maxrage);
+        return this.timer == 0 &&
+            (this.player.isValidStance('zerk') || !this.player.stancetimer) &&
+            (typeof this.maxrage === 'undefined' || this.player.isValidStance('zerk') || this.player.rage <= this.maxrage);
     }
 }
 
@@ -1627,7 +1627,8 @@ class BattleShout extends Aura {
         if (this.timer) this.uptime += (step - this.starttimer);
         this.timer = step + this.duration * 1000;
         this.starttimer = step;
-        if (!prepull) {
+        // Player.cast passes the queued strike as its first argument in combat.
+        if (prepull !== true) {
             this.player.rage -= this.cost;
             this.player.timer = 1500;
         }

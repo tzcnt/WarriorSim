@@ -127,7 +127,8 @@ async function main() {
         assert.deepEqual(snapshot.ranks, preset.profile.talents.map(tree => tree.t));
         assert.equal(snapshot.player.race, preset.profile.race);
         for (const id of ['11597', '9907', '11717']) assert(snapshot.buffs.some(buff => String(buff.id) === id), `Missing debuff ${id}`);
-        assert(snapshot.spells.some(spell => spell.classname === 'BattleShout' && spell.active));
+        assert.equal(snapshot.spells.some(spell => spell.classname === 'BattleShout' && spell.active),
+            preset.profile.rotation.some(spell => spell.classname === 'BattleShout' && spell.active !== false));
         const identity = createHash('sha256').update(JSON.stringify({format: 2, buildId: snapshot.buildId, preset,
             options: {...opt, resume: undefined, out: undefined}})).digest('hex');
         const checkpoint = path.join(opt.out, 'checkpoint.json');

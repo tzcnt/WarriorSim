@@ -166,12 +166,14 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
                 if (const auto* sweeping = player_.aura("sweepingstrikes"_action); !delayedSpell && sweeping && !sweeping->props.number("gcd"_prop))
                     choose(player_, delayedSpell, "sweepingstrikes"_action, true);
 
-                if (!delayedSpell && !player_.timer) {
+                if (!delayedSpell) {
                     if (auto* value = player_.spell("berserkerrage"_action); value && value->props.boolean("zerkerpriority"_prop) &&
                         spellCanUse(player_, *value)) delayedSpell.spell = value;
                 }
                 if (!delayedSpell && bloodrageSelection != kNoRef)
                     choose(player_, delayedSpell, bloodrageSelection, false);
+                if (!delayedSpell)
+                    choose(player_, delayedSpell, "berserkerrage"_action, false);
                 if (!delayedSpell) {
                     for (const int index : player_.configured.onUseAuras)
                         if (choose(player_, delayedSpell, index, true)) break;
@@ -185,7 +187,6 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "eureka"_action, true);
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "bloodfury"_action, true);
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "berserking"_action, true);
-                if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "berserkerrage"_action, false);
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "battleshout"_action, true);
 
                 if (!delayedSpell && !player_.timer) {

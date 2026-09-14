@@ -845,7 +845,7 @@ var session = {
             "aq": false,
             "buff": true,
             "aura": true,
-            "active": true
+            "active": false
         },
         {
             "id": 25289,

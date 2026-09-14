@@ -100,6 +100,17 @@ test('Improved Bloodrage scales the initial gain and all ten fractional ticks', 
     assert.equal(player.auras.bloodrage.timer, 0);
 });
 
+for (const mode of ['classic', 'forever']) test(`${mode}: Battle Shout refreshes still cost rage and a GCD with a queued strike`, () => {
+    const {run, player} = setup(mode);
+    player.reset(50);
+    run('p.auras.battleshout = new BattleShout(p, 11551); p.auras.battleshout.use(true)');
+    assert.equal(player.rage, 50);
+    assert.equal(player.timer, 0);
+    run('p.cast(p.auras.battleshout, new HeroicStrike(p, 11567))');
+    assert.equal(player.rage, 50 - player.auras.battleshout.cost);
+    assert.equal(player.timer, 1500);
+});
+
 test('all active rage generators respect the raised cap, including refunds and reset', () => {
     const {run, player} = setup();
     // This test invokes Berserker Rage even when the default rotation disables it.

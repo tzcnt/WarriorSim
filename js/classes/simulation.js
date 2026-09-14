@@ -435,8 +435,9 @@ class Simulation {
                     else if (player.spells.grilekfury && player.spells.grilekfury.canUse()) { player.spelldelay = 1; delayedspell = player.spells.grilekfury; }
                     else if (player.auras.sweepingstrikes && !player.auras.sweepingstrikes.gcd && player.auras.sweepingstrikes.canUse()) { player.spelldelay = 1; delayedspell = player.auras.sweepingstrikes; }
 
-                    else if (!player.timer && player.spells.berserkerrage && player.spells.berserkerrage.zerkerpriority && player.spells.berserkerrage.canUse()) { player.spelldelay = 1; delayedspell = player.spells.berserkerrage; }
+                    else if (player.spells.berserkerrage && player.spells.berserkerrage.zerkerpriority && player.spells.berserkerrage.canUse()) { player.spelldelay = 1; delayedspell = player.spells.berserkerrage; }
                     else if (player.spells.bloodrage && player.spells.bloodrage.canUse()) { player.spelldelay = 1; delayedspell = player.spells.bloodrage; }
+                    else if (player.spells.berserkerrage && player.spells.berserkerrage.canUse()) { player.spelldelay = 1; delayedspell = player.spells.berserkerrage; }
 
                     else if (player.auras.cloudkeeper && player.auras.cloudkeeper.canUse()) { player.spelldelay = 1; delayedspell = player.auras.cloudkeeper; }
                     else if (player.auras.pummeler && player.auras.pummeler.canUse()) { player.spelldelay = 1; delayedspell = player.auras.pummeler; }
@@ -454,7 +455,6 @@ class Simulation {
                     else if (player.auras.eureka && player.auras.eureka.canUse()) { player.spelldelay = 1; delayedspell = player.auras.eureka; }
                     else if (player.auras.bloodfury && player.auras.bloodfury.canUse()) { player.spelldelay = 1; delayedspell = player.auras.bloodfury; }
                     else if (player.auras.berserking && player.auras.berserking.canUse()) { player.spelldelay = 1; delayedspell = player.auras.berserking; }
-                    else if (player.spells.berserkerrage && player.spells.berserkerrage.canUse()) { player.spelldelay = 1; delayedspell = player.spells.berserkerrage; }
                     else if (player.auras.battleshout && player.auras.battleshout.canUse()) { player.spelldelay = 1; delayedspell = player.auras.battleshout; }
                     else if (step >= this.executestep) {
                         for(let i = 0; i < player.executespells_c; i++) {
@@ -623,6 +623,7 @@ class Simulation {
             }
 
             // Spells used by player
+            if (player.spells.berserkerrage?.timer > 0 && player.spells.berserkerrage.timer < next) next = player.spells.berserkerrage.timer;
             if (player.spells.bloodthirst && player.spells.bloodthirst.timer && player.spells.bloodthirst.timer < next) next = player.spells.bloodthirst.timer;
             if (player.spells.mortalstrike && player.spells.mortalstrike.timer && player.spells.mortalstrike.timer < next) next = player.spells.mortalstrike.timer;
             if (player.spells.shieldslam && player.spells.shieldslam.timer && player.spells.shieldslam.timer < next) next = player.spells.shieldslam.timer;
