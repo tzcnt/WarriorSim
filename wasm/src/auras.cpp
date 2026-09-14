@@ -154,6 +154,11 @@ void auraEnd(PlayerState& player, AuraState& aura) {
     aura.timer = 0;
     aura.stacks = 0;
     switch (aura.kind) {
+    case AuraKind::DeepWounds:
+        aura.nexttick = aura.savedDamage = 0;
+        aura.ticksleft = 0;
+        player.updateDmgMod();
+        break;
     case AuraKind::Zeal:
         player.updateBonusDmg();
         break;
@@ -209,6 +214,24 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         }
         aura.stacks = 3;
         break;
+    case AuraKind::DeepWounds: {
+        accountRefresh(player, aura);
+        // procCrit passes the triggering hand through auraUse's boolean argument.
+        const auto& weapon = prepull && player.oh ? *player.oh : player.mh;
+        const double min = weapon.mindmg + weapon.bonusdmg +
+            player.stats.number("moddmgdone"_prop) + player.stats.number("ap"_prop) / 14.0 * weapon.speed;
+        const double max = weapon.maxdmg + weapon.bonusdmg +
+            player.stats.number("moddmgdone"_prop) + player.stats.number("ap"_prop) / 14.0 * weapon.speed;
+        aura.savedDamage += (min + max) / 2.0 * weapon.modifier *
+            player.stats.number("dmgmod"_prop, 1) * player.talents.number("deepwounds"_prop) *
+            player.prop("bleedmod"_prop, 1);
+        aura.ticksleft = 4;
+        if (!aura.nexttick) aura.nexttick = player.step + 3000;
+        aura.timer = aura.nexttick - 3000 + durationMs(aura);
+        aura.starttimer = player.step;
+        player.updateDmgMod();
+        break;
+    }
     case AuraKind::OldDeepWounds:
         accountRefresh(player, aura);
         aura.nexttick = player.step + 3000;
@@ -396,6 +419,29 @@ bool auraStep(PlayerState& player, AuraState& aura) {
         aura.kind == AuraKind::BerserkerStance) return true;
 
     switch (aura.kind) {
+    case AuraKind::DeepWounds:
+        if (!aura.timer) return false;
+        while (player.step >= aura.nexttick && aura.ticksleft) {
+            player.stepAuras(true);
+            double damage = aura.savedDamage / aura.ticksleft;
+            // Tick crits amplify the payout, not the remaining damage pool.
+            aura.savedDamage -= damage;
+            --aura.ticksleft;
+            if (player.rng.tenK() <
+                (player.crit + player.mh.crit + player.mh.props.number("racialcrit"_prop)) * 100)
+                damage *= 1 + (1 + player.talents.number("abilitiescrit"_prop));
+            aura.idmg += damage;
+            aura.totaldmg += damage;
+            aura.nexttick += 3000;
+        }
+        if (player.step >= aura.timer) {
+            expire(player, aura, true);
+            aura.nexttick = aura.savedDamage = 0;
+            aura.ticksleft = 0;
+            player.updateDmgMod();
+            return false;
+        }
+        return true;
     case AuraKind::OldDeepWounds:
         while (player.step >= aura.nexttick) {
             const double min = player.mh.mindmg + player.mh.bonusdmg +
@@ -416,7 +462,11 @@ bool auraStep(PlayerState& player, AuraState& aura) {
         return true;
     case AuraKind::Rend:
         while (player.step >= aura.nexttick && aura.stacks) {
-            const double damage = aura.props.number("tickdmg"_prop);
+            double damage = aura.props.number("tickdmg"_prop);
+            // The application cannot crit; each tick rolls independently.
+            if (player.foreverMode && player.rng.tenK() <
+                (player.crit + player.mh.crit + player.mh.props.number("racialcrit"_prop)) * 100)
+                damage *= 1 + (1 + player.talents.number("abilitiescrit"_prop));
             aura.idmg += damage;
             aura.totaldmg += damage;
             aura.nexttick += 3000;

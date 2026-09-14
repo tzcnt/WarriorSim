@@ -483,7 +483,7 @@ SpellKind parseSpellKind(std::string_view value) {
 AuraKind parseAuraKind(std::string_view value) {
 #define AURA_KIND(name) if (value == #name) return AuraKind::name
     AURA_KIND(Enrage); AURA_KIND(SweepingStrikes); AURA_KIND(Aura); AURA_KIND(Recklessness); AURA_KIND(Flurry);
-    AURA_KIND(OldDeepWounds); AURA_KIND(Crusader);
+    AURA_KIND(DeepWounds); AURA_KIND(OldDeepWounds); AURA_KIND(Crusader);
     AURA_KIND(Cloudkeeper); AURA_KIND(Felstriker); AURA_KIND(DeathWish); AURA_KIND(BattleStance);
     AURA_KIND(DefensiveStance); AURA_KIND(BerserkerStance); AURA_KIND(MightyRagePotion);
     AURA_KIND(ElunesLight); AURA_KIND(Eureka); AURA_KIND(TouchOfTheGrave); AURA_KIND(BloodFury); AURA_KIND(Berserking);
@@ -524,6 +524,7 @@ const char* auraKindName(AuraKind kind) {
         case AuraKind::Enrage: return "Enrage";
         case AuraKind::SweepingStrikes: return "SweepingStrikes";
         case AuraKind::OldDeepWounds: return "OldDeepWounds";
+        case AuraKind::DeepWounds: return "DeepWounds";
         case AuraKind::Rend: return "Rend";
         default: return "AuraSubclass";
     }

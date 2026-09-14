@@ -130,8 +130,10 @@ void PlayerState::reset(double startingRage) {
         value.maxdelay = props.number("reactionmin"_prop);
         value.mintime = 0;
         value.nexttick = 0;
+        value.savedDamage = 0;
+        value.ticksleft = 0;
         value.cooldownTimer = 0;
-        if (value.kind == AuraKind::SweepingStrikes || value.kind == AuraKind::OldDeepWounds ||
+        if (value.kind == AuraKind::SweepingStrikes || value.kind == AuraKind::DeepWounds || value.kind == AuraKind::OldDeepWounds ||
             value.kind == AuraKind::Rend || value.kind == AuraKind::TouchOfTheGrave) value.idmg = 0;
     }
     if (trinketproc1 && trinketproc1->useStep) trinketproc1->useStep = 0;
@@ -617,7 +619,7 @@ double PlayerState::castOh(SpellState& ability, int adjacent, double damageSoFar
     if (result == Result::Dodge) dodgetimer = 5000;
     if (result == Result::Crit) {
         dmg *= 1 + (1 + talents.number("abilitiescrit"_prop));
-        procCrit(false, adjacent);
+        procCrit(true, adjacent);
     }
     const double done = dealDamage(dmg, result, *oh, &ability, adjacent != 0);
     ability.totaldmg += done;
