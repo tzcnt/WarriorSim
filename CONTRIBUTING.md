@@ -60,6 +60,52 @@ for future workers. Deploy the complete new assets before replacing the current
 manifest. Tabs still preloading during a deployment may fail verification and need
 to reload; initialized tabs retain their assets and continue running.
 
+## Save a site profile as a permanent Forever preset
+
+See the [standalone usage guide](scripts/upsert-forever-profile.md) for all options
+and examples.
+
+Permanent presets live in `js/data/presets_forever.js`. On the WoW Forever tab,
+open **Profiles** and click the **Export** icon on the profile you want to save.
+The site copies its export to your clipboard. From this checkout, run:
+
+```sh
+npm run profile:upsert -- --id forever-my-build
+```
+
+Paste the copied export at the prompt and press Enter. The command updates the
+entry with that exact ID, or appends a new entry if the ID does not exist. IDs are
+independent of display names, so use the same ID when renaming or revising a build.
+Existing IDs include `forever-dual-wield-fury`, `forever-two-handed-fury`, and
+`forever-two-handed-arms`.
+
+You can also save the copied text to a file, or pass clipboard text through stdin:
+
+```sh
+npm run profile:upsert -- --id forever-my-build --input profile.txt --description "My raid build"
+```
+
+```powershell
+Get-Clipboard | node scripts/upsert-forever-profile.js --id forever-my-build
+```
+
+The tool accepts the site's base64 export or the decoded profile JSON, validates
+its structure, and replaces the entire profile. Descriptions are kept on updates
+unless `--description` is supplied; new entries default to the exported profile
+name. Other presets and the catalog's header comments are preserved. An invalid
+export leaves the file unchanged.
+
+Both the script and website run the shared advisory compatibility validator.
+The script prints findings to stderr and continues; the website shows them in an
+OK-to-dismiss notification after importing. Notes identify migrated or refunded
+talents, unknown IDs, unsupported schemas, legacy enabled abilities, and inherited
+settings. See the standalone guide for details.
+
+Use `--dry-run` to print the proposed file without saving, or `--presets FILE` to
+edit a separate copy of the catalog. Review `git diff -- js/data/presets_forever.js`
+and rebuild the browser assets as described above to use the updated presets.
+The first-visit defaults in `js/data/session_forever.js` are maintained separately.
+
 ## Optional shared compute
 
 Sharing requires a WebSocket coordinator in addition to the static site. Install

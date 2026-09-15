@@ -847,14 +847,17 @@ SIM.UI = {
         localStorage[mode + profileid] = JSON.stringify(obj);
     },
 
-    loadSession: function () {
+    loadSession: function (skipProfileValidation = false) {
         var view = this;
         let profileid = globalThis.profileid || 0;
 
         if (localStorage.level) localStorage.clear(); // clear old style of storage
+        const hadSavedProfile = !!localStorage[mode + profileid];
         if (!localStorage[mode + profileid]) localStorage[mode + profileid] = JSON.stringify(session);
 
         let storage = JSON.parse(localStorage[mode + profileid]);
+        const profileIssues = skipProfileValidation || !hadSavedProfile ? [] : ProfileValidation.report(storage,
+            SIM.PROFILES.validationContext(session, 'sim defaults', 'session'));
         if (mode === 'forever') {
             storage.talents = normalizeForeverTalents(storage.talents || session.talents,
                 storage.talents ? storage.talentSchema : session.talentSchema, storage.level || session.level);
@@ -927,6 +930,8 @@ SIM.UI = {
                 view.sidebar.find("."+element+"-resist.hidden").removeClass('hidden');
             }
         }
+
+        SIM.PROFILES.showIssues(profileIssues);
 
     },
 

@@ -139,7 +139,7 @@ SIM.PROFILES = {
         view.buildProfiles();
     },
 
-    loadProfile(profile) {
+    loadProfile(profile, skipProfileValidation = false) {
         const view = this;
         var index = profile.data('index');
         let modei = mode + index;
@@ -150,7 +150,7 @@ SIM.PROFILES = {
             localStorage[modei] = localStorage[oldmodei];
         }
 
-        SIM.UI.loadSession();
+        SIM.UI.loadSession(skipProfileValidation);
         SIM.UI.updateSidebar();
         SIM.SETTINGS.buildSpells();
         SIM.SETTINGS.buildBuffs();
@@ -174,7 +174,7 @@ SIM.PROFILES = {
             return;
         }
         if (this.importProfile(JSON.stringify(preset.profile), index, session)) {
-            this.loadProfile(this.container.find(`.profile[data-index="${index}"]`));
+            this.loadProfile(this.container.find(`.profile[data-index="${index}"]`), true);
             this.close.click();
         }
     },
@@ -299,6 +299,7 @@ SIM.PROFILES = {
             if (spell.active) {
                 let obj = {};
                 obj.id = spell.id;
+                obj.active = true;
                 if (typeof spell.duration !== 'undefined') obj.duration = spell.duration;
                 if (typeof spell.durationactive !== 'undefined') obj.durationactive = spell.durationactive;
                 if (typeof spell.timetoend !== 'undefined') obj.timetoend = spell.timetoend;
@@ -344,13 +345,45 @@ SIM.PROFILES = {
         SIM.UI.addAlert('Profile copied to clipboard');
     },
 
+    validationContext(base, baseLabel, format = 'export') {
+        return {mode, base, baseLabel, format, gear, enchant, buffs, spells, talents, classicTalents,
+            talentSchema: FOREVER_TALENT_SCHEMA, normalizeTalents: normalizeForeverTalents, racialSpellAvailable};
+    },
+
+    showIssues(issues) {
+        if (!issues.length) return;
+        let dialog = document.getElementById('profile-issues');
+        if (!dialog) {
+            dialog = document.createElement('dialog');
+            dialog.id = 'profile-issues';
+            dialog.className = 'profile-issues';
+            dialog.setAttribute('aria-labelledby', 'profile-issues-title');
+            dialog.setAttribute('aria-describedby', 'profile-issues-summary');
+            dialog.innerHTML = '<h2 id="profile-issues-title">Profile compatibility notes</h2>' +
+                '<p id="profile-issues-summary">Some settings may change or need review before simulating.</p>' +
+                '<ul></ul><form method="dialog"><button type="submit" autofocus>OK</button></form>';
+            document.body.appendChild(dialog);
+        }
+        const list = dialog.querySelector('ul');
+        list.replaceChildren();
+        for (const issue of issues) {
+            const item = document.createElement('li');
+            item.textContent = issue.message;
+            list.appendChild(item);
+        }
+        if (!dialog.open) dialog.showModal();
+    },
+
     importProfile(str, index, baseSession) {
         const view = this;
+        let issues = [];
         try {
             let minified = str[0] == '{' ? JSON.parse(str.trim()) : JSON.parse(atob(str.trim()));
             if (!baseSession && !localStorage[mode + (globalThis.profileid || 0)]) SIM.UI.loadSession();
             // A preset starts from clean defaults, not the current player's settings.
             let storage = JSON.parse(baseSession ? JSON.stringify(baseSession) : localStorage[mode + (globalThis.profileid || 0)]);
+            issues = ProfileValidation.report(minified,
+                view.validationContext(storage, baseSession ? 'preset defaults' : 'the current profile'));
 
             for(let prop in minified) {
                 if (typeof minified[prop] == 'string') storage[prop] = minified[prop];
@@ -421,10 +454,12 @@ SIM.PROFILES = {
             localStorage[modei] = JSON.stringify(storage);
             view.buildProfiles();
             SIM.UI.addAlert(storage.profilename + ' imported');
+            view.showIssues(issues);
             return true;
 
         } catch (e) {
             SIM.UI.addAlert('Invalid profile');
+            view.showIssues(issues);
             return false;
         }
     }

@@ -175,8 +175,8 @@ test('Forever default matches its preset, preserves saved profiles, and stays ou
         'Night Elf → Human → Night Elf must restore the exact preset simulation inputs');
     assert.ok(racialRoundTrip.initial.player.auras.some(aura => aura.key === 'eluneslight'));
     assert.ok(!racialRoundTrip.human.player.auras.some(aura => aura.key === 'eluneslight'));
-    assert.deepEqual(racialRoundTrip.schedule, [34000, 44000, 0],
-        'Elune’s Light uses the default 16 seconds before fight end, clamped to the pull');
+    assert.deepEqual(racialRoundTrip.schedule, [19000, 29000, 0],
+        'Elune’s Light uses the default 31 seconds before fight end, clamped to the pull');
 
     await page.evaluate(() => {
         const saved = JSON.parse(localStorage.forever1);
