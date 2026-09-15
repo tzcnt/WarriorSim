@@ -205,6 +205,7 @@ var profilePresets = [
             "rotation": [
                 {
                     "id": "11567",
+                    "active": true,
                     "minrage": "35",
                     "minrageactive": true,
                     "maincd": "2",
@@ -215,6 +216,7 @@ var profilePresets = [
                 },
                 {
                     "id": "2687",
+                    "active": true,
                     "timetoend": 35,
                     "timetoendactive": false,
                     "timetostart": 0,
@@ -222,6 +224,7 @@ var profilePresets = [
                 },
                 {
                     "id": "11597",
+                    "active": true,
                     "duration": 15,
                     "durationactive": false,
                     "minrage": 50,
@@ -233,6 +236,7 @@ var profilePresets = [
                 },
                 {
                     "id": "11585",
+                    "active": true,
                     "maxrage": "52",
                     "maxrageactive": true,
                     "maincd": 2,
@@ -242,6 +246,7 @@ var profilePresets = [
                 },
                 {
                     "id": "7373",
+                    "active": true,
                     "duration": 15,
                     "durationactive": false,
                     "minrage": "10",
@@ -251,6 +256,7 @@ var profilePresets = [
                 },
                 {
                     "id": "20662",
+                    "active": true,
                     "minrage": 50,
                     "minrageactive": false,
                     "swingtimeractive": false,
@@ -260,6 +266,7 @@ var profilePresets = [
                 },
                 {
                     "id": "1680",
+                    "active": true,
                     "minrage": "50",
                     "minrageactive": false,
                     "maxrage": 25,
@@ -271,6 +278,7 @@ var profilePresets = [
                 },
                 {
                     "id": "23894",
+                    "active": true,
                     "minrage": 30,
                     "minrageactive": false,
                     "priority": 9,
@@ -278,6 +286,7 @@ var profilePresets = [
                 },
                 {
                     "id": "1719",
+                    "active": true,
                     "timetoend": 16,
                     "timetoendactive": true,
                     "timetostart": 0,
@@ -285,6 +294,7 @@ var profilePresets = [
                 },
                 {
                     "id": "12328",
+                    "active": true,
                     "timetoend": 31,
                     "timetoendactive": true,
                     "timetostart": 0,
@@ -292,6 +302,7 @@ var profilePresets = [
                 },
                 {
                     "id": "17528",
+                    "active": true,
                     "timetoend": "21",
                     "timetoendactive": true,
                     "timetostart": 0,
@@ -299,6 +310,7 @@ var profilePresets = [
                 },
                 {
                     "id": 16322,
+                    "active": true,
                     "timetoend": "16",
                     "timetoendactive": false,
                     "timetostart": 0,
@@ -306,6 +318,7 @@ var profilePresets = [
                 },
                 {
                     "id": "forever:elunes-light",
+                    "active": true,
                     "timetoend": "31",
                     "timetoendactive": true,
                     "timetostart": 0,
