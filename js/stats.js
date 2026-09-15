@@ -327,7 +327,7 @@ SIM.STATS = {
             html += `<tr><td>${sim.player.auras.rend.name}</td><td></td><td></td><td>${(data[1] / total * 100).toFixed(2)}</td><td>${(data[2] / total * 100).toFixed(2)}</td><td></td><td>${(total / i).toFixed(2)}</td><td>${dpr}</td><td>${dps}</td></tr>`;
         }
 
-        for (const key of ['sweepingstrikes', 'touchofthegrave']) {
+        for (const key of ['sweepingstrikes', 'touchofthegrave', 'deepwounds', 'deepwounds2', 'deepwounds3', 'deepwounds4']) {
             const aura = sim.player.auras[key];
             if (!aura?.totaldmg) continue;
             const dps = (aura.totaldmg / sim.totalduration).toFixed(2);
