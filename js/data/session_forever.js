@@ -650,7 +650,7 @@ var session = {
             "name": "Berserking",
             "classname": "Berserking",
             "iconname": "racial_troll_berserk",
-            "timetoend": 11,
+            "timetoend": 13,
             "haste": "30",
             "aura": true,
             "active": false,
@@ -662,7 +662,7 @@ var session = {
             "name": "Blood Fury",
             "classname": "BloodFury",
             "iconname": "racial_orc_berserkerstrength",
-            "timetoend": 16,
+            "timetoend": 18,
             "aura": true,
             "active": false,
             "buff": true,
@@ -1243,7 +1243,7 @@ var session = {
             "active": true,
             "timetostart": 0,
             "timetostartactive": false,
-            "timetoend": 16,
+            "timetoend": 31,
             "timetoendactive": true,
             "localDescription": "Increases critical strike chance by 10% for 15 seconds. 3-minute cooldown."
         },
@@ -1258,7 +1258,7 @@ var session = {
             "active": false,
             "timetostart": 0,
             "timetostartactive": false,
-            "timetoend": 9,
+            "timetoend": 10,
             "timetoendactive": true,
             "localDescription": "Your next three abilities deal 10% more damage and cost 40% less rage. 2-minute cooldown."
         }

@@ -29,11 +29,11 @@ function selectRacialSpells(race, gameMode) {
 
 spells.push({id: 'forever:elunes-light', name: 'Elune’s Light', classname: 'ElunesLight',
     iconname: 'spell_holy_elunesgrace', mode: 'forever', aura: true, buff: true, active: true,
-    timetostart: 0, timetostartactive: false, timetoend: 16, timetoendactive: true,
+    timetostart: 0, timetostartactive: false, timetoend: 31, timetoendactive: true,
     localDescription: 'Increases critical strike chance by 10% for 15 seconds. 3-minute cooldown.'});
 spells.push({id: 'forever:eureka', name: 'Eureka!', classname: 'Eureka',
     iconname: 'inv_misc_enggizmos_20', mode: 'forever', aura: true, buff: true, active: true,
-    timetostart: 0, timetostartactive: false, timetoend: 9, timetoendactive: true,
+    timetostart: 0, timetostartactive: false, timetoend: 10, timetoendactive: true,
     localDescription: 'Your next three abilities deal 10% more damage and cost 40% less rage. 2-minute cooldown.'});
 
 for (const spell of spells) {

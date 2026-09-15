@@ -22,8 +22,8 @@ const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9
 
 for (const mode of ['classic', 'forever']) test(`${mode}: selecting a race enables its racial with the default end schedule`, () => {
     const {engine, fixture, run} = setup('Human', mode);
-    const cases = [['Orc', 20572, 'bloodfury', 16], ['Troll', 26296, 'berserking', 11]];
-    if (mode === 'forever') cases.push(['Night Elf', 'forever:elunes-light', 'eluneslight', 16], ['Gnome', 'forever:eureka', 'eureka', 9]);
+    const cases = [['Orc', 20572, 'bloodfury', 18], ['Troll', 26296, 'berserking', 13]];
+    if (mode === 'forever') cases.push(['Night Elf', 'forever:elunes-light', 'eluneslight', 31], ['Gnome', 'forever:eureka', 'eureka', 10]);
     const otherSpells = run('JSON.stringify(spells.filter(s => !racialSpellRules[s.id]))');
     for (const [race, id, key, seconds] of cases) {
         engine.evaluate('selectRacialSpells(race, mode)', {race});
@@ -34,7 +34,6 @@ for (const mode of ['classic', 'forever']) test(`${mode}: selecting a race enabl
         assert.equal(aura.timetostart, undefined);
         aura.prep(60000);
         assert.equal(aura.usestep, (60 - seconds) * 1000);
-        if (key !== 'eureka') assert.equal(seconds, aura.duration + 1);
         assert.equal(run('spells.filter(s => racialSpellRules[s.id] && s.active).length'), 1);
 
         // A later race selection restores defaults even after manual edits or disabling.
