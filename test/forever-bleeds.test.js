@@ -45,7 +45,8 @@ for (const fixture of bleedFixtures()) {
                 for (let i = 0; i < 4; ++i) {
                     engine.evaluate('step = time', {time: (i + 1) * 3000});
                     aura.step();
-                    const crit = fixture.mode === 'forever' && (chance === 100 || (chance === 30 && i < 2));
+                    const crit = key === 'rend' && fixture.mode === 'forever' &&
+                        (chance === 100 || (chance === 30 && i < 2));
                     expected += tickDamage * (crit ? 2 + player.talents.abilitiescrit : 1);
                     close(aura.idmg, expected);
                     close(aura.totaldmg, expected);
@@ -53,8 +54,8 @@ for (const fixture of bleedFixtures()) {
                         fixture.mode === 'forever' && key !== 'rend' && i === 3 ? 0 : (i + 2) * 3000);
                     assert.equal(aura.timer, i === 3 && key !== 'rend' ? 0 : expiration);
                 }
-                assert.equal(rolls.length, fixture.mode === 'forever' ? 0 : 4,
-                    'Classic bleed ticks must not consume RNG');
+                assert.equal(rolls.length, key === 'rend' && fixture.mode === 'forever' ? 0 : 4,
+                    'Only Forever Rend ticks may consume crit RNG');
                 if (key === 'rend') {
                     assert.equal(aura.tickdmg, tickDamage, 'crits must not multiply the saved base damage');
                     assert.equal(aura.stacks, aura.value2 - 4);
@@ -68,7 +69,7 @@ for (const fixture of bleedFixtures()) {
 }
 
 for (const key of ['rend', 'deepwounds']) {
-    test(`Forever ${key} uses current crit chance on each tick, including overdue ticks`, () => {
+    test(`Forever ${key} ${key === 'rend' ? 'uses current' : 'ignores'} crit chance on each tick, including overdue ticks`, () => {
         const fixture = bleedFixtures().find(f => f.name === 'forever-bleeds-impale-2');
         const {engine, player, aura, tickDamage} = setup(fixture, key);
         player.crit = player.mh.crit = 0;
@@ -80,12 +81,12 @@ for (const key of ['rend', 'deepwounds']) {
         player.crit = 100;
         engine.evaluate('step = 6000');
         aura.step();
-        close(aura.idmg, tickDamage * 3.2);
+        close(aura.idmg, tickDamage * (key === 'rend' ? 3.2 : 2));
         player.crit = 50;
         engine.evaluate('step = 12000');
         aura.step();
-        close(aura.idmg, tickDamage * 6.4);
-        assert.equal(rolls.length, 0);
+        close(aura.idmg, tickDamage * (key === 'rend' ? 6.4 : 4));
+        assert.equal(rolls.length, key === 'rend' ? 0 : 4);
     });
 }
 
@@ -182,14 +183,14 @@ test('Forever Deep Wounds snapshots each contribution and keeps separate pools p
     close(player.auras.deepwounds2.saveddmg, 12);
 });
 
-test('Forever Deep Wounds crits amplify payouts without draining or growing the saved base damage', () => {
+test('Forever Deep Wounds cannot crit and pays only the saved damage across refreshes', () => {
     const {player, aura, at} = stackingSetup();
     player.crit = 100;
     aura.use();
     player.proccrit = () => assert.fail('tick crits must not trigger another Deep Wounds');
     at(3000);
     aura.step();
-    close(aura.idmg, 33);
+    close(aura.idmg, 15);
     close(aura.saveddmg, 45);
     at(4000);
     aura.use();
@@ -198,7 +199,7 @@ test('Forever Deep Wounds crits amplify payouts without draining or growing the 
         at(time);
         aura.step();
     }
-    close(aura.idmg, 264);
+    close(aura.idmg, 120);
     assert.equal(aura.saveddmg, 0);
 });
 

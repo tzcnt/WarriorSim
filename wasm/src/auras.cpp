@@ -423,13 +423,9 @@ bool auraStep(PlayerState& player, AuraState& aura) {
         if (!aura.timer) return false;
         while (player.step >= aura.nexttick && aura.ticksleft) {
             player.stepAuras(true);
-            double damage = aura.savedDamage / aura.ticksleft;
-            // Tick crits amplify the payout, not the remaining damage pool.
+            const double damage = aura.savedDamage / aura.ticksleft;
             aura.savedDamage -= damage;
             --aura.ticksleft;
-            if (player.rng.tenK() <
-                (player.crit + player.mh.crit + player.mh.props.number("racialcrit"_prop)) * 100)
-                damage *= 1 + (1 + player.talents.number("abilitiescrit"_prop));
             aura.idmg += damage;
             aura.totaldmg += damage;
             aura.nexttick += 3000;

@@ -816,17 +816,13 @@ class DeepWounds extends Aura {
         if (!this.timer) return;
         while (step >= this.nexttick && this.ticksleft) {
             this.player.stepauras(true);
-            let dmg = this.saveddmg / this.ticksleft;
-            // Only base damage leaves the pool; tick crits never feed it back.
+            const dmg = this.saveddmg / this.ticksleft;
             this.saveddmg -= dmg;
             this.ticksleft--;
-            const crit = rng10k() <
-                (this.player.crit + this.player.mh.crit + (this.player.mh.racialcrit || 0)) * 100;
-            if (crit) dmg *= 1 + (1 + this.player.talents.abilitiescrit);
             this.idmg += dmg;
             this.totaldmg += dmg;
             this.nexttick += 3000;
-            /* start-log */ if (this.player.logging) this.player.log(`${this.name} tick for ${dmg.toFixed(2)}${crit ? ' (CRIT)' : ''}`); /* end-log */
+            /* start-log */ if (this.player.logging) this.player.log(`${this.name} tick for ${dmg.toFixed(2)}`); /* end-log */
         }
         if (step >= this.timer) {
             this.uptime += (this.timer - this.starttimer);
