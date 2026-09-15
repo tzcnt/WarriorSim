@@ -46,6 +46,7 @@ test('profile notes display after import, dismiss with OK, and use the shared fi
             Object.defineProperty(navigator, 'clipboard', {value: {writeText: text => { copied = text; }}, configurable: true});
             SIM.PROFILES.exportProfile({data: () => 0});
             const profile = JSON.parse(atob(copied));
+            const exportedActive = profile.rotation.map(spell => spell.active);
             profile.profilename = 'Compatibility test';
             profile.gear.head = 999999999;
             profile.enchant.head = [999999999];
@@ -58,8 +59,10 @@ test('profile notes display after import, dismiss with OK, and use the shared fi
             }
             const base = JSON.parse(localStorage[mode + '0']);
             const expected = ProfileValidation.report(profile, SIM.PROFILES.validationContext(base, 'the current profile'));
-            return {text: btoa(JSON.stringify(profile)), expected};
+            return {text: btoa(JSON.stringify(profile)), expected, exportedActive};
         });
+        assert.ok(exported.exportedActive.length > 0 && exported.exportedActive.every(active => active === true),
+            'the built exporter explicitly enables every exported ability');
         // Use the real paste event. Opening the notification must not interrupt it.
         await page.evaluate(() => {
             SIM.PROFILES.modal.addClass('open');

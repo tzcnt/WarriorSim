@@ -299,6 +299,7 @@ SIM.PROFILES = {
             if (spell.active) {
                 let obj = {};
                 obj.id = spell.id;
+                obj.active = true;
                 if (typeof spell.duration !== 'undefined') obj.duration = spell.duration;
                 if (typeof spell.durationactive !== 'undefined') obj.durationactive = spell.durationactive;
                 if (typeof spell.timetoend !== 'undefined') obj.timetoend = spell.timetoend;

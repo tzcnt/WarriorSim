@@ -19,20 +19,20 @@ function catalog(source) {
     return plain(context.profilePresets);
 }
 
-function browserExport() {
+function browserExport(mode = 'forever') {
     let exported;
-    const context = vm.createContext({mode: 'forever', localStorage: {}, btoa, atob,
+    const context = vm.createContext({mode, localStorage: {}, btoa, atob,
         navigator: {clipboard: {writeText: text => { exported = text; }}}});
-    for (const file of ['js/data/gear_forever.js', 'js/data/enchants.js', 'js/data/buffs.js',
+    for (const file of [`js/data/${mode === 'forever' ? 'gear_forever' : 'gear'}.js`, 'js/data/enchants.js', 'js/data/buffs.js',
         'js/data/spells.js', 'js/data/talents.js', 'js/data/talents_forever.js',
-        'js/talent-rules.js', 'js/racial-rules.js', 'js/data/session_forever.js', 'js/profile-validation.js', 'js/profiles.js']) {
+        'js/talent-rules.js', 'js/racial-rules.js', `js/data/${mode === 'forever' ? 'session_forever' : 'session'}.js`, 'js/profile-validation.js', 'js/profiles.js']) {
         vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context);
     }
     vm.runInContext(`
         SIM.UI = {addAlert() {}};
         SIM.PROFILES.buildProfiles = () => {};
         SIM.PROFILES.showIssues = issues => { globalThis.profileIssues = issues; };
-        localStorage.forever0 = JSON.stringify(session);
+        localStorage[mode + '0'] = JSON.stringify(session);
         SIM.PROFILES.exportProfile({data: () => 0});
     `, context);
     return {context, exported, profile: JSON.parse(atob(exported))};
@@ -59,12 +59,31 @@ test('decodes real browser exports, wrapped base64, JSON, and both export encodi
     assert.deepEqual(decodeProfile(Buffer.from(JSON.stringify(profile)).toString('base64')), profile);
 });
 
+for (const mode of ['forever', 'classic']) test(`${mode}: fresh exports include active flags and older exports still import`, () => {
+    const {context, profile} = browserExport(mode);
+    const selected = JSON.parse(context.localStorage[mode + '0']).rotation.filter(spell => spell.active);
+    assert.ok(profile.rotation.length > 0);
+    assert.deepEqual(profile.rotation.map(spell => spell.id), selected.map(spell => spell.id));
+    assert.ok(profile.rotation.every(spell => spell.active === true));
+    context.imported = profile;
+    assert.equal(vm.runInContext('SIM.PROFILES.importProfile(JSON.stringify(imported), 1, session)', context), true);
+    assert.ok(!context.profileIssues.some(issue => issue.code === 'legacy-active'));
+    const current = JSON.parse(context.localStorage[mode + '1']);
+
+    for (const spell of profile.rotation) delete spell.active;
+    assert.equal(vm.runInContext('SIM.PROFILES.importProfile(JSON.stringify(imported), 2, session)', context), true);
+    assert.ok(context.profileIssues.some(issue => issue.code === 'legacy-active'));
+    assert.deepEqual(JSON.parse(context.localStorage[mode + '2']), current,
+        'older exports enable exactly the same abilities and retain the same settings');
+});
+
 test('CLI inserts a browser export that the site can load with matching selections', t => {
     const {target, run} = fixture(t);
     const {context, exported, profile} = browserExport();
     const result = run(['--id', 'forever-new-build'], exported);
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /Inserted forever-new-build/);
+    assert.doesNotMatch(result.stderr, /omit active/);
     const updatedSource = fs.readFileSync(target, 'utf8');
     assert.ok(updatedSource.startsWith(source.slice(0, source.indexOf('var profilePresets'))));
     const updated = catalog(updatedSource);
