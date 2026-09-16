@@ -1772,7 +1772,9 @@ class Rend extends Aura {
         }
 
         this.player.rage -= this.cost;
-        let dmg = this.value1 * this.player.stats.dmgmod * this.dmgmod * this.player.bleedmod * (this.eurekamod || 1);
+        const baseDamage = this.player.mode === 'forever' ?
+            this.value1 * 0.9 + this.player.stats.ap * 0.21 : this.value1;
+        let dmg = baseDamage * this.player.stats.dmgmod * this.dmgmod * this.player.bleedmod * (this.eurekamod || 1);
         this.tickdmg = dmg / this.value2;
 
         this.player.updateDmgMod();

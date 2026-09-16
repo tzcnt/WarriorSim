@@ -29,6 +29,39 @@ function setup(fixture, key) {
     return {engine, player, aura, tickDamage};
 }
 
+for (const mode of ['classic', 'forever']) {
+    test(`${mode} Rend snapshots base damage and AP before Improved Rend`, () => {
+        const fixture = bleedFixtures().find(f => f.mode === mode);
+        for (const rendmod of [0, 35]) {
+            for (const ap of [0, 1200]) {
+                const engine = createReferenceEngine(mode);
+                fixture.mutatePlayer = player => { player.talents.rendmod = rendmod; };
+                const player = createConfiguredPlayer(engine, fixture);
+                player.reset(100);
+                engine.evaluate('step = 0; rng10k = () => 9999');
+                player.rollmeleespell = () => engine.evaluate('RESULT.HIT');
+                player.stats.ap = ap;
+                player.stats.dmgmod = player.bleedmod = 1;
+                player.crit = player.mh.crit = player.mh.racialcrit = 0;
+                const aura = player.auras.rend;
+                aura.dmgmod = 1 + player.talents.rendmod / 100;
+                aura.use();
+                assert.equal(aura.value1, 147);
+                assert.equal(aura.value2, 7);
+                const total = (mode === 'forever' ? 132.3 + ap * .21 : 147) * (1 + rendmod / 100);
+                close(aura.tickdmg, total / 7);
+                player.stats.ap += 1000;
+                for (let tick = 1; tick <= 7; tick++) {
+                    engine.evaluate('step = time', {time: tick * 3000});
+                    aura.step();
+                }
+                close(aura.totaldmg, total);
+                assert.equal(aura.stacks, 0);
+            }
+        }
+    });
+}
+
 for (const fixture of bleedFixtures()) {
     for (const key of ['rend', 'deepwounds', 'deepwounds2']) {
         test(`${fixture.name}: ${key} tick crit chance, damage and proc isolation`, () => {

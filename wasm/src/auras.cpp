@@ -383,6 +383,8 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         }
         player.rage -= aura.props.number("cost"_prop);
         double baseDamage = aura.props.number("value1"_prop);
+        if (player.foreverMode)
+            baseDamage = baseDamage * 0.9 + player.stats.number("ap"_prop) * 0.21;
         const double value2 = aura.props.number("value2"_prop);
         aura.props.set("tickdmg"_prop, baseDamage * player.stats.number("dmgmod"_prop, 1) *
             aura.props.number("dmgmod"_prop, 1) * player.prop("bleedmod"_prop, 1) * aura.props.number("eurekamod"_prop, 1) / value2);
