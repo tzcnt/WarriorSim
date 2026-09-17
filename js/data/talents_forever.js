@@ -329,7 +329,7 @@ var talentsForever = [
             ],
             "x": 0,
             "y": 3,
-            "iconname": "ability_warrior_savageblow",
+            "iconname": "inv_spear_01",
             "c": 0,
             "forever": {
                "key": "arms:spearing-strike",
@@ -440,7 +440,7 @@ var talentsForever = [
             ],
             "x": 0,
             "y": 4,
-            "iconname": "ability_warrior_bloodfrenzy",
+            "iconname": "inv_sword_01",
             "c": 0,
             "forever": {
                "key": "arms:bloodthrill",
@@ -510,7 +510,7 @@ var talentsForever = [
             ],
             "x": 2,
             "y": 4,
-            "iconname": "ability_warrior_weaponmastery",
+            "iconname": "garrison_weaponupgrade",
             "c": 0,
             "forever": {
                "key": "arms:weaponmaster",
@@ -947,7 +947,7 @@ var talentsForever = [
             ],
             "x": 3,
             "y": 2,
-            "iconname": "ability_warrior_endlessrage",
+            "iconname": "ability_warrior_intensifyrage",
             "c": 0,
             "forever": {
                "key": "fury:boundless-rage",
@@ -1018,7 +1018,7 @@ var talentsForever = [
             ],
             "x": 1,
             "y": 3,
-            "iconname": "ability_warrior_rampage",
+            "iconname": "ability_whirlwind",
             "c": 0,
             "forever": {
                "key": "fury:raging-blows",
@@ -1591,7 +1591,7 @@ var talentsForever = [
             ],
             "x": 1,
             "y": 2,
-            "iconname": "ability_defend",
+            "iconname": "ability_warrior_shieldguard",
             "c": 0,
             "r": [
                0,
@@ -1780,7 +1780,7 @@ var talentsForever = [
             ],
             "x": 2,
             "y": 3,
-            "iconname": "ability_warrior_shieldguard",
+            "iconname": "ability_warrior_shieldcharge",
             "c": 0,
             "forever": {
                "key": "protection:vanguard",
@@ -1983,7 +1983,7 @@ var talentsForever = [
             ],
             "x": 2,
             "y": 5,
-            "iconname": "ability_warrior_shieldmastery",
+            "iconname": "inv_shield_04",
             "c": 0,
             "forever": {
                "key": "protection:bastion",
