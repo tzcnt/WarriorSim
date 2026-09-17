@@ -1,5 +1,10 @@
 # WoW Forever implementation decisions
 
+**2026-09-16 update:** Client build 1.60.1.69876 supersedes the original
+estimated talent descriptions. See [the current catalog notes](README.md). Vitality
+is removed, rank scaling is corrected, and Spearing Strike requires a two-handed
+melee weapon. The decisions below record the original integration context.
+
 **Accepted implementation assumptions (user decisions, 2026-09-13)**
 
 Treat the estimated descriptions as the implementation specification, subject to

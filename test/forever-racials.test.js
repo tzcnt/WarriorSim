@@ -310,15 +310,16 @@ test('maximum HP uses race, gear, enchants and selected buffs; an override is se
     }
 });
 
-test('health includes Vitality and Endurance and uses Human base Stamina for Skyborne', () => {
+test('health includes Endurance, excludes removed Vitality, and uses Human base Stamina for Skyborne', () => {
     const {player: p, run} = setup('Tauren');
     const normal = p.maxhealth;
     p.race = 'Undead'; p.resolveHealth();
     assert.equal(normal, Math.round(p.maxhealth * 1.05));
     p.base.stamod = 1;
-    run('talents[2].t.find(t => t.n === "Vitality").c = 5; p.addTalents(); p.resolveHealth()');
-    close(p.base.stamod, 1.1);
-    assert.equal(p.stamina, Math.floor(p.base.sta * 1.1));
+    assert.equal(run('talents[2].t.some(t => t.n === "Vitality")'), false);
+    run('p.addTalents(); p.resolveHealth()');
+    close(p.base.stamod, 1);
+    assert.equal(p.stamina, Math.floor(p.base.sta));
     assert.equal(setup('Skyborne').player.stamina, setup('Human').player.stamina);
 });
 

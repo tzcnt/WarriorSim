@@ -244,8 +244,6 @@ class Player {
             this.ragecap += this.talents.extraragecap;
             this.ragecostbonus = this.talents.focusedrage;
             this.base.hit += this.talents.precision;
-            this.base.strmod *= 1 + this.talents.vitality;
-            this.base.stamod *= 1 + this.talents.vitality;
             this.target.misschance = Math.max(100, this.target.misschance - this.talents.precision * 100);
             this.target.binaryresist = this.getTargetSpellBinaryResist();
         }
@@ -523,6 +521,7 @@ class Player {
                 if (this.level < (spell.minlevel || 0) || this.level > (spell.maxlevel || 60)) continue;
                 const talent = talentsForever.flatMap(tree => tree.t).find(t => t.n === spell.name);
                 if (talent?.enable && !talent.c) continue;
+                if (spell.classname === 'SpearingStrike' && !this.mh.twohand) continue;
             }
             if (spell.item && this.items.includes(spell.id) && spell.id == testItem && spell.id == testItem && !spell.timetoendactive && !spell.timetostartactive) {
                 spell.timetoendactive = true;

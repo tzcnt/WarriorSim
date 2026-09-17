@@ -28,7 +28,7 @@ var profilePresets = [
             "batching": "10",
             "bleedreduction": "1",
             "spellqueueing": "Yes",
-            "talentSchema": "forever-v1",
+            "talentSchema": "forever-v2",
             "maxhealth": "",
             "targetcreaturetype": "Other",
             "profilename": "Dual Wield Fury (17/34/0)",
@@ -157,7 +157,6 @@ var profilePresets = [
                         0,
                         0,
                         0,
-                        0,
                         0
                     ],
                     "keys": [
@@ -176,7 +175,6 @@ var profilePresets = [
                         "protection:improved-shield-wall",
                         "protection:concussion-blow",
                         "protection:improved-shield-bash",
-                        "protection:vitality",
                         "protection:focused-rage",
                         "protection:bastion",
                         "protection:shield-slam"
@@ -383,7 +381,7 @@ var profilePresets = [
             "batching": "10",
             "bleedreduction": "1",
             "spellqueueing": "Yes",
-            "talentSchema": "forever-v1",
+            "talentSchema": "forever-v2",
             "maxhealth": "",
             "targetcreaturetype": "Other",
             "profilename": "Two-Handed Fury (20/31/0)",
@@ -512,7 +510,6 @@ var profilePresets = [
                         0,
                         0,
                         0,
-                        0,
                         0
                     ],
                     "keys": [
@@ -531,7 +528,6 @@ var profilePresets = [
                         "protection:improved-shield-wall",
                         "protection:concussion-blow",
                         "protection:improved-shield-bash",
-                        "protection:vitality",
                         "protection:focused-rage",
                         "protection:bastion",
                         "protection:shield-slam"
@@ -717,7 +713,7 @@ var profilePresets = [
             "batching": "10",
             "bleedreduction": "1",
             "spellqueueing": "Yes",
-            "talentSchema": "forever-v1",
+            "talentSchema": "forever-v2",
             "maxhealth": "",
             "targetcreaturetype": "Other",
             "profilename": "Two-Handed Arms (34/17/0)",
@@ -846,7 +842,6 @@ var profilePresets = [
                         0,
                         0,
                         0,
-                        0,
                         0
                     ],
                     "keys": [
@@ -865,7 +860,6 @@ var profilePresets = [
                         "protection:improved-shield-wall",
                         "protection:concussion-blow",
                         "protection:improved-shield-bash",
-                        "protection:vitality",
                         "protection:focused-rage",
                         "protection:bastion",
                         "protection:shield-slam"

@@ -1286,7 +1286,7 @@ var session = {
         "5",
         "6"
     ],
-    "talentSchema": "forever-v1",
+    "talentSchema": "forever-v2",
     "targetcreaturetype": "Other",
     "talents": [
         {
@@ -1393,7 +1393,6 @@ var session = {
                 0,
                 0,
                 0,
-                0,
                 0
             ],
             "keys": [
@@ -1412,7 +1411,6 @@ var session = {
                 "protection:improved-shield-wall",
                 "protection:concussion-blow",
                 "protection:improved-shield-bash",
-                "protection:vitality",
                 "protection:focused-rage",
                 "protection:bastion",
                 "protection:shield-slam"

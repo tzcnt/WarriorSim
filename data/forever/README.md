@@ -1,81 +1,41 @@
 # WoW Forever Warrior talent extraction
 
-Captured from [Talents Forever's Warrior calculator](https://forevertalents.up.railway.app/warrior)
-on 2026-09-13. The page describes its data as read from the BlizzCon 2026 demo;
-this is a snapshot of that third-party listing, not independently verified game data.
-The exact asset URL, retrieval timestamp and SHA-256 of the downloaded JavaScript
-are recorded in `warrior-source.json`. That file preserves the Warrior object from
-the site's `window.TALENT_DATA` without modifying its fields or descriptions.
+Captured from [Hyjal's Warrior calculator](https://hyjal.cc/talent-calculator/warrior)
+on 2026-09-16. The source labels all tooltips as client build **1.60.1.69876**.
+The asset URL, retrieval timestamp and SHA-256 are recorded in `warrior-source.json`.
+The snapshot preserves Hyjal's Warrior object without changing its fields.
 
-## Files and regeneration
+Run `node scripts/extract-forever-talents.js` to regenerate `js/data/talents_forever.js`.
+The catalog contains **53 talents: 17 Arms, 18 Fury, 18 Protection**, with all 154
+rank descriptions supplied explicitly by the source. No rank estimation or overrides
+are applied. `rank-text.js` is retained only as a historical extraction helper.
 
-- `data/forever/warrior-source.json`: source snapshot and provenance.
-- `data/forever/rank-text.js`: the captured site's rank estimation functions, copied verbatim.
-- `js/data/talents_forever.js`: converted listing, exposed as `talentsForever`.
-- `scripts/extract-forever-talents.js`: offline conversion and structural validation.
+The generated catalog uses the existing `n`/`m`/`d`/`x`/`y` talent structure, converting
+rows and columns to zero-based coordinates. Prerequisites use `[parent index, max rank]`.
+`i` stores Hyjal's talent ID; `s` remains null because the source does not provide every
+rank's spell ID. `forever.tooltip` preserves source/build/base spell ID/notes, alongside
+requirements, costs, passive status, and stable local keys. All ranks are source-complete.
+`js/talent-rules.js` attaches runtime handlers and simulation support metadata.
+Forever tooltips continue to use local descriptions.
 
-Run `node scripts/extract-forever-talents.js` from the repository root to regenerate.
-The listing contains 54 talents: 17 Arms, 18 Fury, and 19 Protection.
+Saved builds now use `forever-v2`. Keyed builds and positional `forever-v1` builds
+migrate with Vitality points refunded, preserving talent identity across the removed
+slot. Invalid descendants are also refunded. Classic positional builds still migrate
+by name. Default and permanent presets use the updated schema and catalog.
 
-## Mapping to the existing talent structure
-
-| Field | Meaning |
-| --- | --- |
-| Tree `n`, `t` | Tree name and ordered talent array, as in `js/data/talents.js` |
-| `n`, `m` | Talent name and maximum ranks |
-| `x`, `y` | Zero-based column and row, converted from the source's one-based positions |
-| `d` | All rank descriptions; array length equals `m`; missing source ranks are extrapolated using the site's logic |
-| `iconname` | Source icon name, compatible with the existing icon URL convention |
-| `c` | Selected rank, initialized to zero |
-| `r` | Optional prerequisite: `[zero-based index within this tree, required ranks]`; the site requires the parent's maximum rank |
-| `i`, `s` | Unknown talent ID and per-rank spell IDs, represented by `null` and an array of `null` values |
-| `forever` | Extra source information and integration tracking |
-
-`forever` preserves active/passive status, cost/range/cooldown text (`cost`),
-equipment/stance requirements (`reqText`), Classic comparisons (`classic`), and
-the site's estimation hints (`scaleIdx`, `fixed`) where supplied. Its `key` is
-a local tree/name identifier, not a game ID. `sourceComplete` copies the site's
-flag; `estimatedDescriptionRanks` explicitly lists extrapolated one-based ranks.
-Classic comparison text is retained verbatim, including any embedded HTML;
-it should not be treated as a verified simulator mapping.
-
-## Rank estimates and runtime integration
-
-All 159 rank descriptions are populated: 67 supplied descriptions and 92 estimates.
-The estimates use the site's captured `rankText` and `scaleText` functions,
-including its numeric token selection, fixed values, caps, and rounding. Estimated
-ranks are marked in metadata. Available descriptions are copied exactly, including
-multiline descriptions. The original source snapshot remains unmodified.
-
-The simulator uses these estimated descriptions provisionally. The extraction
-script overrides Weaponmaster to linear 1%/3%/1% per rank, and Improved Berserker
-Rage to 5 rage / 50% removal chance per rank, per the implementation decisions.
-The raw snapshot and captured estimation functions remain unchanged.
-
-The source supplies no talent IDs or spell IDs. `talents_forever.js` remains a
-data-only generated file. `js/talent-rules.js` attaches runtime `aura`/`enable`
-handlers, neutral defaults for removed Classic effects, and support metadata;
-it selects the catalog for the active mode. Both page bundles, simulation workers,
-and reference tests load it. Forever tooltips use local descriptions rather than
-invented game IDs. New actions use stable local string IDs.
-
-Saved Forever builds use `talentSchema: 'forever-v1'` and talent keys. Legacy
-positional builds are mapped by talent name, with removed/replaced points refunded,
-rank limits clamped, and invalid descendants refunded. No points are guessed for
-new replacement talents. The default dual-wield build is 13/38/0. Its talents were selected by a
-[production talent search](DUAL_WIELD_TALENTS.md). Classic saves and talent
-effects retain their existing behavior.
-
-The permanent Night Elf preset's priorities and Hamstring settings were selected
-by a subsequent [production ability search](DUAL_WIELD_ABILITIES.md), reproducible
-with `npm run optimize:abilities`.
+The September 16 update corrects Improved Rend to 12/23/35%, Improved Execute to
+3/5 Rage, and Improved Disarm to 7/13/20 seconds; removes Vitality; moves Focused Rage
+to row 6 column 3 and Bastion to row 5 column 4; and requires a two-handed melee weapon
+for Spearing Strike. Weaponmaster and Improved Berserker Rage match our prior overrides.
+Historical optimization results in this directory describe their original source
+snapshot; the stored builds migrate, but the results have not been re-optimized.
 
 ## Combat rules
 
 JavaScript character/spell construction and the WASM combat engine implement the
 same rules. Rank/stat/cost changes include Rend, Tactical Mastery (10 baseline +
 3 per point), Flurry, Unbridled Wrath, off-hand damage/hit/rage, Precision, Focused
-Rage, Vitality's Strength, Bastion, Execute/Cleave/Thunder Clap costs, and both
+Rage, Bastion, Execute/Cleave/Thunder Clap costs, and both
 Bloodrage's initial gain and fractional ticks. Boundless Rage raises all supported
 rage-source caps, including refunds and initial rage.
 
@@ -107,7 +67,7 @@ reactive rage, and Anticipation/Deflection/Toughness do not simulate mitigation.
 Revenge and Charge are absent, so Improved Revenge, Improved Charge and Vanguard
 remain data-only. Current health/healing (Blood Craze, Last Stand),
 threat (Defiance), and crowd-control/movement/utility effects are also outside the
-existing DPS model. Maximum health and Vitality's Stamina are now calculated for
+existing DPS model. Maximum health is calculated for
 Touch of the Grave; see [the racial notes](RACIALS.md). The other defensive-model
 limitations remain unchanged.
 The current equipment catalog also has no shields; Shield Slam/Bastion validation
@@ -126,7 +86,7 @@ golden now reflects its own rules. Run `npm test`, `npm run test:wasm`, and
 
 Examples of changes present in this snapshot include Bloodthrill and Weaponmaster
 in Arms; Boundless Rage, Raging Blows and Precision in Fury; and Master of Defense,
-Vanguard, Vitality, Focused Rage and Bastion in Protection. Improved Slam moves to
+Vanguard, Focused Rage and Bastion in Protection. Improved Slam moves to
 Arms, Iron Will to Fury, and Improved Thunder Clap to Protection. These changes
 are implemented for Forever while preserving Classic combat behavior.
 

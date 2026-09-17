@@ -13,14 +13,14 @@ function setup(mode = 'forever') {
 }
 function close(actual, expected) { assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} != ${expected}`); }
 
-test('all Forever ranks resolve finite values, with accepted overrides and neutral removed effects', () => {
+test('all Forever ranks resolve finite values, with client values and neutral removed effects', () => {
     const {run, player} = setup();
     assert.equal(run('talents === talentsForever'), true);
-    assert.deepEqual(JSON.parse(run('JSON.stringify(talents.map(t => t.t.length))')), [17,18,19]);
+    assert.deepEqual(JSON.parse(run('JSON.stringify(talents.map(t => t.t.length))')), [17,18,18]);
     assert.equal(run('talents.flatMap(tree => tree.t).every(t => Array.from({length: t.m + 1}, (_, r) => Object.values(t.aura(r)).every(Number.isFinite)).every(Boolean))'), true);
     assert.equal(run('talents[0].t[13].aura(5).axecrit'), 5);
     close(run('talents[0].t[13].aura(5).weaponmasterarp'), .15);
-    assert.match(run('talents[0].t[13].d[4]'), /ignore 15%/);
+    assert.match(run('talents[0].t[13].d[4]'), /ignore\s+15%/);
     assert.match(run('talents[1].t[15].d[1]'), /generate 10 Rage/);
     assert.equal(run('talents[0].t[4].aura(0).rageretained'), 10);
     assert.equal(run('talents[0].t[4].aura(5).rageretained'), 25);
@@ -54,8 +54,8 @@ test('legacy positional builds migrate by name, refund replacements, and round-t
 
 test('unlearned active talents cannot be injected through saved rotation settings', () => {
     const {engine, fixture} = setup();
-    fixture.talents = [Array(17).fill(0), Array(18).fill(0), Array(19).fill(0)];
-    fixture.talentSchema = 'forever-v1';
+    fixture.talents = [Array(17).fill(0), Array(18).fill(0), Array(18).fill(0)];
+    fixture.talentSchema = 'forever-v2';
     fixture.rotation = {23894: {active: true}, 27580: {active: true}, 23925: {active: true},
         'forever:spearing-strike': {active: true}, 'forever:sweeping-strikes': {active: true}};
     const p = createConfiguredPlayer(engine, fixture);
@@ -85,8 +85,8 @@ test('Cleave cost stacks both talents and Focused Rage without retaining Classic
     const cleave = run('new Cleave(p, 20569)');
     assert.equal(cleave.cost, 12);
     assert.equal(cleave.bonus, cleave.value1);
-    player.talents.executecost = 6;
-    assert.equal(run('new Execute(p, 20662).cost'), 6);
+    player.talents.executecost = 5;
+    assert.equal(run('new Execute(p, 20662).cost'), 7);
 });
 
 test('Improved Bloodrage scales the initial gain and all ten fractional ticks', () => {
@@ -283,4 +283,41 @@ test('Forever talent tooltips use local descriptions and never null game IDs', (
     assert.equal(attributes.href, '#');
     assert.match(attributes.title, /Weaponmaster/);
     assert.doesNotMatch(attributes.href, /null/);
+});
+
+
+test('client rank scaling matches the corrected non-linear values', () => {
+    const {run} = setup();
+    for (const [key, field, values] of [
+        ['arms:improved-rend', 'rendmod', [0,12,23,35]],
+        ['fury:improved-execute', 'executecost', [0,3,5]],
+        ['protection:improved-disarm', 'disarmcd', [0,7,13,20]],
+    ]) for (const [rank, value] of values.entries()) {
+        assert.equal(run(`talents.flatMap(t => t.t).find(t => t.forever.key === '${key}').aura(${rank}).${field}`), value);
+    }
+});
+
+test('v1 keyed and positional Protection builds refund Vitality without shifting ranks', () => {
+    const {run} = setup();
+    const result = JSON.parse(run(`JSON.stringify((() => {
+        const old = talents.map(tree => ({t: tree.t.map(() => 0), keys: tree.t.map(t => t.forever.key)}));
+        old[2].t = [5,5,2,5,3,0,2,0,0,3,0,0,0,1,0,5,3,5,1];
+        old[2].keys.splice(15, 0, 'protection:vitality');
+        const keyed = normalizeForeverTalents(old, 'forever-v1');
+        old.forEach(t => delete t.keys);
+        return {keyed, positional: normalizeForeverTalents(old, 'forever-v1')};
+    })())`));
+    assert.deepEqual(result.keyed, result.positional);
+    assert.deepEqual(result.keyed[2].t, [5,5,2,5,3,0,2,0,0,3,0,0,0,1,0,3,5,1]);
+    assert.ok(!result.keyed[2].keys.includes('protection:vitality'));
+});
+
+test('Spearing Strike requires an equipped two-handed weapon', () => {
+    const {engine, fixture} = setup();
+    fixture.talentSchema = 'forever-v2';
+    fixture.talents = [[3,5,3,0,5,0,0,0,1,0,0,0,0,0,0,0,0], Array(18).fill(0), Array(18).fill(0)];
+    fixture.rotation = {'forever:spearing-strike': {active: true}};
+    assert.equal(createConfiguredPlayer(engine, fixture).spells.spearingstrike, undefined);
+    fixture.gear = {mainhand: [], offhand: [], twohand: [19334]};
+    assert.ok(createConfiguredPlayer(engine, fixture).spells.spearingstrike);
 });

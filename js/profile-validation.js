@@ -70,16 +70,19 @@ var ProfileValidation = (() => {
         if (trees.length !== 3 || trees.some(tree => !object(tree) || !Array.isArray(tree.t))) {
             add('structure', 'talents', 'Talents do not contain three rank arrays; the loader may reset talents or fail to load this profile.');
         } else if (mode === 'forever' && normalizeTalents) {
-            if (profile.talentSchema && profile.talentSchema !== talentSchema) add('schema', 'talentSchema',
+            if (profile.talentSchema && profile.talentSchema !== talentSchema && profile.talentSchema !== 'forever-v1') add('schema', 'talentSchema',
                 `Unknown talent schema ${display(profile.talentSchema)}. The loader attempts migration and labels the result ${talentSchema}.`);
             const legacy = profile.talentSchema !== talentSchema && trees.some(tree => tree.t.some((rank, j) => rank && !tree.keys?.[j]));
-            if (legacy) add('talent-migration', 'talents', 'Legacy positional talents are mapped through Classic talent names into the current Forever tree. Removed talents are refunded.');
+            if (legacy) add('talent-migration', 'talents', 'Legacy positional talents are mapped through their original talent names into the current Forever tree. Removed talents are refunded.');
             const normalized = normalizeTalents(trees, profile.talentSchema, level);
             normalizedTalents = normalized;
             const targets = talents.flatMap((tree, i) => tree.t.map((talent, j) => ({talent, i, j})));
             trees.forEach((tree, i) => tree.t.forEach((rank, j) => {
                 if (rank === 0) return;
-                const key = tree.keys?.[j] || (profile.talentSchema === talentSchema ? talents[i]?.t[j]?.forever.key : classicTalents[i]?.t[j]?.n);
+                const legacyIndex = i === 2 && j > 15 ? j - 1 : j;
+                const legacyKey = i === 2 && j === 15 ? 'protection:vitality' : talents[i]?.t[legacyIndex]?.forever.key;
+                const key = tree.keys?.[j] || (profile.talentSchema === 'forever-v1' ? legacyKey :
+                    profile.talentSchema === talentSchema ? talents[i]?.t[j]?.forever.key : classicTalents[i]?.t[j]?.n);
                 const target = targets.find(({talent}) => talent.forever.key === key || (talent.forever.classic?.renamed || talent.n) === key);
                 const field = `talents[${i}].t[${j}]`;
                 if (!target) {
