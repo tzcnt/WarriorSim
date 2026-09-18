@@ -32,6 +32,9 @@ snapshot; the stored builds migrate, but the results have not been re-optimized.
 
 ## Combat rules
 
+See [ABILITY_MECHANICS.md](ABILITY_MECHANICS.md) for
+per-ability confirmed and unconfirmed info.
+
 JavaScript character/spell construction and the WASM combat engine implement the
 same rules. Rank/stat/cost changes include Rend, Tactical Mastery (10 baseline +
 3 per point), Flurry, Unbridled Wrath, off-hand damage/hit/rage, Precision, Focused
@@ -39,7 +42,7 @@ Rage, Bastion, Execute/Cleave/Thunder Clap costs, and both
 Bloodrage's initial gain and fractional ticks. Boundless Rage raises all supported
 rage-source caps, including refunds and initial rage.
 
-- Bloodthirst: 35% AP + 30/40/50/60 at levels 40/48/54/60.
+- Bloodthirst: 35% AP + 30/40/50/48 at levels 40/48/54/60.
 - Shield Slam: 225–235 / 264–276 / 303–317 / 421–439 at those levels, plus block value once, with no AP coefficient.
 - Forever Slam has a confirmed 15-second cooldown, starting at cast completion, at every talent rank. Without Improved Slam it pauses weapon timers during casting. Either talent rank lets them advance, deferring due swings until cast completion. Cast time and GCD are 1500/1250/1000 ms at 0/1/2 ranks. Classic has no cooldown and still resets timers at cast completion.
 - Bloodthrill: landed melee damage against the player's active Rend rolls 2% per rank for one six-second Overpower opportunity, with no ICD. It refreshes, does not stack, and is independent of the ordinary dodge window. Adjacent targets without Rend cannot trigger it.

@@ -382,10 +382,12 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
             player.switchStance("battle");
         }
         player.rage -= aura.props.number("cost"_prop);
-        double baseDamage = aura.props.number("value1"_prop);
-        const double value2 = aura.props.number("value2"_prop);
-        aura.props.set("tickdmg"_prop, baseDamage * player.stats.number("dmgmod"_prop, 1) *
-            aura.props.number("dmgmod"_prop, 1) * player.prop("bleedmod"_prop, 1) * aura.props.number("eurekamod"_prop, 1) / value2);
+        if (!player.foreverMode) {
+            const double baseDamage = aura.props.number("value1"_prop);
+            const double value2 = aura.props.number("value2"_prop);
+            aura.props.set("tickdmg"_prop, baseDamage * player.stats.number("dmgmod"_prop, 1) *
+                aura.props.number("dmgmod"_prop, 1) * player.prop("bleedmod"_prop, 1) * aura.props.number("eurekamod"_prop, 1) / value2);
+        }
         player.updateDmgMod();
         setDelay(player, aura);
         break;
@@ -459,6 +461,12 @@ bool auraStep(PlayerState& player, AuraState& aura) {
     case AuraKind::Rend:
         while (player.step >= aura.nexttick && aura.stacks) {
             double damage = aura.props.number("tickdmg"_prop);
+            if (player.foreverMode) {
+                const auto* eureka = player.aura("eureka"_action);
+                damage = (aura.props.number("value1"_prop) / aura.props.number("value2"_prop) +
+                    0.02 * player.stats.number("ap"_prop)) * player.stats.number("dmgmod"_prop, 1) *
+                    aura.props.number("dmgmod"_prop, 1) * player.prop("bleedmod"_prop, 1) * (eureka && eureka->stacks ? 1.1 : 1);
+            }
             // The application cannot crit; each tick rolls independently.
             if (player.foreverMode && player.rng.tenK() <
                 (player.crit + player.mh.crit + player.mh.props.number("racialcrit"_prop)) * 100)

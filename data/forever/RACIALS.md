@@ -86,7 +86,7 @@ off-hand autoattacks as well as abilities and spells.
   non-damaging Warrior abilities. Auto-attacks, stance changes, consumables,
   item procs and racial activation do not consume charges. Queued strikes consume
   at the actual swing; multiple targets and Whirlwind's off-hand share the cast's
-  damage bonus and charge. Rend snapshots the bonus for its ticks. Sweeping
+  damage bonus and charge. Rend evaluates the current bonus on each tick. Sweeping
   Strikes copies resulting hit damage without applying a second multiplier.
 - Blood Fury retains the existing 1.5-second GCD and single scheduled use per fight.
   Berserking retains the existing 5-rage cost and single scheduled use per fight.

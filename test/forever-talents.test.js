@@ -63,18 +63,28 @@ test('unlearned active talents cannot be injected through saved rotation setting
     assert.equal(p.auras.sweepingstrikes, undefined);
 });
 
-test('Bloodthirst and Shield Slam use the agreed level-specific formulas', () => {
+test('confirmed level-60 ability damage values match in both modes', () => {
     const {run, player} = setup();
     player.stats.ap = 1000; player.stats.block = 100; player.stats.dmgmod = 1;
-    for (const [level, bonus, shieldBase] of [[40,30,230],[48,40,270],[54,50,310],[60,60,430]]) {
+    for (const [level, bonus, shieldBase] of [[40,30,230],[48,37,270],[54,43,310],[60,48,430]]) {
         player.level = level;
         close(run('new Bloodthirst(p, 23894).dmg()'), 350 + bonus);
         close(run(`rng = (min, max) => (min + max) / 2; new ShieldSlam(p, ${[40,48,54,60].indexOf(level) + 23922}).dmg()`), shieldBase + 100);
     }
+    assert.equal(run('new Slam(p, 11605).value1'), 87);
+    assert.equal(run('new HeroicStrike(p, 11567).bonus'), 138);
+    assert.equal(run('new Overpower(p, 11585).value1'), 35);
+    assert.equal(run('new MortalStrike(p, 27580).value1'), 160);
+    close(run('(() => { const spell = new Execute(p, 20662); spell.usedrage = 10; return spell.dmg(); })()'), 750);
     const classic = setup('classic');
     classic.player.stats.ap = 1000; classic.player.stats.block = 100;
     classic.player.stats.dmgmod = 1;
     close(classic.run('new Bloodthirst(p, 23894).dmg()'), 450);
+    assert.equal(classic.run('new Slam(p, 11605).value1'), 87);
+    assert.equal(classic.run('new HeroicStrike(p, 11567).bonus'), 138);
+    assert.equal(classic.run('new Overpower(p, 11585).value1'), 35);
+    assert.equal(classic.run('new MortalStrike(p, 27580).value1'), 160);
+    close(classic.run('(() => { const spell = new Execute(p, 20662); spell.usedrage = 10; return spell.dmg(); })()'), 750);
     close(classic.run('rng = (a,b) => (a+b)/2; new ShieldSlam(p,23925).dmg()'), 350 + 200 + 150);
 });
 

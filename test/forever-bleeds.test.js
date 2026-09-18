@@ -13,11 +13,13 @@ function setup(fixture, key) {
     const player = createConfiguredPlayer(engine, fixture);
     engine.evaluate('step = 0; setSimulationSeed(123)');
     player.reset(100);
-    // Ensure Rend lands, while preserving its real application and damage snapshot.
+    // Ensure Rend lands, while preserving its real application.
     player.mh.miss = player.mh.dodge = 0;
     const aura = player.auras[key];
     aura.use();
-    const tickDamage = key === 'rend' ? aura.tickdmg :
+    const tickDamage = key === 'rend' ? (fixture.mode === 'forever' ?
+        (aura.value1 / aura.value2 + .02 * player.stats.ap) * player.stats.dmgmod *
+            aura.dmgmod * player.bleedmod * (player.auras.eureka?.stacks ? 1.1 : 1) : aura.tickdmg) :
         ((player.mh.mindmg + player.mh.maxdmg) / 2 + player.mh.bonusdmg +
             player.stats.moddmgdone + player.stats.ap / 14 * player.mh.speed) *
         player.mh.modifier * player.stats.dmgmod * player.talents.deepwounds * player.bleedmod / 4;
@@ -57,7 +59,8 @@ for (const fixture of bleedFixtures()) {
                 assert.equal(rolls.length, key === 'rend' && fixture.mode === 'forever' ? 0 : 4,
                     'Only Forever Rend ticks may consume crit RNG');
                 if (key === 'rend') {
-                    assert.equal(aura.tickdmg, tickDamage, 'crits must not multiply the saved base damage');
+                    if (fixture.mode === 'classic')
+                        assert.equal(aura.tickdmg, tickDamage, 'Classic retains its damage snapshot');
                     assert.equal(aura.stacks, aura.value2 - 4);
                     assert.deepEqual(Array.from(aura.data), [1, 0, 0, 0, 0],
                         'Rend outcome counters describe its non-critical application');
@@ -87,6 +90,34 @@ for (const key of ['rend', 'deepwounds']) {
         aura.step();
         close(aura.idmg, tickDamage * (key === 'rend' ? 6.4 : 4));
         assert.equal(rolls.length, key === 'rend' ? 0 : 4);
+    });
+}
+
+for (const mode of ['classic', 'forever']) {
+    test(`${mode}: Rend ${mode === 'forever' ? 'uses current stats' : 'retains its snapshot'} on every tick`, () => {
+        const fixture = bleedFixtures().find(f => f.mode === mode);
+        const {engine, player, aura} = setup(fixture, 'rend');
+        const snapshot = aura.tickdmg;
+        player.mh.crit = player.mh.racialcrit = 0;
+        player.auras.eureka = {stacks: 0};
+        aura.eurekamod = 1.1; // A stale cast bonus must not affect Forever ticks.
+        for (const [ap, damageMod, bleedMod, eurekaMod, crit] of [
+            [100, 1, 1, 1, 0],
+            [1000, 1.2, .8, 1.1, 100],
+            [0, 1, 1, 1, 0],
+        ]) {
+            Object.assign(player.stats, {ap, dmgmod: damageMod});
+            player.bleedmod = bleedMod;
+            player.auras.eureka.stacks = eurekaMod > 1 ? 3 : 0;
+            player.crit = crit;
+            const expected = mode === 'forever' ?
+                (aura.value1 / aura.value2 + .02 * ap) * damageMod * aura.dmgmod * bleedMod *
+                    eurekaMod * (crit ? 2 + player.talents.abilitiescrit : 1) : snapshot;
+            const before = aura.idmg;
+            engine.evaluate('step = time', {time: aura.nexttick});
+            aura.step();
+            close(aura.idmg - before, expected);
+        }
     });
 }
 

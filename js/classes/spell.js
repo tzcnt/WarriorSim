@@ -75,7 +75,7 @@ class Bloodthirst extends Spell {
         this.cooldown = 6;
         this.weaponspell = false;
         this.apcoefficient = player.mode === 'forever' ? .35 : .45;
-        this.flatbonus = player.mode === 'forever' ? (player.level >= 60 ? 60 : player.level >= 54 ? 50 : player.level >= 48 ? 40 : 30) : 0;
+        this.flatbonus = player.mode === 'forever' ? (player.level >= 60 ? 48 : player.level >= 54 ? 43 : player.level >= 48 ? 37 : 30) : 0;
     }
     dmg() {
         let dmg;
@@ -1727,7 +1727,10 @@ class Rend extends Aura {
             // Roll each tick independently; Rend's application still cannot crit.
             const crit = this.player.mode === 'forever' && rng10k() <
                 (this.player.crit + this.player.mh.crit + (this.player.mh.racialcrit || 0)) * 100;
-            let dmg = this.tickdmg;
+            let dmg = this.player.mode === 'forever' ?
+                (this.value1 / this.value2 + 0.02 * this.player.stats.ap) *
+                    this.player.stats.dmgmod * this.dmgmod * this.player.bleedmod * (this.player.auras.eureka?.stacks ? 1.1 : 1) :
+                this.tickdmg;
             if (crit) dmg *= 1 + (1 + this.player.talents.abilitiescrit);
             this.idmg += dmg;
             this.totaldmg += dmg;
@@ -1772,8 +1775,10 @@ class Rend extends Aura {
         }
 
         this.player.rage -= this.cost;
-        let dmg = this.value1 * this.player.stats.dmgmod * this.dmgmod * this.player.bleedmod * (this.eurekamod || 1);
-        this.tickdmg = dmg / this.value2;
+        if (this.player.mode !== 'forever') {
+            let dmg = this.value1 * this.player.stats.dmgmod * this.dmgmod * this.player.bleedmod * (this.eurekamod || 1);
+            this.tickdmg = dmg / this.value2;
+        }
 
         this.player.updateDmgMod();
         this.maxdelay = rng(this.player.reactionmin, this.player.reactionmax);
