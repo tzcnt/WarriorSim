@@ -441,13 +441,16 @@ void PlayerState::addRage(double dmg, Result result, WeaponState& weapon, const 
         if (result == Result::Miss || result == Result::Dodge) {
             rage += ability->props.boolean("refund"_prop, true) ? ability->props.number("cost"_prop) * .8 : 0;
         }
+    } else if (foreverMode) {
+        // Base weapon speed in seconds; crits, glances and haste do not change rage per hit.
+        if (result != Result::Miss && result != Result::Dodge)
+            rage += weapon.speed * (weapon.twohand ? 4.5 : 3.46) *
+                (weapon.offhand ? .5 * (1 + talents.number("offragebonus"_prop)) : 1);
     } else {
         if (result == Result::Dodge)
-            rage += (averageWeaponDamage(*this, weapon) / props.number("rageconversion"_prop)) * 7.5 * .75 *
-                (foreverMode && weapon.offhand ? 1 + talents.number("offragebonus"_prop) : 1);
+            rage += (averageWeaponDamage(*this, weapon) / props.number("rageconversion"_prop)) * 7.5 * .75;
         else if (result != Result::Miss)
-            rage += (dmg / props.number("rageconversion"_prop)) * 7.5 *
-                (foreverMode && weapon.offhand ? 1 + talents.number("offragebonus"_prop) : 1);
+            rage += (dmg / props.number("rageconversion"_prop)) * 7.5;
     }
     rage = std::min(rage, props.number("ragecap"_prop, 100));
 

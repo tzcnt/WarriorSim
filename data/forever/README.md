@@ -35,6 +35,8 @@ snapshot; the stored builds migrate, but the results have not been re-optimized.
 See [ABILITY_MECHANICS.md](ABILITY_MECHANICS.md) for
 per-ability confirmed and unconfirmed info.
 
+See [RAGE_GAIN.md](RAGE_GAIN.md) for rage-gain data and open questions.
+
 JavaScript character/spell construction and the WASM combat engine implement the
 same rules. Rank/stat/cost changes include Rend, Tactical Mastery (10 baseline +
 3 per point), Flurry, Unbridled Wrath, off-hand damage/hit/rage, Precision, Focused

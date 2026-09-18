@@ -857,14 +857,19 @@ class Player {
                 this.rage += spell.refund ? spell.cost * 0.8 : 0;
             }
         }
+        else if (this.mode === 'forever') {
+            if (result != RESULT.MISS && result != RESULT.DODGE) {
+                // Base weapon speed in seconds; crits, glances and haste do not change rage per hit.
+                this.rage += weapon.speed * (weapon.twohand ? 4.5 : 3.46) *
+                    (weapon.offhand ? 0.5 * (1 + this.talents.offragebonus) : 1);
+            }
+        }
         else {
             if (result == RESULT.DODGE) {
-                this.rage += (weapon.avgdmg() / this.rageconversion) * 7.5 * 0.75 *
-                    (this.mode === 'forever' && weapon.offhand ? 1 + this.talents.offragebonus : 1);
+                this.rage += (weapon.avgdmg() / this.rageconversion) * 7.5 * 0.75;
             }
             else if (result != RESULT.MISS) {
-                this.rage += (dmg / this.rageconversion) * 7.5 *
-                    (this.mode === 'forever' && weapon.offhand ? 1 + this.talents.offragebonus : 1);
+                this.rage += (dmg / this.rageconversion) * 7.5;
             }
         }
         if (this.rage > this.ragecap) this.rage = this.ragecap;

@@ -143,11 +143,37 @@ test('two-handed Unbridled Wrath and off-hand swing rage do not multiply flat pr
     const {run, player} = setup();
     player.reset(0); player.ragecap = 1000; player.talents.umbridledwrath = 100;
     run('rng10k = () => 0; p.mh.twohand = true; p.addRage(0, RESULT.HIT, p.mh, null)');
-    close(player.rage, 2);
+    close(player.rage, 2 + player.mh.speed * 4.5);
     player.rage = 0;
-    const swingRage = 100 / player.rageconversion * 7.5;
+    const swingRage = player.oh.speed * 3.46 * 0.5;
     run('p.addRage(100, RESULT.HIT, p.oh, null)');
     close(player.rage, 1 + swingRage * 2);
+});
+
+test('Forever white-hit rage uses base speed and weapon type regardless of damage, haste or hit quality', () => {
+    const {run, player} = setup();
+    player.talents.umbridledwrath = 0;
+    player.stats.haste = 2;
+    player.ragecap = 1000;
+    for (const [hand, twohand, speed, expected] of [
+        ['mh', true, 3.6, 16.2], ['mh', false, 2, 6.92], ['oh', false, 2, 3.46],
+    ]) {
+        Object.assign(player[hand], {twohand, speed});
+        for (const rank of [0, 3, 5]) {
+            player.talents.offragebonus = run(`talents[1].t.find(t => t.n === 'Dual Wield Specialization').aura(${rank}).offragebonus`);
+            for (const result of ['HIT', 'CRIT', 'GLANCE', 'MISS', 'DODGE']) {
+                for (const damage of [0, 100, 2000]) {
+                    player.rage = 0;
+                    run(`p.addRage(${damage}, RESULT.${result}, p.${hand}, null)`);
+                    close(player.rage, ['MISS', 'DODGE'].includes(result) ? 0 :
+                        expected * (hand === 'oh' ? 1 + rank * 0.2 : 1));
+                }
+            }
+        }
+    }
+    player.rage = 999;
+    run('p.addRage(100, RESULT.HIT, p.mh, null)');
+    assert.equal(player.rage, 1000);
 });
 
 test('off-hand hit applies to both swing tables without modifying the main hand', () => {
