@@ -605,6 +605,7 @@ SIM.SETTINGS = {
                 continue;
             }
 
+            buff = getBuffForMode(buff, mode);
             let tooltip = buff.id;
 
             let wh = buff.spellid ? 'spell' : 'item';

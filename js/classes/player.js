@@ -455,6 +455,7 @@ class Player {
         for (let buff of buffs) {
             if (buff.active) {
                 if (buff.mode && buff.mode !== this.mode) continue;
+                buff = getBuffForMode(buff, this.mode);
                 let ap = 0, str = 0, agi = 0, sta = 0;
                 if (buff.name == "Blessing of Might") {
                     let impmight = buffs.filter(s => s.mightmod && s.active && (!s.mode || s.mode === this.mode))[0];

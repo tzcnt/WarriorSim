@@ -1031,3 +1031,15 @@ var buffs = [
       minlevel: 20,
    },
 ];
+
+// Keep saved rank IDs and Classic values while resolving Forever's fixed bonuses.
+var foreverTotemBuffs = {
+   graceair: {agi: 77, description: 'Increases Agility by 77.'},
+   strengthearth: {str: 42, description: 'Increases Strength by 42.'},
+   windfury: {wfap: 246, description: 'Each mainhand autoattack hit or ability hit has a 20% chance to grant an extra attack with 246 extra Attack Power.'},
+};
+
+function getBuffForMode(buff, gameMode) {
+   return gameMode === 'forever' && foreverTotemBuffs[buff.group]
+      ? {...buff, ...foreverTotemBuffs[buff.group]} : buff;
+}

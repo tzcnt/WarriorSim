@@ -620,7 +620,10 @@ class Aura {
         this.offensive = false;
 
         let spell = spells.filter(s => s.id == this.id)[0];
-        if (!spell) spell = buffs.filter(s => s.id == this.id)[0];
+        if (!spell) {
+            const buff = buffs.find(s => s.id == this.id);
+            if (buff) spell = getBuffForMode(buff, player.mode);
+        }
         if (!spell) return;
         if (spell.durationactive) this.duration = parseInt(spell.duration);
         if (spell.timetoendactive) this.timetoend = parseInt(spell.timetoend) * 1000;
