@@ -1711,7 +1711,7 @@ class BerserkerRageAura extends Aura {
 class BattleShout extends Aura {
     constructor(player, id) {
         super(player, id);
-        this.duration = 120 + (this.player.talents.boomingvoice * 36);
+        this.duration = player.mode === 'forever' ? 180 : 120 + (this.player.talents.boomingvoice * 36);
         this.cost = 10 - (this.player.talents.boomingvoice * 2);
         this.name = 'Battle Shout';
         let lvlbonus = ~~((this.player.level - this.minlevel) * this.value2);

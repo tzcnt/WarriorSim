@@ -34,15 +34,14 @@ var profilePresets = [
             "profilename": "Dual Wield Fury (13/38/0)",
             "buffs": [
                 null,
+                "11551",
                 "17007",
                 "9885",
-                "17055",
                 "20217",
                 "19838",
-                "20048",
                 "10614",
                 "10442",
-                "13452",
+                "elixir-of-the-grizzly",
                 "12451",
                 "12460",
                 "13928",
@@ -202,6 +201,10 @@ var profilePresets = [
             },
             "rotation": [
                 {
+                    "id": "11551",
+                    "active": true
+                },
+                {
                     "id": 11574,
                     "active": true,
                     "duration": 16,
@@ -334,6 +337,9 @@ var profilePresets = [
                 }
             ],
             "enchant": {
+                "neck": [
+                    "neck-strength"
+                ],
                 "mainhand": [
                     18262,
                     20034
@@ -346,7 +352,7 @@ var profilePresets = [
                     18329
                 ],
                 "back": [
-                    13882
+                    "back-agility"
                 ],
                 "chest": [
                     13941
@@ -355,7 +361,7 @@ var profilePresets = [
                     20010
                 ],
                 "hands": [
-                    20013
+                    "hands-superior-strength"
                 ],
                 "legs": [
                     18329
@@ -397,15 +403,14 @@ var profilePresets = [
             "profilename": "Two-Handed Fury (20/31/0)",
             "buffs": [
                 null,
+                "11551",
                 "17007",
                 "9885",
-                "17055",
                 "20217",
                 "19838",
-                "20048",
                 "10614",
                 "10442",
-                "13452",
+                "elixir-of-the-grizzly",
                 "12451",
                 "12460",
                 "13928",
@@ -563,6 +568,10 @@ var profilePresets = [
                 "twohand": 17076
             },
             "rotation": [
+                {
+                    "id": "11551",
+                    "active": true
+                },
                 {
                     "id": "11567",
                     "active": true,
@@ -674,11 +683,14 @@ var profilePresets = [
                 }
             ],
             "enchant": {
+                "neck": [
+                    "neck-strength"
+                ],
                 "head": [
                     11645
                 ],
                 "back": [
-                    13882
+                    "back-agility"
                 ],
                 "chest": [
                     13941
@@ -687,7 +699,7 @@ var profilePresets = [
                     20010
                 ],
                 "hands": [
-                    20013
+                    "hands-superior-strength"
                 ],
                 "legs": [
                     11645
@@ -729,15 +741,14 @@ var profilePresets = [
             "profilename": "Two-Handed Arms (34/17/0)",
             "buffs": [
                 null,
+                "11551",
                 "17007",
                 "9885",
-                "17055",
                 "20217",
                 "19838",
-                "20048",
                 "10614",
                 "10442",
-                "13452",
+                "elixir-of-the-grizzly",
                 "12451",
                 "12460",
                 "13928",
@@ -895,6 +906,10 @@ var profilePresets = [
                 "twohand": 17076
             },
             "rotation": [
+                {
+                    "id": "11551",
+                    "active": true
+                },
                 {
                     "id": 11574,
                     "active": true,
@@ -1019,11 +1034,14 @@ var profilePresets = [
                 }
             ],
             "enchant": {
+                "neck": [
+                    "neck-strength"
+                ],
                 "head": [
                     11645
                 ],
                 "back": [
-                    13882
+                    "back-agility"
                 ],
                 "chest": [
                     13941
@@ -1032,7 +1050,7 @@ var profilePresets = [
                     20010
                 ],
                 "hands": [
-                    20013
+                    "hands-superior-strength"
                 ],
                 "legs": [
                     11645
