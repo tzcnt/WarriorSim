@@ -16,6 +16,7 @@ function options(args) {
         out: {type: 'string', default: 'scratch/forever-talents'},
         method: {type: 'string', default: 'local'}, bounds: {type: 'string'},
         'start-from': {type: 'string'},
+        preset: {type: 'string'},
         starts: {type: 'string', default: '24'}, beam: {type: 'string', default: '4'},
         iterations: {type: 'string', default: '5000'}, refine: {type: 'string', default: '50000'},
         final: {type: 'string', default: '500000'}, finalists: {type: 'string', default: '8'},
@@ -50,6 +51,7 @@ async function main(args = process.argv.slice(2)) {
   --method exhaustive Enumerate every legal build inside --bounds FILE
   --bounds FILE       JSON object: talent key -> fixed rank or [minimum, maximum]
   --start-from FILE   Also seed local search with a previous results.json winner
+  --preset ID         Load a deployed preset explicitly before measuring
   --starts 24 --beam 4 --rounds 30 --limit 100000
   --iterations 5000 --refine 50000 --final 500000 --finalists 8
   --seed 20260913 --threads 2 --resume --talent-actions
@@ -83,13 +85,21 @@ occur on the site. --resume requires identical production build and configuratio
         await page.goto(opt.site, {waitUntil: 'domcontentloaded'});
         await page.evaluate(() => simulatorReady);
         await page.waitForFunction(() => typeof sharedCompute !== 'undefined' && sharedCompute?.ready);
+        if (opt.preset) await page.evaluate(id => {
+            if (!profilePresets.some(preset => preset.id === id)) throw new Error(`Unknown preset: ${id}`);
+            SIM.PROFILES.loadPreset(id);
+            if (JSON.parse(localStorage[mode + (globalThis.profileid || 0)]).profilename !==
+                profilePresets.find(preset => preset.id === id).profile.profilename) {
+                throw new Error(`Failed to load preset: ${id}`);
+            }
+        }, opt.preset);
         const snapshot = await page.evaluate(() => {
             sharedCompute.beginForeground();
             const player = new Player(undefined, undefined, undefined, Player.getConfig());
             if (mode !== 'forever' || !player.oh || player.mh.twohand) throw new Error('Expected a Forever dual-wield profile');
             return {
                 buildId: SIMULATOR_BUNDLE.buildId, networkThreads: sharedCompute.networkThreads,
-                player: Player.getConfig(), sim: Simulation.getConfig(), profile: JSON.parse(localStorage.forever0),
+                player: Player.getConfig(), sim: Simulation.getConfig(), profile: JSON.parse(localStorage[mode + (globalThis.profileid || 0)]),
                 schema: FOREVER_TALENT_SCHEMA,
                 trees: talents.map(tree => ({n: tree.n, t: tree.t.map(t => ({n: t.n, key: t.forever.key,
                     m: t.m, y: t.y, r: t.r, c: t.c, status: t.forever.implementationStatus}))})),
@@ -278,17 +288,29 @@ occur on the site. --resume requires identical production build and configuratio
         const profile = structuredClone(snapshot.profile);
         profile.talents = talents;
         profile.talentSchema = snapshot.schema;
-        profile.profilename = `Forever DW ${selected.ranks.map(sum).join('/')}`;
+        profile.profilename = profile.profilename.replace(/\(\d+\/\d+\/\d+\)/,
+            `(${selected.ranks.map(sum).join('/')})`);
         for (const spell of profile.rotation) if (selected.enabledTalents.includes(spell.id)) {
             Object.assign(spell, {active: true}, snapshot.talentActions.find(action => action.id === spell.id).settings);
         }
-        // Match the site's import format; retaining full rotation records preserves all options.
-        const imported = Object.fromEntries(Object.entries(profile).filter(([, value]) => typeof value === 'string'));
-        Object.assign(imported, {talents, buffs: profile.buffs, rotation: profile.rotation.filter(s => s.active),
-            gear: Object.fromEntries(Object.entries(profile.gear).flatMap(([slot, items]) =>
-                items.filter(item => item.selected).map(item => [slot, item.id]))),
-            enchant: Object.fromEntries(Object.entries(profile.enchant).map(([slot, items]) =>
-                [slot, items.filter(item => item.selected).map(item => item.id)]))});
+        // Use the deployed site's exporter for its field whitelist and ordering.
+        const imported = await page.evaluate(profile => {
+            const index = globalThis.profileid || 0;
+            const storageKey = mode + index;
+            const previous = localStorage[storageKey];
+            const writeText = navigator.clipboard.writeText;
+            let exported;
+            try {
+                localStorage[storageKey] = JSON.stringify(profile);
+                navigator.clipboard.writeText = value => { exported = value; return Promise.resolve(); };
+                SIM.PROFILES.exportProfile({data: () => index});
+                if (!exported) throw new Error('Site exporter did not produce a profile');
+                return JSON.parse(atob(exported));
+            } finally {
+                localStorage[storageKey] = previous;
+                navigator.clipboard.writeText = writeText;
+            }
+        }, profile);
         const result = {created: new Date().toISOString(), site: opt.site, buildId: snapshot.buildId,
             method: opt.method, bounds, candidates: allBuilds.size, localOptimum,
             selection: selected, winner, baseline: original,
