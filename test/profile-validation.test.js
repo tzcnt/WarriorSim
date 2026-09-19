@@ -1,6 +1,9 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
 const {report} = require('../js/profile-validation');
 const {profileContext} = require('../scripts/lib/profile-context');
 
@@ -15,6 +18,19 @@ function fixture(mode = 'forever') {
     for (const [slot, items] of Object.entries(profile.enchant)) profile.enchant[slot] = items.filter(item => item.selected).map(item => item.id);
     return {context, profile};
 }
+
+test('Forever presets use known buff IDs and enable Battle Shout as an ability', () => {
+    const sandbox = {};
+    vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../js/data/presets_forever.js'), 'utf8'), sandbox);
+    const context = profileContext('forever');
+    assert.ok(sandbox.profilePresets.length > 0);
+    for (const {id, profile} of sandbox.profilePresets) {
+        const issues = report(profile, context).filter(issue =>
+            issue.code === 'unknown-buff' || issue.code === 'unknown-spell');
+        assert.deepEqual(issues, [], id);
+        assert.ok(profile.rotation.some(spell => String(spell.id) === '11551' && spell.active === true), id);
+    }
+});
 
 test('current fully specified Forever profiles need no changes and reporting is read-only', () => {
     const {context, profile} = fixture();

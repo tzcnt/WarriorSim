@@ -34,7 +34,6 @@ var profilePresets = [
             "profilename": "Dual Wield Fury (13/38/0)",
             "buffs": [
                 null,
-                "11551",
                 "17007",
                 "9885",
                 "20217",
@@ -403,7 +402,6 @@ var profilePresets = [
             "profilename": "Two-Handed Fury (20/31/0)",
             "buffs": [
                 null,
-                "11551",
                 "17007",
                 "9885",
                 "20217",
@@ -741,7 +739,6 @@ var profilePresets = [
             "profilename": "Two-Handed Arms (34/17/0)",
             "buffs": [
                 null,
-                "11551",
                 "17007",
                 "9885",
                 "20217",
