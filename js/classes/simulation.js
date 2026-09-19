@@ -429,6 +429,7 @@ class Simulation {
                     // Use no GCD spells
                     if (player.auras.swarmguard && player.auras.swarmguard.canUse()) { player.spelldelay = 1; delayedspell = player.auras.swarmguard; }
                     else if (player.auras.mightyragepotion && player.auras.mightyragepotion.canUse()) { player.spelldelay = 1; delayedspell = player.auras.mightyragepotion; }
+                    else if (player.auras.majorfrenzypotion && player.auras.majorfrenzypotion.canUse()) { player.spelldelay = 1; delayedspell = player.auras.majorfrenzypotion; }
                     else if (player.spells.ragepotion && player.spells.ragepotion.canUse()) { player.spelldelay = 1; delayedspell = player.spells.ragepotion; }
                     else if (player.spells.fireball && player.spells.fireball.canUse()) { player.spelldelay = 1; delayedspell = player.spells.fireball; }
                     else if (player.auras.jujuflurry && player.auras.jujuflurry.canUse()) { player.spelldelay = 1; delayedspell = player.auras.jujuflurry; }

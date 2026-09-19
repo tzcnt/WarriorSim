@@ -517,6 +517,16 @@ var buffs = [
       consume: true,
    },
    {
+      id: "elixir-of-the-grizzly",
+      name: "Elixir of the Grizzly",
+      description: "Increases Strength by 25 and critical strike chance by 2%.",
+      iconname: "inv_potion_32",
+      group: "elixir",
+      str: 25,
+      crit: 2,
+      consume: true,
+   },
+   {
       id: 12451,
       name: "Juju Power",
       iconname: "inv_misc_monsterscales_11",
@@ -571,6 +581,16 @@ var buffs = [
       group: "str",
       str: 25,
       minlevel: 41,
+      consume: true,
+   },
+   {
+      id: "elixir-of-ferocity",
+      name: "Elixir of Ferocity",
+      description: "Increases Strength and Agility by 18.",
+      iconname: "inv_potion_61",
+      group: "str",
+      str: 18,
+      agi: 18,
       consume: true,
    },
    {

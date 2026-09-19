@@ -485,7 +485,7 @@ AuraKind parseAuraKind(std::string_view value) {
     AURA_KIND(Enrage); AURA_KIND(SweepingStrikes); AURA_KIND(Aura); AURA_KIND(Recklessness); AURA_KIND(Flurry);
     AURA_KIND(DeepWounds); AURA_KIND(OldDeepWounds); AURA_KIND(Crusader);
     AURA_KIND(Cloudkeeper); AURA_KIND(Felstriker); AURA_KIND(DeathWish); AURA_KIND(BattleStance);
-    AURA_KIND(DefensiveStance); AURA_KIND(BerserkerStance); AURA_KIND(MightyRagePotion);
+    AURA_KIND(DefensiveStance); AURA_KIND(BerserkerStance); AURA_KIND(MightyRagePotion); AURA_KIND(MajorFrenzyPotion);
     AURA_KIND(ElunesLight); AURA_KIND(Eureka); AURA_KIND(TouchOfTheGrave); AURA_KIND(BloodFury); AURA_KIND(Berserking);
     AURA_KIND(Empyrean); AURA_KIND(Eskhandar); AURA_KIND(Zeal);
     AURA_KIND(Annihilator); AURA_KIND(Rivenspike); AURA_KIND(Bonereaver); AURA_KIND(Destiny);
@@ -621,7 +621,7 @@ void PlayerState::buildConfiguredActionLists() {
         addOrderedProc(configured.stepAuras, oh->proc2);
     }
     constexpr std::pair<detail::KnownAction, bool> stepNamed[] = {
-        {"mightyragepotion"_action, true}, {"recklessness"_action, true}, {"deathwish"_action, true},
+        {"mightyragepotion"_action, true}, {"majorfrenzypotion"_action, false}, {"recklessness"_action, true}, {"deathwish"_action, true},
         {"cloudkeeper"_action, true}, {"flask"_action, true},
         {"eluneslight"_action, false}, {"eureka"_action, false}, {"bloodfury"_action, true}, {"berserking"_action, true}, {"slayer"_action, true},
         {"spider"_action, true}, {"earthstrike"_action, true}, {"pummeler"_action, true}, {"swarmguard"_action, true}, {"zandalarian"_action, true},
@@ -651,7 +651,7 @@ void PlayerState::buildConfiguredActionLists() {
         addOrderedProc(configured.endAuras, oh->proc2);
     }
     constexpr std::pair<detail::KnownAction, bool> endNamed[] = {
-        {"mightyragepotion"_action, true}, {"recklessness"_action, true}, {"deathwish"_action, true},
+        {"mightyragepotion"_action, true}, {"majorfrenzypotion"_action, false}, {"recklessness"_action, true}, {"deathwish"_action, true},
         {"cloudkeeper"_action, true}, {"flask"_action, true},
         {"eluneslight"_action, false}, {"eureka"_action, false}, {"bloodfury"_action, true}, {"berserking"_action, true}, {"slayer"_action, true},
         {"spider"_action, true}, {"gabbar"_action, true}, {"earthstrike"_action, true}, {"pummeler"_action, true}, {"swarmguard"_action, true},
@@ -674,7 +674,7 @@ void PlayerState::buildConfiguredActionLists() {
     addOrderedKey(configured.endAuras, "rend"_action);
     addOrderedKey(configured.endAuras, "berserkerrage"_action);
 
-    addAuras(configured.noGcdAuras, {"swarmguard"_action, "mightyragepotion"_action});
+    addAuras(configured.noGcdAuras, {"swarmguard"_action, "mightyragepotion"_action, "majorfrenzypotion"_action});
     addSpells(configured.noGcdSpells, {"ragepotion"_action, "fireball"_action});
     addAuras(configured.moreNoGcdAuras, {"jujuflurry"_action});
     addAuras(configured.onUseAuras, {"cloudkeeper"_action, "pummeler"_action, "slayer"_action,

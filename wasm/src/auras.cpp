@@ -86,6 +86,8 @@ bool auraCanUse(PlayerState& player, AuraState& aura) {
         return aura.firstuse && ready && !player.itemtimer;
     case AuraKind::DeathWish:
         return ready && !player.timer && player.rage >= aura.props.number("cost"_prop, 10);
+    case AuraKind::MajorFrenzyPotion:
+        return ready;
     case AuraKind::MightyRagePotion:
         return aura.firstuse && ready;
     case AuraKind::BloodFury:
@@ -253,6 +255,9 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         player.timer = 1500;
         player.updateDmgMod();
         setDelay(player, aura);
+        break;
+    case AuraKind::MajorFrenzyPotion:
+        useWithUpdate(player, aura, &PlayerState::updateAP, precounter, true);
         break;
     case AuraKind::MightyRagePotion: {
         accountRefresh(player, aura);
@@ -524,6 +529,8 @@ bool auraStep(PlayerState& player, AuraState& aura) {
         return stepWithUpdate(player, aura, &PlayerState::update, true);
     case AuraKind::DeathWish:
         return stepWithUpdate(player, aura, &PlayerState::updateDmgMod, false, true);
+    case AuraKind::MajorFrenzyPotion:
+        return stepWithUpdate(player, aura, &PlayerState::updateAP, false, true);
     case AuraKind::MightyRagePotion:
         return stepWithUpdate(player, aura, &PlayerState::updateStrength, true);
     case AuraKind::Eureka:

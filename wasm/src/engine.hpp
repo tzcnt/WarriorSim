@@ -34,7 +34,7 @@ enum class SpellKind : std::uint8_t {
 
 enum class AuraKind : std::uint8_t {
     Aura, Recklessness, Flurry, DeepWounds, OldDeepWounds, Crusader, Cloudkeeper, Felstriker,
-    DeathWish, BattleStance, DefensiveStance, BerserkerStance, MightyRagePotion,
+    DeathWish, BattleStance, DefensiveStance, BerserkerStance, MightyRagePotion, MajorFrenzyPotion,
     BloodFury, Berserking, Empyrean, Eskhandar, Zeal, Annihilator, Rivenspike,
     Bonereaver, Destiny, Untamed, Pummeler, Windfury, Swarmguard, Flask, Slayer, Spider,
     Earthstrike, Gabbar, PrimalBlessing, BloodrageAura, Zandalarian,

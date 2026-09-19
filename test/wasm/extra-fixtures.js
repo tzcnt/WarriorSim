@@ -1,4 +1,5 @@
 'use strict';
+const {frenzyFixtures} = require('./frenzy-fixtures');
 
 const {loadFixtures} = require('./reference-engine');
 const {racialFixtures} = require('./racial-fixtures');
@@ -105,7 +106,7 @@ function extraFixtures() {
     });
 
     return [
-        phantom, suppression, long, trinkets,
+        phantom, suppression, long, trinkets, ...frenzyFixtures(),
         earthstrike, priority, clocks, gabbar, hamstring, ...bloodrageCases, ...armorProcCases, ...stanceCases,
         ...aliasCases, orderedProcs, ...foreverFixtures(), ...racialFixtures(), ...swordResets, ...sweepingFixtures(), ...queuedStrikeFixtures(), ...berserkerRageFixtures(), ...bleedFixtures(),
     ];

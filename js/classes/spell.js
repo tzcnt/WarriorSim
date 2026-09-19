@@ -1027,6 +1027,35 @@ class MightyRagePotion extends Aura {
     }
 }
 
+class MajorFrenzyPotion extends Aura {
+    constructor(player, id) {
+        super(player, id, 'Major Frenzy Potion');
+        this.stats = { ap: 40 };
+        this.duration = 30;
+        this.cooldown = 120;
+    }
+    use(a, prepull = 0) {
+        if (this.timer) this.uptime += (step - this.starttimer);
+        this.timer = step + this.duration * 1000 - prepull;
+        this.starttimer = step - prepull;
+        this.player.updateAP();
+        this.maxdelay = rng(this.player.reactionmin, this.player.reactionmax);
+        /* start-log */ if (this.player.logging) this.player.log(`${this.name} applied`); /* end-log */
+    }
+    canUse() {
+        return !this.timer && step >= this.usestep;
+    }
+    step() {
+        if (step >= this.timer) {
+            this.uptime += (this.timer - this.starttimer);
+            this.timer = 0;
+            this.usestep = this.starttimer + this.cooldown * 1000;
+            this.player.updateAP();
+            /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
+        }
+    }
+}
+
 class BloodFury extends Aura {
     constructor(player, id) {
         super(player, id, 'Blood Fury');

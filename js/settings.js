@@ -446,8 +446,8 @@ SIM.SETTINGS = {
             <a href="${WEB_DB_URL}${spell.item ? 'item' : 'spell'}=${spell.id}" class="wh-tooltip"></a>
             </div></div>`);
 
-            const description = mode === 'forever' && spell.classname === 'BattleShout' ?
-                'Increases Attack Power by 111.' : racialSpellDescription(spell, mode);
+            const description = spell.description || (mode === 'forever' && spell.classname === 'BattleShout' ?
+                'Increases Attack Power by 111.' : racialSpellDescription(spell, mode));
             if (description) {
                 div.find('a').removeClass('wh-tooltip').attr('href', '#');
                 div.find('.icon').attr('title', spell.name + '\n' + description);
@@ -610,6 +610,12 @@ SIM.SETTINGS = {
                             <img src="https://wow.zamimg.com/images/wow/icons/medium/${buff.iconname.toLowerCase()}.jpg " alt="${buff.name}">
                             <a href="${WEB_DB_URL}${wh}=${tooltip}" class="wh-tooltip"></a>
                         </div>`;
+            if (buff.description) {
+                const icon = $(html);
+                icon.attr('title', buff.name + '\n' + buff.description);
+                icon.find('a').removeClass('wh-tooltip').attr('href', '#');
+                html = icon[0].outerHTML;
+            }
             if (buff.worldbuff) worldbuffs += html;
             else if (buff.stance) stances += html;
             else if (buff.consume) consumes += html;
