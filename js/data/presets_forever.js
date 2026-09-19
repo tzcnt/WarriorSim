@@ -567,19 +567,18 @@ var profilePresets = [
             },
             "rotation": [
                 {
-                    "id": "11551",
-                    "active": true
+                    "id": 11574,
+                    "active": true,
+                    "duration": 16,
+                    "durationactive": true,
+                    "maxrage": "25",
+                    "maxrageactive": true,
+                    "priority": "5",
+                    "expriority": "0"
                 },
                 {
-                    "id": "11567",
-                    "active": true,
-                    "minrage": "90",
-                    "minrageactive": true,
-                    "maincd": "2",
-                    "maincdactive": false,
-                    "unqueue": 15,
-                    "unqueueactive": false,
-                    "exmacro": true
+                    "id": "11551",
+                    "active": true
                 },
                 {
                     "id": "2687",
@@ -592,7 +591,7 @@ var profilePresets = [
                 {
                     "id": "11585",
                     "active": true,
-                    "maxrage": "70",
+                    "maxrage": "58",
                     "maxrageactive": true,
                     "maincd": 2,
                     "maincdactive": false,
@@ -624,10 +623,10 @@ var profilePresets = [
                     "active": true,
                     "minrage": "50",
                     "minrageactive": false,
-                    "maxrage": 25,
-                    "maxrageactive": false,
-                    "maincd": "2",
-                    "maincdactive": true,
+                    "maxrage": "50",
+                    "maxrageactive": true,
+                    "maincd": "1",
+                    "maincdactive": false,
                     "priority": 7,
                     "expriority": 0
                 },
@@ -681,11 +680,11 @@ var profilePresets = [
                 }
             ],
             "enchant": {
-                "neck": [
-                    "neck-strength"
-                ],
                 "head": [
                     11645
+                ],
+                "neck": [
+                    "neck-strength"
                 ],
                 "back": [
                     "back-agility"
