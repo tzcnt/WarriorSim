@@ -1683,7 +1683,8 @@ class BattleShout extends Aura {
         this.cost = 10 - (this.player.talents.boomingvoice * 2);
         this.name = 'Battle Shout';
         let lvlbonus = ~~((this.player.level - this.minlevel) * this.value2);
-        this.stats.ap = ~~((this.value1 + lvlbonus + (this.player.enhancedbs ? 30 : 0)) * (1 + this.player.talents.impbattleshout))
+        this.stats.ap = player.mode === 'forever' ? 111 :
+            ~~((this.value1 + lvlbonus + (this.player.enhancedbs ? 30 : 0)) * (1 + this.player.talents.impbattleshout));
     }
     use(prepull) {
         if (this.timer) this.uptime += (step - this.starttimer);

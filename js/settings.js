@@ -446,7 +446,8 @@ SIM.SETTINGS = {
             <a href="${WEB_DB_URL}${spell.item ? 'item' : 'spell'}=${spell.id}" class="wh-tooltip"></a>
             </div></div>`);
 
-            const description = racialSpellDescription(spell, mode);
+            const description = mode === 'forever' && spell.classname === 'BattleShout' ?
+                'Increases Attack Power by 111.' : racialSpellDescription(spell, mode);
             if (description) {
                 div.find('a').removeClass('wh-tooltip').attr('href', '#');
                 div.find('.icon').attr('title', spell.name + '\n' + description);
