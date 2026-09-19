@@ -357,3 +357,45 @@ test('Spearing Strike requires an equipped two-handed weapon', () => {
     fixture.gear = {mainhand: [], offhand: [], twohand: [19334]};
     assert.ok(createConfiguredPlayer(engine, fixture).spells.spearingstrike);
 });
+
+for (const mode of ['classic', 'forever']) test(`${mode}: Slam next-MH-auto threshold ignores off-hand and checks the exact boundary`, () => {
+    const {run, player} = setup(mode);
+    run(`Object.assign(spells.find(s => s.id === 11605), {nextauto: 500, nextautoactive: true});
+        p.spells.slam = new Slam(p, 11605);
+        Object.assign(p.spells.slam, {minrage: 0, maincd: 0});`);
+    const slam = player.spells.slam;
+    player.timer = 0;
+    player.rage = 100;
+    for (const [mh, oh] of [[499, 900], [900, 499], [500, 0], [500, 500], [501, 501], [0, 0]]) {
+        player.mh.timer = mh;
+        player.oh.timer = oh;
+        assert.equal(slam.canUse(), mode === 'classic' || mh >= 500);
+    }
+    player.oh = null;
+    player.mh.timer = 499;
+    assert.equal(slam.canUse(), mode === 'classic');
+    player.mh.timer = 500;
+    assert.equal(slam.canUse(), true);
+    assert.equal(player.serializeSimulationSpec({}).player.spells.find(s => s.key === 'slam').props.nextauto,
+        mode === 'forever' ? 500 : 0);
+    run('spells.find(s => s.id === 11605).nextautoactive = false; p.spells.slam = new Slam(p, 11605)');
+    assert.equal(player.spells.slam.nextauto, 0);
+});
+
+for (const mode of ['classic', 'forever']) test(`${mode}: Slam next-auto option visibility for every rank`, () => {
+    const {engine, run} = setup(mode);
+    engine.evaluate(fs.readFileSync(require.resolve('../js/settings.js'), 'utf8'));
+    const rows = [];
+    const element = {
+        find() { return this; }, data() { return this; }, empty() { return this; },
+        append(value) { if (typeof value === 'string') rows.push(value); return this; },
+        css() { return this; }, height() { return 0; },
+    };
+    engine.evaluate('$ = () => element; setTimeout = () => {}; SIM.SETTINGS.rotation = element;', {element});
+    for (const id of [1464, 8820, 11604, 11605]) {
+        rows.length = 0;
+        run(`SIM.SETTINGS.buildSpellDetails(spells.find(s => s.id === ${id}), element)`);
+        assert.equal(rows.join('').includes('name="nextauto"'), mode === 'forever');
+        assert.equal(rows.join('').includes('Do not use if next MH auto is ready'), mode === 'forever');
+    }
+});

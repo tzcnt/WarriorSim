@@ -474,6 +474,9 @@ class Slam extends Spell {
             this.swingmode = player.talents.impslam ? 2 : 1;
         }
         this.mhthreshold = 0;
+        const config = spells.find(spell => spell.id == id);
+        this.nextauto = player.mode === 'forever' && config?.nextautoactive ?
+            Math.max(0, parseInt(config.nextauto) || 0) : 0;
     }
     dmg(weapon) {
         if (!weapon) weapon = this.player.mh;
@@ -493,7 +496,8 @@ class Slam extends Spell {
         /* start-log */ if (this.player.logging) this.player.log(`${this.name} done casting`); /* end-log */
     }
     canUse() {
-        return !this.timer && !this.player.timer && this.player.mh.timer >= this.mhthreshold && this.cost <= this.player.rage &&
+        return !this.timer && !this.player.timer && this.player.mh.timer >= this.mhthreshold &&
+            (!this.nextauto || this.player.mh.timer >= this.nextauto) && this.cost <= this.player.rage &&
             (!this.minrage || this.player.rage >= this.minrage) &&
             (!this.maincd || 
                 (this.player.spells.bloodthirst && this.player.spells.bloodthirst.timer >= this.maincd) || 

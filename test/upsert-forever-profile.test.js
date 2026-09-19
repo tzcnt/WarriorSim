@@ -225,3 +225,24 @@ test('default destination is resolved from the script, independent of the workin
     assert.equal(catalog(result.stdout).length, catalog(source).length + 1);
     assert.equal(fs.readFileSync(path.join(root, 'js/data/presets_forever.js'), 'utf8'), source);
 });
+
+test('Slam next-auto settings survive browser profile export and import', () => {
+    const {context} = browserExport();
+    let exported;
+    context.navigator.clipboard.writeText = text => { exported = text; };
+    vm.runInContext(`
+        const saved = JSON.parse(localStorage.forever0);
+        Object.assign(saved.rotation.find(s => s.id === 11605),
+            {active: true, nextauto: 650, nextautoactive: true});
+        localStorage.forever0 = JSON.stringify(saved);
+        SIM.PROFILES.exportProfile({data: () => 0});
+    `, context);
+    context.imported = JSON.parse(atob(exported));
+    const slam = context.imported.rotation.find(s => s.id === 11605);
+    assert.equal(slam.nextauto, 650);
+    assert.equal(slam.nextautoactive, true);
+    assert.equal(vm.runInContext('SIM.PROFILES.importProfile(JSON.stringify(imported), 1, session)', context), true);
+    const restored = JSON.parse(context.localStorage.forever1).rotation.find(s => s.id === 11605);
+    assert.equal(restored.nextauto, 650);
+    assert.equal(restored.nextautoactive, true);
+});

@@ -8,7 +8,7 @@ var ProfileValidation = (() => {
         'timetostart', 'timetostartactive', 'haste', 'minrage', 'minrageactive', 'maxrage',
         'maxrageactive', 'maincd', 'maincdactive', 'unqueue', 'unqueueactive', 'exmacro',
         'globals', 'globalsactive', 'afterswing', 'zerkerpriority', 'swingtimeractive',
-        'swingtimer', 'priority', 'expriority'];
+        'swingtimer', 'nextauto', 'nextautoactive', 'priority', 'expriority'];
     const settings = ['profilename', 'level', 'race', 'simulations', 'timesecsmin', 'timesecsmax',
         'executeperc', 'startrage', 'targetlevel', 'targetbasearmor', 'targetcustomarmor',
         'targetresistance', 'targetspeed', 'targetmindmg', 'targetmaxdmg', 'adjacent',

@@ -79,3 +79,20 @@ for (const mode of ['classic', 'forever']) test(`${mode}: deployed worker and ac
     const actual = worker.messages[2][1];
     assertNativeReports(actual, runReference(fixture, {sim}), `${mode} actual deployed worker`);
 });
+
+for (const mode of ['classic', 'forever']) test(`${mode}: Slam next-auto option has native parity and blocks imminent swings`, () => {
+    const assert = require('node:assert/strict');
+    const fixture = structuredClone(loadFixtures().find(f => f.mode === mode));
+    fixture.rotation = {11605: {active: true, priority: 10, expriority: 10,
+        afterswing: false, minrageactive: false, maincdactive: false, nextautoactive: true}};
+    fixture.sim = {...fixture.sim, iterations: 3, startrage: 100};
+    for (const threshold of [0, 500, 100000]) {
+        fixture.rotation[11605].nextauto = threshold;
+        const expected = runReference(fixture);
+        const actual = runNative(wasmModule, fixture);
+        assertNativeReports(actual, expected, `${mode} Slam next-auto ${threshold}`);
+        const casts = actual.player.spells.slam.data.reduce((sum, count) => sum + count, 0);
+        if (mode === 'forever' && threshold === 100000) assert.equal(casts, 0);
+        else assert.ok(casts > 0);
+    }
+});

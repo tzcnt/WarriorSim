@@ -159,6 +159,7 @@ bool spellCanUse(PlayerState& player, SpellState& spell) {
     case SpellKind::Slam: {
         return spell.timer == 0 && player.timer == 0 &&
             player.mh.timer >= value(spell, "mhthreshold"_prop) &&
+            (!player.foreverMode || player.mh.timer >= value(spell, "nextauto"_prop)) &&
             cost <= player.rage &&
             (!minrage || player.rage >= minrage) && mainCooldownReady(player, spell);
     }

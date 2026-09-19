@@ -321,6 +321,8 @@ SIM.PROFILES = {
                 if (typeof spell.exmacro !== 'undefined') obj.exmacro = spell.exmacro;
                 if (typeof spell.globals !== 'undefined') obj.globals = spell.globals;
                 if (typeof spell.globalsactive !== 'undefined') obj.globalsactive = spell.globalsactive;
+                if (typeof spell.nextauto !== 'undefined') obj.nextauto = spell.nextauto;
+                if (typeof spell.nextautoactive !== 'undefined') obj.nextautoactive = spell.nextautoactive;
                 if (typeof spell.afterswing !== 'undefined') obj.afterswing = spell.afterswing;
 
                 if (typeof spell.zerkerpriority !== 'undefined') obj.zerkerpriority = spell.zerkerpriority;
@@ -431,6 +433,8 @@ SIM.PROFILES = {
                     if (typeof newspell.exmacro !== 'undefined') spell.exmacro = newspell.exmacro;
                     if (typeof newspell.globals !== 'undefined') spell.globals = newspell.globals;
                     if (typeof newspell.globalsactive !== 'undefined') spell.globalsactive = newspell.globalsactive;
+                    if (typeof newspell.nextauto !== 'undefined') spell.nextauto = newspell.nextauto;
+                    if (typeof newspell.nextautoactive !== 'undefined') spell.nextautoactive = newspell.nextautoactive;
                     if (typeof newspell.afterswing !== 'undefined') spell.afterswing = newspell.afterswing;
 
                     if (typeof newspell.zerkerpriority !== 'undefined') spell.zerkerpriority = newspell.zerkerpriority;
