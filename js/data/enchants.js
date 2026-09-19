@@ -483,6 +483,20 @@ var enchant = {
       "ench": "1505"
     },
     ],
+   "neck": [
+     {
+       "id": "neck-strength",
+       "custom": true,
+       "name": "Strength",
+       "str": 5
+     },
+     {
+       "id": "neck-agility",
+       "custom": true,
+       "name": "Agility",
+       "agi": 5
+     }
+   ],
    "shoulder": [
     {
       "name": "Flame Mantle of the Dawn",
@@ -541,6 +555,12 @@ var enchant = {
      }
    ],
    "back": [
+     {
+       "id": "back-agility",
+       "custom": true,
+       "name": "Agility",
+       "agi": 5
+     },
      {
        "spellid": true,
        "name": "Greater Fire Resistance",
@@ -703,6 +723,12 @@ var enchant = {
      }
    ],
    "hands": [
+     {
+       "id": "hands-superior-strength",
+       "custom": true,
+       "name": "Superior Strength",
+       "str": 15
+     },
      {
        "id": 25080,
        "spellid": true,

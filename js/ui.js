@@ -1360,7 +1360,7 @@ SIM.UI = {
 
             table += `<tr data-id="${item.id}" data-temp="${item.temp || false}" class="${item.selected ? 'active' : ''} ${item.hidden ? 'hidden' : ''}">
                         ${editmode ? '<td class="hide">' + (item.hidden ? eyesvghidden : eyesvg) + '</td>' : ''}
-                        <td><a href="${WEB_DB_URL}${item.spellid ? 'spell' : 'item'}=${item.id}"></a>${item.name}</td>
+                        <td>${item.custom ? '' : `<a href="${WEB_DB_URL}${item.spellid ? 'spell' : 'item'}=${item.id}"></a>`}${item.name}</td>
                         <td>${resist || ''}</td>
                         <td>${item.bonusdmg || ''}</td>
                         <td>${item.str || ''}</td>
