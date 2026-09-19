@@ -96,14 +96,16 @@ occur on the site. --resume requires identical production build and configuratio
         const snapshot = await page.evaluate(() => {
             sharedCompute.beginForeground();
             const player = new Player(undefined, undefined, undefined, Player.getConfig());
-            if (mode !== 'forever' || !player.oh || player.mh.twohand) throw new Error('Expected a Forever dual-wield profile');
+            if (mode !== 'forever' || !player.mh || (!player.mh.twohand && !player.oh)) {
+                throw new Error('Expected a Forever dual-wield or two-handed profile');
+            }
             return {
                 buildId: SIMULATOR_BUNDLE.buildId, networkThreads: sharedCompute.networkThreads,
                 player: Player.getConfig(), sim: Simulation.getConfig(), profile: JSON.parse(localStorage[mode + (globalThis.profileid || 0)]),
                 schema: FOREVER_TALENT_SCHEMA,
                 trees: talents.map(tree => ({n: tree.n, t: tree.t.map(t => ({n: t.n, key: t.forever.key,
                     m: t.m, y: t.y, r: t.r, c: t.c, status: t.forever.implementationStatus}))})),
-                weapons: {mh: player.mh.name, oh: player.oh.name},
+                weapons: {mh: player.mh.name, oh: player.oh?.name || null},
                 rotation: spells.filter(s => s.active).map(s => ({id: s.id, name: s.name})),
                 talentActions: talents.flatMap((tree, i) => tree.t.flatMap((t, j) => {
                     const spell = spells.find(s => s.name === t.n && Number(player.level) >= (s.minlevel || 0) &&
@@ -135,7 +137,7 @@ occur on the site. --resume requires identical production build and configuratio
         if (state.identity !== identity) throw new Error('Checkpoint differs from deployed bundle/profile/search configuration; use a new --out');
         write('checkpoint.json', state);
         console.log(`Production ${snapshot.buildId}; ${snapshot.networkThreads} other shared threads`);
-        console.log(`Baseline ${baseline.map(sum).join('/')} (${sum(baseline.flat())} points, legal=${snapshot.valid}); ${snapshot.weapons.mh} / ${snapshot.weapons.oh}`);
+        console.log(`Baseline ${baseline.map(sum).join('/')} (${sum(baseline.flat())} points, legal=${snapshot.valid}); ${[snapshot.weapons.mh, snapshot.weapons.oh].filter(Boolean).join(' / ')}`);
         const candidateKey = row => `${key(row.ranks)}:${JSON.stringify(row.enabledTalents || [])}`;
         const changes = row => sum(row.ranks.flatMap((tree, i) => tree.map((rank, j) => Math.abs(rank - baseline[i][j]))));
         const compare = (a, b) => Math.abs(b.mean - a.mean) > 1e-6 ? b.mean - a.mean :
