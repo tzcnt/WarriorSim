@@ -200,10 +200,6 @@ var profilePresets = [
             },
             "rotation": [
                 {
-                    "id": "11551",
-                    "active": true
-                },
-                {
                     "id": 11574,
                     "active": true,
                     "duration": 16,
@@ -216,13 +212,17 @@ var profilePresets = [
                 {
                     "id": "11567",
                     "active": true,
-                    "minrage": "35",
+                    "minrage": "100",
                     "minrageactive": true,
                     "maincd": "2",
                     "maincdactive": false,
                     "unqueue": 15,
                     "unqueueactive": false,
                     "exmacro": true
+                },
+                {
+                    "id": "11551",
+                    "active": true
                 },
                 {
                     "id": "2687",
@@ -247,12 +247,12 @@ var profilePresets = [
                 {
                     "id": "11585",
                     "active": true,
-                    "maxrage": "40",
+                    "maxrage": "43",
                     "maxrageactive": true,
                     "maincd": 2,
                     "maincdactive": false,
                     "priority": "5",
-                    "expriority": 1
+                    "expriority": "1"
                 },
                 {
                     "id": "7373",
@@ -260,7 +260,7 @@ var profilePresets = [
                     "duration": 15,
                     "durationactive": false,
                     "minrage": "10",
-                    "minrageactive": true,
+                    "minrageactive": false,
                     "priority": "2",
                     "expriority": 0
                 },
@@ -336,9 +336,6 @@ var profilePresets = [
                 }
             ],
             "enchant": {
-                "neck": [
-                    "neck-strength"
-                ],
                 "mainhand": [
                     18262,
                     20034
@@ -349,6 +346,9 @@ var profilePresets = [
                 ],
                 "head": [
                     18329
+                ],
+                "neck": [
+                    "neck-strength"
                 ],
                 "back": [
                     "back-agility"
