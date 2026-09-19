@@ -17,6 +17,7 @@ function options(args) {
         method: {type: 'string', default: 'local'}, bounds: {type: 'string'},
         'start-from': {type: 'string'},
         preset: {type: 'string'},
+        spec: {type: 'string', default: 'fury'},
         starts: {type: 'string', default: '24'}, beam: {type: 'string', default: '4'},
         iterations: {type: 'string', default: '5000'}, refine: {type: 'string', default: '50000'},
         final: {type: 'string', default: '500000'}, finalists: {type: 'string', default: '8'},
@@ -32,6 +33,7 @@ function options(args) {
     }
     if (values.seed > 0xffffffff || values.threads > 64 || values.iterations < 2 || values.refine < 2 || values.final < 2) throw new Error('Invalid seed, threads, or sample size');
     searchSeeds(values.seed, 3, Math.max(values.iterations, values.refine, values.final));
+    if (!['fury', 'arms'].includes(values.spec)) throw new Error('--spec must be fury or arms');
     if (!['local', 'exhaustive'].includes(values.method)) throw new Error('--method must be local or exhaustive');
     if (values.method === 'exhaustive' && !values.bounds) throw new Error('Exhaustive search requires explicit --bounds JSON');
     const url = new URL(values.site);
@@ -52,6 +54,7 @@ async function main(args = process.argv.slice(2)) {
   --bounds FILE       JSON object: talent key -> fixed rank or [minimum, maximum]
   --start-from FILE   Also seed local search with a previous results.json winner
   --preset ID         Load a deployed preset explicitly before measuring
+  --spec fury|arms    Require Bloodthirst/31 Fury or Mortal Strike/31 Arms (default fury)
   --starts 24 --beam 4 --rounds 30 --limit 100000
   --iterations 5000 --refine 50000 --final 500000 --finalists 8
   --seed 20260913 --threads 2 --resume --talent-actions
@@ -59,7 +62,7 @@ Requires npm ci --prefix compute and npm run --prefix compute install:browser.
 Uses a fresh browser profile, the existing rotation (optionally also toggling
 talent abilities and scheduling unused talent cooldowns with
 --talent-actions), exactly level-9 points,
-Bloodthirst, at least 31 Fury, and no Protection. No deployments or profile writes
+the selected capstone, at least 31 points in its tree, and no Protection. No deployments or profile writes
 occur on the site. --resume requires identical production build and configuration.`);
         return;
     }
@@ -125,7 +128,7 @@ occur on the site. --resume requires identical production build and configuratio
         if (extraStart && (extraStart.buildId !== snapshot.buildId || !Array.isArray(extraStart.winner?.ranks))) {
             throw new Error('--start-from must contain a winner from the same production bundle');
         }
-        const space = domain(snapshot.trees, Number(snapshot.player.level) - 9, bounds);
+        const space = domain(snapshot.trees, Number(snapshot.player.level) - 9, bounds, opt.spec);
         if (extraStart && !space.accepts(extraStart.winner.ranks)) throw new Error('--start-from winner violates the search constraints');
         const baseline = snapshot.trees.map(tree => tree.t.map(t => t.c));
         const identity = createHash('sha256').update(JSON.stringify({format: 4, buildId: snapshot.buildId,

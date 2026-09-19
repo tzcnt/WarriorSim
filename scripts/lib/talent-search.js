@@ -20,14 +20,19 @@ function valid(trees, ranks, points = 51, complete = true) {
     return complete ? total === points : total <= points;
 }
 
-function domain(trees, points = 51, bounds = {}) {
+function domain(trees, points = 51, bounds = {}, specialization = 'fury') {
+    if (!['fury', 'arms'].includes(specialization)) throw new Error('Unknown specialization');
+    const primaryName = specialization === 'arms' ? 'Arms' : 'Fury';
+    const capstoneKey = specialization === 'arms' ? 'arms:mortal-strike' : 'fury:bloodthirst';
+    const primary = trees.findIndex(tree => tree.n === primaryName);
+    const capstone = trees[primary].t.findIndex(t => t.key === capstoneKey);
     const known = new Set(trees.flatMap(tree => tree.t.map(t => t.key)));
     for (const name of Object.keys(bounds)) if (!known.has(name)) throw new Error(`Unknown talent: ${name}`);
     const ranges = trees.map(tree => tree.t.map(t => {
         let range = tree.n === 'Protection' || t.y * 5 >= points - 31 ? [0, 0] : [0, t.m];
-        // Fury can spend all points; the 20-point limit applies only to Arms.
-        if (tree.n === 'Fury') range = [0, t.m];
-        if (t.key === 'fury:bloodthirst') range = [1, 1];
+        // The primary tree can spend all points; the other tree has at most points - 31.
+        if (tree.n === primaryName) range = [0, t.m];
+        if (t.key === capstoneKey) range = [1, 1];
         if (bounds[t.key] !== undefined) range = typeof bounds[t.key] === 'number' ?
             [bounds[t.key], bounds[t.key]] : bounds[t.key];
         if (!Array.isArray(range) || range.length !== 2 ||
@@ -36,12 +41,10 @@ function domain(trees, points = 51, bounds = {}) {
         }
         return range;
     }));
-    const fury = trees.findIndex(tree => tree.n === 'Fury');
-    const bloodthirst = trees[fury].t.findIndex(t => t.key === 'fury:bloodthirst');
-    const accepts = ranks => valid(trees, ranks, points) && sum(ranks[fury]) >= 31 &&
-        ranks[fury][bloodthirst] === 1 && trees.every((tree, i) => tree.n !== 'Protection' || !sum(ranks[i])) &&
+    const accepts = ranks => valid(trees, ranks, points) && sum(ranks[primary]) >= 31 &&
+        ranks[primary][capstone] === 1 && trees.every((tree, i) => tree.n !== 'Protection' || !sum(ranks[i])) &&
         ranges.every((tree, i) => tree.every(([lo, hi], j) => ranks[i][j] >= lo && ranks[i][j] <= hi));
-    return {trees, ranges, points, accepts};
+    return {trees, ranges, points, accepts, primary, capstone};
 }
 
 function neighbors(space, ranks) {
@@ -103,16 +106,15 @@ function startingBuilds(space, baseline, count, seed) {
     const rng = random(seed), builds = new Map();
     if (space.accepts(baseline)) builds.set(key(baseline), baseline);
     // Independent legal fills can cross prerequisite barriers that one-point moves cannot.
-    const fury = space.trees.findIndex(tree => tree.n === 'Fury');
-    const bt = space.trees[fury].t.findIndex(t => t.key === 'fury:bloodthirst');
+    const {primary, capstone} = space;
     for (let attempt = 0; builds.size < count && attempt < count * 100; attempt++) {
         const ranks = space.trees.map(tree => tree.t.map(() => 0));
         const weights = space.trees.map(tree => tree.t.map(t =>
             (t.status === 'outside-dps-model' ? .05 : 1) * Math.exp(rng() * 4)));
-        const add = onlyFury => {
+        const add = onlyPrimary => {
             const choices = [];
             space.trees.forEach((tree, i) => tree.t.forEach((t, j) => {
-                if ((onlyFury && i !== fury) || (i === fury && j === bt) || ranks[i][j] >= space.ranges[i][j][1]) return;
+                if ((onlyPrimary && i !== primary) || (i === primary && j === capstone) || ranks[i][j] >= space.ranges[i][j][1]) return;
                 ranks[i][j]++;
                 if (valid(space.trees, ranks, space.points, false)) choices.push({i, j, weight: weights[i][j]});
                 ranks[i][j]--;
@@ -124,7 +126,7 @@ function startingBuilds(space, baseline, count, seed) {
             return true;
         };
         for (let n = 0; n < 30; n++) if (!add(true)) break;
-        ranks[fury][bt] = 1;
+        ranks[primary][capstone] = 1;
         if (!valid(space.trees, ranks, space.points, false)) continue;
         while (sum(ranks.flat()) < space.points && add(false)) { /* Fill remaining points. */ }
         if (space.accepts(ranks)) builds.set(key(ranks), ranks);
