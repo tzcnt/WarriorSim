@@ -123,6 +123,9 @@ class Player {
             else if (testType == 4) {
                 this.base.agi += testItem;
             }
+            else if (testType == 5) {
+                this.base.haste *= 1 + testItem / 100;
+            }
         }
         else {
             this.testItem = testItem;

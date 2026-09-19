@@ -362,7 +362,7 @@ SIM.UI = {
     simulateWeights: function(player, mean, varmean) {
         const view = this;
         const btn = view.sidebar.find('.js-weights');
-        const totalTasks = (player.auras.bloodfury ? 4 : 3);
+        const totalTasks = 6;
         view.sidebar.find('#weights-div').css('display', 'block');
         view.sidebar.find('#weights-div > div').addClass('loading').append('<span class="spinner"><span class="bounce1"></span><span class="bounce2"></span><span class="bounce3"></span></span>');
         let tasksDone = 0;
@@ -386,6 +386,7 @@ SIM.UI = {
             updateStat("ap", await simulateWeight(0, 40));
             updateStat("crit", await simulateWeight(1, 1));
             updateStat("hit", await simulateWeight(2, 1));
+            updateStat("haste", await simulateWeight(5, 1));
         }
 
         simulateAll().then(
