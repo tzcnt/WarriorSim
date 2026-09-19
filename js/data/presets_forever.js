@@ -915,29 +915,18 @@ var profilePresets = [
             },
             "rotation": [
                 {
-                    "id": "11551",
-                    "active": true
-                },
-                {
                     "id": 11574,
                     "active": true,
                     "duration": 16,
                     "durationactive": true,
-                    "maxrage": "25",
+                    "maxrage": "35",
                     "maxrageactive": true,
                     "priority": "5",
                     "expriority": "0"
                 },
                 {
-                    "id": "11567",
-                    "active": true,
-                    "minrage": "115",
-                    "minrageactive": true,
-                    "maincd": "2",
-                    "maincdactive": false,
-                    "unqueue": 15,
-                    "unqueueactive": false,
-                    "exmacro": true
+                    "id": "11551",
+                    "active": true
                 },
                 {
                     "id": "2687",
@@ -948,9 +937,21 @@ var profilePresets = [
                     "timetostartactive": true
                 },
                 {
+                    "id": "11597",
+                    "active": true,
+                    "duration": 15,
+                    "durationactive": false,
+                    "minrage": 50,
+                    "minrageactive": false,
+                    "globals": "1",
+                    "globalsactive": true,
+                    "priority": 10,
+                    "expriority": 0
+                },
+                {
                     "id": "11585",
                     "active": true,
-                    "maxrage": "70",
+                    "maxrage": "50",
                     "maxrageactive": true,
                     "maincd": 2,
                     "maincdactive": false,
@@ -962,8 +963,8 @@ var profilePresets = [
                     "active": true,
                     "duration": 15,
                     "durationactive": false,
-                    "minrage": "10",
-                    "minrageactive": false,
+                    "minrage": "17",
+                    "minrageactive": true,
                     "priority": "1",
                     "expriority": 0
                 },
@@ -982,7 +983,7 @@ var profilePresets = [
                     "active": true,
                     "minrage": "50",
                     "minrageactive": false,
-                    "maxrage": "100",
+                    "maxrage": "60",
                     "maxrageactive": true,
                     "maincd": "2",
                     "maincdactive": false,
@@ -1020,6 +1021,8 @@ var profilePresets = [
                     "minrageactive": false,
                     "maincd": "1",
                     "maincdactive": false,
+                    "nextauto": "700",
+                    "nextautoactive": true,
                     "afterswing": false,
                     "priority": "8",
                     "expriority": "0"
@@ -1042,11 +1045,11 @@ var profilePresets = [
                 }
             ],
             "enchant": {
-                "neck": [
-                    "neck-strength"
-                ],
                 "head": [
                     11645
+                ],
+                "neck": [
+                    "neck-strength"
                 ],
                 "back": [
                     "back-agility"
