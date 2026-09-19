@@ -71,6 +71,45 @@ test('independent starts are deterministic and obey all search constraints', () 
     assert.equal(new Set(first.map(key)).size, 5);
 });
 
+test('Arms search retains Mortal Strike, enforces prerequisites, and explores legal allocations', () => {
+    const {trees} = fixture();
+    const context = {};
+    vm.runInNewContext(fs.readFileSync('js/data/presets_forever.js', 'utf8'), context);
+    const baseline = JSON.parse(JSON.stringify(context.profilePresets.find(p =>
+        p.id === 'forever-two-handed-arms').profile.talents.map(t => t.t)));
+    const space = domain(trees, 51, {}, 'arms');
+    assert.ok(space.accepts(baseline));
+    const starts = startingBuilds(space, baseline, 12, 123);
+    assert.equal(starts.length, 12);
+    assert.deepEqual(starts, startingBuilds(space, baseline, 12, 123));
+    for (const ranks of [...starts, ...neighbors(space, baseline)]) {
+        assert.ok(space.accepts(ranks));
+        assert.ok(ranks[0].reduce((a, b) => a + b, 0) >= 31);
+        assert.equal(ranks[0][16], 1);
+        assert.equal(ranks[1][17], 0);
+        assert.equal(ranks[2].reduce((a, b) => a + b, 0), 0);
+    }
+    for (const index of [12, 16]) {
+        const invalid = structuredClone(baseline);
+        invalid[0][index]--;
+        invalid[1][0]++;
+        assert.equal(space.accepts(invalid), false);
+    }
+    const bounds = Object.fromEntries(trees.flatMap((t, i) => t.t.map((t, j) => [t.key, baseline[i][j]])));
+    bounds['arms:improved-slam'] = [0, 2];
+    bounds['arms:bloodthrill'] = [0, 5];
+    const bounded = domain(trees, 51, bounds, 'arms'), expected = [];
+    for (let slam = 0; slam <= 2; slam++) for (let bloodthrill = 0; bloodthrill <= 5; bloodthrill++) {
+        const ranks = structuredClone(baseline);
+        ranks[0][14] = slam;
+        ranks[0][11] = bloodthrill;
+        if (bounded.accepts(ranks)) expected.push(key(ranks));
+    }
+    assert.deepEqual(enumerate(bounded).map(key).sort(), expected.sort());
+    assert.equal(options(['--spec', 'arms']).spec, 'arms');
+    assert.throws(() => options(['--spec', 'protection']), /--spec/);
+});
+
 test('statistics distinguish per-fight mean from duration-weighted UI DPS', () => {
     // Two fights: 10 DPS over 1 second and 20 DPS over 3 seconds.
     const result = statistics({iterations: 2, totaldmg: 70, totalduration: 4, sumdps: 30, sumdps2: 500});
