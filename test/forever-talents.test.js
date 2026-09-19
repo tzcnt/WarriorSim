@@ -110,6 +110,30 @@ test('Improved Bloodrage scales the initial gain and all ten fractional ticks', 
     assert.equal(player.auras.bloodrage.timer, 0);
 });
 
+for (const mode of ['classic', 'forever']) test(`${mode}: Battle Shout starts free and only becomes usable after expiring`, () => {
+    const {run, player} = setup(mode);
+    player.reset(50);
+    player.talents.boomingvoice = 0;
+    run('p.auras.battleshout = new BattleShout(p, 11551)');
+    const shout = player.auras.battleshout;
+    const duration = mode === 'forever' ? 180000 : 120000;
+    const initialAP = player.stats.ap;
+    run('p.auras.battleshout.use(true)');
+    assert.equal(shout.timer, duration);
+    assert.equal(player.rage, 50);
+    assert.equal(player.timer, 0);
+    assert.ok(player.stats.ap > initialAP);
+    run(`step = ${duration - 1}; p.auras.battleshout.step()`);
+    assert.equal(shout.canUse(), false);
+    run(`step = ${duration}; p.auras.battleshout.step()`);
+    assert.equal(player.stats.ap, initialAP);
+    assert.equal(shout.canUse(), true);
+    run('p.auras.battleshout.use()');
+    assert.equal(player.rage, 50 - shout.cost);
+    assert.equal(player.timer, 1500);
+    assert.equal(shout.timer, duration * 2);
+});
+
 for (const mode of ['classic', 'forever']) test(`${mode}: Battle Shout refreshes still cost rage and a GCD with a queued strike`, () => {
     const {run, player} = setup(mode);
     player.reset(50);

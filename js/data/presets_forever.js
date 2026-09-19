@@ -201,6 +201,10 @@ var profilePresets = [
             },
             "rotation": [
                 {
+                    "id": "11551",
+                    "active": true
+                },
+                {
                     "id": 11574,
                     "active": true,
                     "duration": 16,
@@ -562,6 +566,10 @@ var profilePresets = [
             },
             "rotation": [
                 {
+                    "id": "11551",
+                    "active": true
+                },
+                {
                     "id": "11567",
                     "active": true,
                     "minrage": "90",
@@ -892,6 +900,10 @@ var profilePresets = [
                 "twohand": 17076
             },
             "rotation": [
+                {
+                    "id": "11551",
+                    "active": true
+                },
                 {
                     "id": 11574,
                     "active": true,
