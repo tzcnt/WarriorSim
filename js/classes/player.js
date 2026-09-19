@@ -454,10 +454,11 @@ class Player {
         }
         for (let buff of buffs) {
             if (buff.active) {
+                if (buff.mode && buff.mode !== this.mode) continue;
                 let ap = 0, str = 0, agi = 0, sta = 0;
                 if (buff.name == "Blessing of Might") {
-                    let impmight = buffs.filter(s => s.mightmod && s.active)[0];
-                    ap = ~~(buff.ap * (impmight ? impmight.mightmod : 1));
+                    let impmight = buffs.filter(s => s.mightmod && s.active && (!s.mode || s.mode === this.mode))[0];
+                    ap = this.mode === 'forever' ? 133 : ~~(buff.ap * (impmight ? impmight.mightmod : 1));
                 }
                 if (buff.name == "Mark of the Wild") {
                     let impmotw = buffs.filter(s => s.motwmod && s.active)[0];

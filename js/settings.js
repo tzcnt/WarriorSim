@@ -582,6 +582,11 @@ SIM.SETTINGS = {
         let worldbuffs = '', consumes = '', other = '', armor = '', stances = '';
         for (let buff of buffs) {
 
+            if (buff.mode && buff.mode !== mode) {
+                buff.active = false;
+                continue;
+            }
+
             // level restrictions
             let min = parseInt(buff.minlevel || 0);
             let max = parseInt(buff.maxlevel || 60);
@@ -610,9 +615,11 @@ SIM.SETTINGS = {
                             <img src="https://wow.zamimg.com/images/wow/icons/medium/${buff.iconname.toLowerCase()}.jpg " alt="${buff.name}">
                             <a href="${WEB_DB_URL}${wh}=${tooltip}" class="wh-tooltip"></a>
                         </div>`;
-            if (buff.description) {
+            const description = mode === 'forever' && buff.group === 'blessingmight'
+                ? 'Increases Attack Power by 133.' : buff.description;
+            if (description) {
                 const icon = $(html);
-                icon.attr('title', buff.name + '\n' + buff.description);
+                icon.attr('title', buff.name + '\n' + description);
                 icon.find('a').removeClass('wh-tooltip').attr('href', '#');
                 html = icon[0].outerHTML;
             }

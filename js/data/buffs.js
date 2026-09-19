@@ -344,6 +344,7 @@ var buffs = [
       id: 20048,
       spellid: true,
       name: "Improved Blessing of Might",
+      mode: "classic",
       iconname: "spell_holy_fistofjustice",
       mightmod: 1.2,
       minlevel: 4,
