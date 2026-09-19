@@ -337,6 +337,9 @@ var profilePresets = [
                 }
             ],
             "enchant": {
+                "neck": [
+                    "neck-strength"
+                ],
                 "mainhand": [
                     18262,
                     20034
@@ -349,7 +352,7 @@ var profilePresets = [
                     18329
                 ],
                 "back": [
-                    13882
+                    "back-agility"
                 ],
                 "chest": [
                     13941
@@ -358,7 +361,7 @@ var profilePresets = [
                     20010
                 ],
                 "hands": [
-                    20013
+                    "hands-superior-strength"
                 ],
                 "legs": [
                     18329
@@ -680,11 +683,14 @@ var profilePresets = [
                 }
             ],
             "enchant": {
+                "neck": [
+                    "neck-strength"
+                ],
                 "head": [
                     11645
                 ],
                 "back": [
-                    13882
+                    "back-agility"
                 ],
                 "chest": [
                     13941
@@ -693,7 +699,7 @@ var profilePresets = [
                     20010
                 ],
                 "hands": [
-                    20013
+                    "hands-superior-strength"
                 ],
                 "legs": [
                     11645
@@ -1028,11 +1034,14 @@ var profilePresets = [
                 }
             ],
             "enchant": {
+                "neck": [
+                    "neck-strength"
+                ],
                 "head": [
                     11645
                 ],
                 "back": [
-                    13882
+                    "back-agility"
                 ],
                 "chest": [
                     13941
@@ -1041,7 +1050,7 @@ var profilePresets = [
                     20010
                 ],
                 "hands": [
-                    20013
+                    "hands-superior-strength"
                 ],
                 "legs": [
                     11645
