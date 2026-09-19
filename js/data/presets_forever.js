@@ -589,6 +589,18 @@ var profilePresets = [
                     "timetostartactive": true
                 },
                 {
+                    "id": "11597",
+                    "active": true,
+                    "duration": 15,
+                    "durationactive": false,
+                    "minrage": 50,
+                    "minrageactive": false,
+                    "globals": "1",
+                    "globalsactive": true,
+                    "priority": 10,
+                    "expriority": 0
+                },
+                {
                     "id": "11585",
                     "active": true,
                     "maxrage": "58",
@@ -603,8 +615,8 @@ var profilePresets = [
                     "active": true,
                     "duration": 15,
                     "durationactive": false,
-                    "minrage": "10",
-                    "minrageactive": false,
+                    "minrage": "16",
+                    "minrageactive": true,
                     "priority": 2,
                     "expriority": 0
                 },
