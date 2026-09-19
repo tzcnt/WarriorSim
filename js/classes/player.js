@@ -462,7 +462,7 @@ class Player {
                     ap = this.mode === 'forever' ? 133 : ~~(buff.ap * (impmight ? impmight.mightmod : 1));
                 }
                 if (buff.name == "Mark of the Wild") {
-                    let impmotw = buffs.filter(s => s.motwmod && s.active)[0];
+                    let impmotw = buffs.filter(s => s.motwmod && s.active && (!s.mode || s.mode === this.mode))[0];
                     str = ~~(buff.str * (impmotw ? impmotw.motwmod : 1));
                     agi = ~~(buff.agi * (impmotw ? impmotw.motwmod : 1));
                     sta = ~~(buff.sta * (impmotw ? impmotw.motwmod : 1));
@@ -498,15 +498,17 @@ class Player {
                 this.base.moddmgdone += buff.moddmgdone || 0;
                 this.base.moddmgtaken += buff.moddmgtaken || 0;
                 this.base.defense += buff.defense || 0;
+                if (buff.playerarmor) this.base.armor = (this.base.armor || 0) + buff.playerarmor;
 
                 if (buff.resist) {
-                    let impmotw = buff.name == "Mark of the Wild" && buffs.filter(s => s.motwmod && s.active)[0];
+                    let impmotw = buff.name == "Mark of the Wild" && buffs.filter(s => s.motwmod && s.active && (!s.mode || s.mode === this.mode))[0];
                     if (buff.name == "Mark of the Wild" && buffs.filter(s => s.mrp && s.active)[0]) continue;
                     if ((buff.name == "Mark of the Wild" || buff.mrp) && buffs.filter(s => s.fra && s.active)[0]) continue;
                     this.base.resist.fire += ~~(buff.resist.fire * (impmotw ? impmotw.motwmod : 1) || 0);
                     this.base.resist.frost += ~~(buff.resist.frost * (impmotw ? impmotw.motwmod : 1) || 0);
                     this.base.resist.nature += ~~(buff.resist.nature * (impmotw ? impmotw.motwmod : 1) || 0);
                     this.base.resist.shadow += ~~(buff.resist.shadow * (impmotw ? impmotw.motwmod : 1) || 0);
+                    this.base.resist.arcane += ~~(buff.resist.arcane * (impmotw ? impmotw.motwmod : 1) || 0);
                 }
                 
             }

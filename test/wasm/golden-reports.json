@@ -818,33 +818,32 @@
     },
     "forever-dw-fury": {
       "iterations": 20,
-      "totaldmg": 231834.97420450265,
+      "totaldmg": 233187.00563548523,
       "totalduration": 405.07,
-      "mindps": 345.7635590335328,
-      "maxdps": 978.3452994483798,
-      "sumdps": 11486.401083575489,
-      "sumdps2": 6992731.28251399,
+      "mindps": 346.86570216309417,
+      "maxdps": 981.4820103679441,
+      "sumdps": 11555.576347308663,
+      "sumdps2": 7070915.199583353,
       "spread": {
-        "346": 1,
-        "436": 1,
-        "437": 1,
-        "441": 1,
-        "447": 1,
-        "470": 1,
-        "487": 1,
-        "504": 1,
-        "512": 1,
-        "530": 1,
-        "582": 1,
-        "612": 1,
-        "631": 1,
-        "648": 1,
-        "652": 1,
-        "653": 1,
-        "672": 1,
-        "699": 1,
-        "752": 1,
-        "978": 1
+        "347": 1,
+        "438": 2,
+        "443": 1,
+        "448": 1,
+        "471": 1,
+        "505": 1,
+        "514": 1,
+        "517": 1,
+        "532": 1,
+        "584": 1,
+        "614": 1,
+        "633": 1,
+        "650": 1,
+        "654": 1,
+        "656": 1,
+        "674": 1,
+        "701": 1,
+        "755": 1,
+        "981": 1
       },
       "player": {
         "auras": {
@@ -907,7 +906,7 @@
           "deepwounds": {
             "name": "Deep Wounds",
             "uptime": 378635,
-            "totaldmg": 27200.48345377023,
+            "totaldmg": 27428.47844023788,
             "totalusedrage": 0,
             "cost": 0
           },
@@ -944,7 +943,7 @@
           "heroicstrike": {
             "name": "Heroic Strike",
             "uptime": 0,
-            "totaldmg": 6270.328417624172,
+            "totaldmg": 6287.644983262462,
             "totalusedrage": 0,
             "cost": 13,
             "data": [
@@ -972,7 +971,7 @@
           "overpower": {
             "name": "Overpower",
             "uptime": 0,
-            "totaldmg": 11123.62435537863,
+            "totaldmg": 11162.317922735907,
             "totalusedrage": 0,
             "cost": 5,
             "data": [
@@ -1014,7 +1013,7 @@
           "whirlwind": {
             "name": "Whirlwind",
             "uptime": 0,
-            "totaldmg": 11328.351691848367,
+            "totaldmg": 11371.702818239391,
             "totalusedrage": 0,
             "cost": 25,
             "data": [
@@ -1028,7 +1027,7 @@
           "bloodthirst": {
             "name": "Bloodthirst",
             "uptime": 0,
-            "totaldmg": 19888.82203926536,
+            "totaldmg": 20011.709943001893,
             "totalusedrage": 0,
             "cost": 30,
             "data": [
@@ -1056,19 +1055,19 @@
         },
         "mh": {
           "name": "Deathbringer",
-          "totaldmg": 77941.94594591146,
+          "totaldmg": 78656.72038758615,
           "totalprocdmg": 648.6,
           "data": [
-            23,
+            22,
             33,
             16,
-            50,
+            51,
             91
           ]
         },
         "oh": {
           "name": "Brutality Blade",
-          "totaldmg": 45331.488345036356,
+          "totaldmg": 45518.501184753455,
           "totalprocdmg": 0,
           "data": [
             40,

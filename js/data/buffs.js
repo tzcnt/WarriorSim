@@ -226,6 +226,7 @@ var buffs = [
       id: 17055,
       spellid: true,
       name: "Improved Mark of the Wild",
+      mode: "classic",
       iconname: "spell_nature_regeneration",
       motwmod: 1.35,
       minlevel: 10
@@ -1040,6 +1041,11 @@ var foreverTotemBuffs = {
 };
 
 function getBuffForMode(buff, gameMode) {
+   if (gameMode === 'forever' && buff.group === 'motw') {
+      return {...buff, str: 16, agi: 16, sta: 16, int: 16, spi: 16, playerarmor: 385,
+         resist: {fire: 27, frost: 27, nature: 27, shadow: 27, arcane: 27},
+         description: 'Increases all attributes by 16, all resistances by 27, and armor by 385.'};
+   }
    return gameMode === 'forever' && foreverTotemBuffs[buff.group]
       ? {...buff, ...foreverTotemBuffs[buff.group]} : buff;
 }
