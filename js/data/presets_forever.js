@@ -202,6 +202,16 @@ var profilePresets = [
             },
             "rotation": [
                 {
+                    "id": 11574,
+                    "active": true,
+                    "duration": 16,
+                    "durationactive": true,
+                    "maxrage": "25",
+                    "maxrageactive": true,
+                    "priority": "5",
+                    "expriority": "0"
+                },
+                {
                     "id": "11567",
                     "active": true,
                     "minrage": "35",
@@ -235,11 +245,11 @@ var profilePresets = [
                 {
                     "id": "11585",
                     "active": true,
-                    "maxrage": "52",
+                    "maxrage": "40",
                     "maxrageactive": true,
                     "maincd": 2,
                     "maincdactive": false,
-                    "priority": 6,
+                    "priority": "5",
                     "expriority": 1
                 },
                 {
@@ -249,7 +259,7 @@ var profilePresets = [
                     "durationactive": false,
                     "minrage": "10",
                     "minrageactive": true,
-                    "priority": 2,
+                    "priority": "2",
                     "expriority": 0
                 },
                 {
@@ -317,7 +327,7 @@ var profilePresets = [
                 {
                     "id": "forever:elunes-light",
                     "active": true,
-                    "timetoend": "31",
+                    "timetoend": 31,
                     "timetoendactive": true,
                     "timetostart": 0,
                     "timetostartactive": false
@@ -333,7 +343,7 @@ var profilePresets = [
                     20034
                 ],
                 "head": [
-                    11645
+                    18329
                 ],
                 "back": [
                     13882
@@ -348,7 +358,7 @@ var profilePresets = [
                     20013
                 ],
                 "legs": [
-                    11645
+                    18329
                 ],
                 "feet": [
                     13890
