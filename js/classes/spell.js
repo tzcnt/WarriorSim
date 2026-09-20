@@ -1121,7 +1121,7 @@ class TouchOfTheGrave extends Aura {
     constructor(player) {
         super(player, undefined, 'Touch of the Grave');
         this.chance = 500;
-        this.cooldown = 0; // No internal cooldown, per the supplied assumption.
+        this.cooldown = 1; // Shared internal cooldown across all eligible hits.
         this.healthcoeff = .05;
         this.idmg = this.totaldmg = 0;
     }

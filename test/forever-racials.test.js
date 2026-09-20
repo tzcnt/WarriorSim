@@ -251,12 +251,12 @@ test('Eureka consumes at queued swing execution and once for all Whirlwind hits'
     assert.equal(ww.eurekamod, 1);
 });
 
-test('Touch of the Grave has a 5% chance, scales with HP and can proc on simultaneous hits', () => {
+test('Touch of the Grave has a 5% chance, scales with HP and shares a 1 second cooldown', () => {
     const {player: p, run} = setup('Undead');
     const grave = p.auras.touchofthegrave;
     p.maxhealth = 6000;
     assert.equal(grave.chance, 500);
-    assert.equal(grave.cooldown, 0);
+    assert.equal(grave.cooldown, 1);
     run('rng10k = () => 499; p.magicproc = proc => proc.magicdmg;');
     for (const result of ['MISS', 'DODGE']) run(`p.dealdamage(100, RESULT.${result}, p.mh, null, false)`);
     run('p.dealdamage(0, RESULT.HIT, p.mh, null, false)');
@@ -264,8 +264,12 @@ test('Touch of the Grave has a 5% chance, scales with HP and can proc on simulta
     run('p.dealdamage(100, RESULT.HIT, p.mh, null, false)');
     assert.equal(grave.totaldmg, 300);
     run('p.dealdamage(100, RESULT.HIT, p.oh, null, false)');
-    assert.equal(grave.totaldmg, 600, 'no ICD between hands at the same timestamp');
-    run('rng10k = () => 500; p.dealdamage(100, RESULT.HIT, p.mh, null, false)');
+    assert.equal(grave.totaldmg, 300, 'simultaneous off-hand hit shares the cooldown');
+    run('step = 999; p.dealdamage(100, RESULT.HIT, p.oh, null, false)');
+    assert.equal(grave.totaldmg, 300);
+    run('step = 1000; p.dealdamage(100, RESULT.HIT, p.oh, null, false)');
+    assert.equal(grave.totaldmg, 600, 'off-hand can proc at exactly 1 second');
+    run('step = 2000; rng10k = () => 500; p.dealdamage(100, RESULT.HIT, p.mh, null, false)');
     assert.equal(grave.totaldmg, 600, 'roll 500 is outside the 5% proc range');
     p.maxhealth = 12000;
     run('rng10k = () => 499; p.dealdamage(100, RESULT.HIT, p.mh, null, false)');
@@ -275,6 +279,32 @@ test('Touch of the Grave has a 5% chance, scales with HP and can proc on simulta
     run('p.dealdamage(100, RESULT.HIT, p.mh, null, false)');
     assert.equal(grave.idmg, 600);
     assert.equal(grave.totaldmg, 1800);
+});
+
+test('Touch of the Grave checks melee and magic ability hits and ignores armor', () => {
+    const {player: p, run} = setup('Undead');
+    p.maxhealth = 6000;
+    p.target.misschance = 0;
+    p.target.mitigation = 1;
+    p.stats.spellcrit = 0;
+    p.stats.spelldmgmod = 1;
+    p.talents.weaponmasterarp = 0;
+    run('rng10k = () => 499');
+    for (const reduction of [0, .25, .5, .75]) {
+        p.armorReduction = reduction;
+        for (const defense of ['MELEE', 'MAGIC']) {
+            const before = p.auras.touchofthegrave.totaldmg;
+            run(`step += 1000; p.dealdamage(100, RESULT.MISS, p.mh,
+                {defenseType: DEFENSETYPE.${defense}, school: SCHOOL.PHYSICAL}, false)`);
+            assert.equal(p.auras.touchofthegrave.totaldmg, before);
+            run(`p.dealdamage(100, RESULT.HIT, p.mh,
+                {defenseType: DEFENSETYPE.${defense}, school: SCHOOL.PHYSICAL}, false)`);
+            assert.equal(p.auras.touchofthegrave.totaldmg - before, 300);
+            run('p.dealdamage(100, RESULT.HIT, p.mh, null, false)');
+            assert.equal(p.auras.touchofthegrave.totaldmg - before, 300,
+                'ability proc also puts autoattacks on cooldown');
+        }
+    }
 });
 
 test('maximum HP uses race, gear, enchants and selected buffs; an override is serialized', () => {

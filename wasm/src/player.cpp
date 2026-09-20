@@ -644,7 +644,7 @@ double PlayerState::dealDamage(double dmg, Result result, WeaponState& weapon,
     if (!adjacent) {
         addRage(dmg, result, weapon, ability);
     }
-    if (landed && dmg > 0 && (!ability || ability->props.integer("defenseType"_prop, 2) == 2)) {
+    if (landed && dmg > 0) {
         if (auto* grave = aura("touchofthegrave"_action); grave && step >= grave->cooldownTimer && rng.tenK() < grave->props.number("chance"_prop)) {
             grave->cooldownTimer = step + grave->props.number("cooldown"_prop) * 1000;
             ProcState proc;

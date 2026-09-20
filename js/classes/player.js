@@ -1245,7 +1245,7 @@ class Player {
             if(spell == null || spell.school == SCHOOL.PHYSICAL)
               dmg *= (1 - this.weaponArmorReduction(weapon));
             if (!adjacent) this.addRage(dmg, result, weapon, spell);
-            if (dmg > 0 && (!spell || spell.defenseType === DEFENSETYPE.MELEE) && this.auras.touchofthegrave)
+            if (dmg > 0 && this.auras.touchofthegrave)
                 this.auras.touchofthegrave.proc();
             if (dmg > 0 && !adjacent && (!spell || spell.defenseType === DEFENSETYPE.MELEE)) {
                 if (this.talents.bloodthrill && this.auras.rend?.timer > step && this.auras.rend.stacks && rng10k() < this.talents.bloodthrill * 100)

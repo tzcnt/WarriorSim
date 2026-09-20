@@ -13,7 +13,7 @@ confirmed game data.
 | --- | --- | --- |
 | Touch of the Grave | Proc chance | 5% |
 | Touch of the Grave | Damage | 5% of the player's HP |
-| Touch of the Grave | Internal cooldown | None (assumed) |
+| Touch of the Grave | Internal cooldown | 1 second |
 | Skyborne | Base stats | Use Human base stats for now |
 | Eureka! | Cost reduction | 40% |
 | Eureka! | Cooldown | 2 minutes (120 seconds) |
@@ -31,7 +31,7 @@ assumptions are documented below.
 | Night Elf | Elune’s Light grants +10 points of melee and spell crit for 15 seconds; 3-minute cooldown. |
 | Gnome | Maximum rage multiplied by 1.05 after Boundless Rage; Eureka! makes the next three Warrior abilities cost 40% less rage and deal 10% more damage; 2-minute cooldown. |
 | Orc | Axes grant +1 point of autoattack, ability and spell crit; Blood Fury multiplies total AP and spell-power contributions by 1.10 for 15 seconds. No racial weapon skill. |
-| Undead | Touch of the Grave: 5% chance per landed damaging melee hit to deal 5% of maximum HP as magic damage, with no internal cooldown and a separate damage report. |
+| Undead | Touch of the Grave: 5% chance per landed damaging main-hand, off-hand, or special ability hit to deal 5% of maximum HP as magic damage, with a shared 1 second internal cooldown and a separate damage report. |
 | Tauren | +1 point of hit for autoattacks, abilities and spells, retaining the spell miss floor; +5% maximum health. |
 | Troll | Berserking is fixed at +10% haste for 10 seconds regardless of old saved haste settings; +5% physical and magic damage against Beasts. |
 | Skyborne | One race for both factions: +1% haste and +5% physical and magic damage against Elementals. Uses Human base stats, without Human racials. |
@@ -64,8 +64,9 @@ to include Stamina's contribution to item DPS. Effects absent from the existing
 catalog can be accounted for with the override.
 
 Touch of the Grave calculates 5% of that health at each proc, without an additional
-spell-power coefficient. Main-hand and off-hand hits at the same timestamp can
-both proc. It uses the existing spell miss, crit, damage multiplier and resistance
+spell-power coefficient. Main-hand, off-hand, and special ability hits share
+a 1 second internal cooldown, so simultaneous hits cannot both proc. Armor does
+not reduce the proc damage. It uses the existing spell miss, crit, damage multiplier and resistance
 model; those details remain provisional. It cannot trigger itself or generate rage.
 
 ## Other retained assumptions
@@ -108,7 +109,7 @@ parameters.
 autoattack hit bonuses, Skyborne
 at several levels, racial availability, AP/haste/crit expiry, charge consumption,
 refunds, rage caps, exact cooldowns, HP from gear/buffs, HP overrides, the 5% proc
-boundary, simultaneous procs and rotation tooltips. Thirteen racial fixtures in
+boundary, shared proc cooldown, ability hit eligibility and rotation tooltips. Thirteen racial fixtures in
 `test/wasm/racial-fixtures.js` compare full JS/WASM reports and fresh/persistent
 partitions, including health overrides, long fights, multiple targets, Rend and
 queued Cleave.

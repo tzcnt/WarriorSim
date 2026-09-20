@@ -49,7 +49,7 @@ var foreverRacialDescriptions = {
     'Night Elf': 'Elune’s Light: +10% crit for 15 seconds; configure its use in Rotation. Quickness affects dodge and movement, outside the DPS model.',
     Gnome: 'Expansive Mind: +5% maximum rage, including Boundless Rage. Eureka!: empowers your next three abilities; configure its use in Rotation. 40% lower rage costs, 2-minute cooldown.',
     Orc: 'Axe Specialization: +1% crit for axe autoattacks and abilities, plus spell crit while an axe is equipped. Blood Fury: +10% attack/spell power for 15 seconds; configure its use in Rotation.',
-    Undead: 'Touch of the Grave: 5% chance per landed melee hit to deal 5% of your maximum HP as magic damage. Assumes no internal cooldown. Health is calculated from your build; use Max Health to override it. Healing is outside the DPS model.',
+    Undead: 'Touch of the Grave: 5% chance per landed damaging main-hand, off-hand, or special ability hit to deal 5% of your maximum HP as magic damage. Shares a 1 second internal cooldown across all hits. Health is calculated from your build; use Max Health to override it. Healing is outside the DPS model.',
     Tauren: 'Endurance: +1% hit for autoattacks, abilities and spells. Also increases maximum health by 5%.',
     Troll: 'Beast Slaying: +5% damage to Beasts. Berserking: +10% haste for 10 seconds; configure its use in Rotation.',
     Skyborne: 'Wind Blessed: +1% haste. Elemental Insight: +5% damage to Elementals. Both factions share these bonuses. Base stats provisionally use Human values.',
