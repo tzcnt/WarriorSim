@@ -174,6 +174,19 @@ test('two-handed Unbridled Wrath and off-hand swing rage do not multiply flat pr
     close(player.rage, 1 + swingRage * 2);
 });
 
+test('Unbridled Wrath procs from queued strikes only in Classic', () => {
+    for (const [mode, expected] of [['forever', 0], ['classic', 1]]) {
+        const {run, player} = setup(mode);
+        player.talents.umbridledwrath = 100;
+        run('rng10k = () => 0; p.mh.twohand = false');
+        for (const expression of ['new HeroicStrike(p, 11567)', 'new Cleave(p, 20569)']) {
+            player.rage = 0;
+            run(`p.addRage(100, RESULT.HIT, p.mh, ${expression})`);
+            assert.equal(player.rage, expected, `${mode} ${expression}`);
+        }
+    }
+});
+
 test('Forever white-hit rage uses base speed and weapon type regardless of damage, haste or hit quality', () => {
     const {run, player} = setup();
     player.talents.umbridledwrath = 0;

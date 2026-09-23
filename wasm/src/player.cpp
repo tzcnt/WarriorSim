@@ -428,7 +428,8 @@ Result PlayerState::rollMagicSpell(SpellState& value) {
 }
 
 void PlayerState::addRage(double dmg, Result result, WeaponState& weapon, const SpellState* ability) {
-    if (!ability || isQueuedStrike(ability)) {
+    // Forever: only true white swings roll; queued Heroic Strike/Cleave do not.
+    if (!ability || (!foreverMode && isQueuedStrike(ability))) {
         if (result != Result::Miss && result != Result::Dodge && talents.number("umbridledwrath"_prop) &&
             rng.tenK() < talents.number("umbridledwrath"_prop) * 100) {
             rage += 1;

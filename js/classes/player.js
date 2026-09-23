@@ -853,7 +853,8 @@ class Player {
         return r > 0.75 ? 0.75 : r;
     }
     addRage(dmg, result, weapon, spell) {
-        if (!spell || spell instanceof HeroicStrike || spell instanceof Cleave) {
+        // Forever: only true white swings roll; queued Heroic Strike/Cleave do not.
+        if (!spell || (this.mode !== 'forever' && (spell instanceof HeroicStrike || spell instanceof Cleave))) {
             if (result != RESULT.MISS && result != RESULT.DODGE && this.talents.umbridledwrath && rng10k() < this.talents.umbridledwrath * 100) {
                 this.rage += this.mode === 'forever' && weapon.twohand ? 2 : 1;
             }
