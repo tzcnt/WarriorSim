@@ -174,7 +174,7 @@ bool spellCanUse(PlayerState& player, SpellState& spell) {
 
     case SpellKind::StanceSwitch:
         return !player.stancetimer &&
-               player.stance != player.props.string("basestance"_prop);
+               player.stance != player.baseStance;
 
     case SpellKind::GrilekFury:
         return player.itemtimer == 0 && spell.timer == 0 && player.step >= spell.useStep;
@@ -210,7 +210,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
     case SpellKind::Execute:
         if (!player.isValidStance("zerk") && !player.isValidStance("battle")) {
             std::string stance = "zerk";
-            if (player.props.string("basestance"_prop) == "battle")
+            if (player.baseStance == "battle")
                 stance = "battle";
             player.switchStance(stance);
         }
@@ -259,7 +259,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
     case SpellKind::Hamstring: {
         if (!player.isValidStance("zerk") && !player.isValidStance("battle")) {
             std::string stance = "zerk";
-            if (player.props.string("basestance"_prop) == "battle")
+            if (player.baseStance == "battle")
                 stance = "battle";
             player.switchStance(stance);
         }
@@ -318,7 +318,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
 
     case SpellKind::StanceSwitch:
         spell.maxdelay = reactionDelay(player);
-        player.switchStance(player.props.string("basestance"_prop));
+        player.switchStance(player.baseStance);
         return;
 
     case SpellKind::GrilekFury: {

@@ -326,7 +326,7 @@ double PlayerState::critChance() const {
 double PlayerState::effectiveCrit(const WeaponState& weapon) const {
     return std::max(0.0, crit + weapon.crit + (foreverMode ? weapon.props.number("racialcrit"_prop) : 0) +
         (weapon.skill - target.props.number("defense"_prop)) * .04 +
-        (props.string("basestance"_prop) == "zerk" ? 3 : 0));
+        (baseStance == "zerk" ? 3 : 0));
 }
 
 double PlayerState::dodgeChance(const WeaponState& weapon) const {

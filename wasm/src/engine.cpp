@@ -232,6 +232,7 @@ PlayerState readPlayer(const val& value) {
     const auto mode = out.props.string("mode"_prop);
     if (mode != "classic" && mode != "forever") throw std::runtime_error("unsupported game mode: " + mode);
     out.foreverMode = mode == "forever";
+    out.baseStance = out.props.string("basestance"_prop);
     out.stance = out.props.string("stance"_prop, out.props.string("basestance"_prop, "battle"));
     out.crit = out.props.number("crit"_prop);
     out.armorReduction = out.props.number("armorReduction"_prop);

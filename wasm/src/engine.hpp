@@ -424,6 +424,9 @@ struct PlayerState {
     double bloodthrilltimer = 0;
     double weaponArmorReduction(const WeaponState& weapon) const;
     std::string stance;
+    // String properties have no dense slot: props.string() hashes the name and copies
+    // the value on every call. basestance is fixed per spec, so it is read once.
+    std::string baseStance;
 
     [[nodiscard]] SpellState* spell(std::string_view key);
     [[nodiscard]] const SpellState* spell(std::string_view key) const;
