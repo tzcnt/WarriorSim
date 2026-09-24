@@ -2,6 +2,9 @@ const MAX_WORKERS = Math.max(1, Math.min(64, navigator.hardwareConcurrency || 4)
 // Hardware is only the ceiling; the sharing panel's slider picks the count actually used.
 function simulationThreads() { return sharedComputeLocalThreads() || MAX_WORKERS; }
 const WEB_DB_URL = "https://classic.wowhead.com/";
+// Re-sorting the gear tables costs 10-20 ms of main-thread time, and local workers wait
+// behind it for their next chunk. Rows that finish close together share one sort.
+const TABLE_SORT_INTERVAL_MS = 250;
 
 var SIM = SIM || {}
 
@@ -449,6 +452,7 @@ SIM.UI = {
                             .reduce((a, b) => a + b, 0) / rows.length
                     );
                     if (total == 100) {
+                        view.flushTableSort();
                         btn.css('background', '');
                         view.endLoading();
                         view.updateSession();
@@ -461,6 +465,30 @@ SIM.UI = {
         });
         for (const simulation of simulations) simulation.run();
         batch.start();
+    },
+
+    // Sorts at most once per TABLE_SORT_INTERVAL_MS, measured from the end of the previous
+    // sort, so workers keep receiving chunks in between.
+    scheduleTableSort: function() {
+        var view = this;
+        if (view.tableSortTimer) return;
+        const wait = (view.lastTableSort || 0) + TABLE_SORT_INTERVAL_MS - Date.now();
+        view.tableSortTimer = setTimeout(() => view.flushTableSort(), Math.max(0, wait));
+    },
+
+    // Runs a scheduled sort now, e.g. so the last rows are in order when the sheet finishes.
+    flushTableSort: function() {
+        var view = this;
+        if (!view.tableSortTimer) return;
+        clearTimeout(view.tableSortTimer);
+        view.tableSortTimer = undefined;
+        view.tcontainer.find('table').each(function() {
+            // Rebuild the cache without update's own resort; sorton below re-sorts by DPS anyway.
+            $(this).trigger('update', [false]);
+            let sortList = [[$(this).find('th').length - 1, 1]];
+            $(this).trigger("sorton", [sortList]);
+        });
+        view.lastTableSort = Date.now();
     },
 
     simulateRow: function(tr, updateFn, batch) {
@@ -488,12 +516,7 @@ SIM.UI = {
                 else span.addClass('n');
                 dps.text(calc.toFixed(2)).append(span);
 
-                view.tcontainer.find('table').each(function() {
-                    if (type == "custom") return;
-                    $(this).trigger('update');
-                    let sortList = [[$(this).find('th').length - 1, 1]];
-                    $(this).trigger("sorton", [sortList]);
-                });
+                if (type != "custom") view.scheduleTableSort();
 
                 tr.removeClass('waiting');
                 sim = null;
