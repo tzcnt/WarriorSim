@@ -63,6 +63,15 @@ rage-source caps, including refunds and initial rage.
 - Enrage: existing incoming damaging attacks roll a 30% chance for 2% Physical damage per rank for 12 seconds; reapplication refreshes it. Death Wish's Forever +5% incoming damage penalty applies to the existing damage/rage events.
 - Sweeping Strikes: 30 rage before Focused Rage, Battle Stance, 30-second cooldown, 1.5-second GCD, five copied melee hits to an adjacent target. Copies inherit the original hit's damage, generate no rage/procs, and are reported separately. The captured description supplies no duration, so the implementation retains unspent charges until consumed or combat ends.
 
+Target armor debuffs use the highest-rank values in client build 1.60.1.70009
+([wago.tools](https://wago.tools/db2/SpellEffect?build=1.60.1.70009), Classic Beta).
+Sunder Armor Rank 5 (11597) removes 450 armor per stack, 2250 at five stacks.
+Faerie Fire Rank 4 (9907) and Curse of Recklessness Rank 4 (11717) each remove
+505. Forever's Curse no longer grants attack power, and its reduction is lower
+than Classic's 640. Forever omits Expose Armor and Improved Expose Armor, which
+share the Sunder Armor slot. Lower Curse ranks still use Classic values, though
+the client lists 175/285/395 for ranks 1–3 (Classic 140/290/465).
+
 Classic also implements Sweeping Strikes using spell 12292 and the same copy logic.
 Its five charges expire after 20 seconds, and activation neither requires a free GCD
 nor starts or clears one, matching the [Classic spell data](https://www.wowhead.com/classic/spell=12292/sweeping-strikes).

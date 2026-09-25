@@ -445,10 +445,11 @@ class Player {
     addBuffs() {
         this.target.basearmorbuffed = this.target.basearmor;
         for (let buff of buffs) {
-            if (buff.active && buff.improvedexposed) {
+            if (!buff.active || (buff.mode && buff.mode !== this.mode)) continue;
+            if (buff.improvedexposed) {
                 this.improvedexposed = true;
             }
-            if (buff.active && buff.name == "Expose Armor") {
+            if (buff.name == "Expose Armor") {
                 this.exposed = true;
             }
         }

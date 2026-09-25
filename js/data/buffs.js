@@ -893,6 +893,7 @@ var buffs = [
       id: 8647,
       spellid: true,
       name: "Expose Armor",
+      mode: "classic",
       iconname: "ability_warrior_riposte",
       group: "sunder",
       armor: 400,
@@ -903,6 +904,7 @@ var buffs = [
       id: 8649,
       spellid: true,
       name: "Expose Armor",
+      mode: "classic",
       iconname: "ability_warrior_riposte",
       group: "sunder",
       armor: 725,
@@ -913,6 +915,7 @@ var buffs = [
       id: 8650,
       spellid: true,
       name: "Expose Armor",
+      mode: "classic",
       iconname: "ability_warrior_riposte",
       group: "sunder",
       armor: 1050,
@@ -923,6 +926,7 @@ var buffs = [
       id: 11197,
       spellid: true,
       name: "Expose Armor",
+      mode: "classic",
       iconname: "ability_warrior_riposte",
       group: "sunder",
       armor: 1375,
@@ -933,6 +937,7 @@ var buffs = [
       id: 11198,
       spellid: true,
       name: "Expose Armor",
+      mode: "classic",
       iconname: "ability_warrior_riposte",
       group: "sunder",
       armor: 1700,
@@ -942,6 +947,7 @@ var buffs = [
       id: 14169,
       spellid: true,
       name: "Improved Expose Armor",
+      mode: "classic",
       iconname: "ability_warrior_riposte",
       improvedexposed: true,
       minlevel: 14,
@@ -1040,7 +1046,16 @@ var foreverTotemBuffs = {
    windfury: {wfap: 246, description: 'Each mainhand autoattack hit or ability hit has a 20% chance to grant an extra attack with 246 extra Attack Power.'},
 };
 
+// Forever client data (build 1.60.1.70009). Faerie Fire Rank 4 (505) and Sunder
+// Armor Rank 5 (450 per stack) match Classic; Expose Armor is Classic-only.
+var foreverArmorDebuffs = {
+   11717: {armor: 505, description: 'Reduces armor by 505.'}, // Curse of Recklessness Rank 4
+};
+
 function getBuffForMode(buff, gameMode) {
+   if (gameMode === 'forever' && foreverArmorDebuffs[buff.id]) {
+      return {...buff, ...foreverArmorDebuffs[buff.id]};
+   }
    if (gameMode === 'forever' && buff.group === 'motw') {
       return {...buff, str: 16, agi: 16, sta: 16, int: 16, spi: 16, playerarmor: 385,
          resist: {fire: 27, frost: 27, nature: 27, shadow: 27, arcane: 27},
