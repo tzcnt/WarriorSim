@@ -4,7 +4,7 @@ var racialSpellRules = {
     20572: {race: 'Orc', description: 'Increases attack power and spell power by 10% for 15 seconds.'},
     26296: {race: 'Troll', description: 'Increases casting and attack speed by 10% for 10 seconds.'},
     'forever:elunes-light': {race: 'Night Elf', mode: 'forever', description: 'Increases critical strike chance by 10% for 15 seconds. 3-minute cooldown.'},
-    'forever:eureka': {race: 'Gnome', mode: 'forever', description: 'Your next three abilities deal 10% more damage and cost 40% less rage. 2-minute cooldown.'},
+    'forever:eureka': {race: 'Gnome', mode: 'forever', description: 'Your next three abilities deal 10% more damage and cost 10% less rage. 2-minute cooldown.'},
 };
 
 function racialSpellAvailable(id, race, gameMode) {
@@ -34,7 +34,7 @@ spells.push({id: 'forever:elunes-light', name: 'Elune’s Light', classname: 'El
 spells.push({id: 'forever:eureka', name: 'Eureka!', classname: 'Eureka',
     iconname: 'inv_misc_enggizmos_20', mode: 'forever', aura: true, buff: true, active: true,
     timetostart: 0, timetostartactive: false, timetoend: 10, timetoendactive: true,
-    localDescription: 'Your next three abilities deal 10% more damage and cost 40% less rage. 2-minute cooldown.'});
+    localDescription: 'Your next three abilities deal 10% more damage and cost 10% less rage. 2-minute cooldown.'});
 
 for (const spell of spells) {
     if (racialSpellRules[spell.id]) racialSpellDefaults[spell.id] = {
@@ -47,7 +47,7 @@ var foreverRacialDescriptions = {
     Human: 'Sword Specialization: +2% crit for sword autoattacks and abilities, plus spell crit while a sword is equipped. The Human Spirit: +5% Spirit (outside the DPS model).',
     Dwarf: 'Mace Specialization: +1% crit for mace autoattacks and abilities, plus spell crit while a mace is equipped. Big Game Hunter: +5% damage to Beasts.',
     'Night Elf': 'Elune’s Light: +10% crit for 15 seconds; configure its use in Rotation. Quickness affects dodge and movement, outside the DPS model.',
-    Gnome: 'Expansive Mind: +5% maximum rage, including Boundless Rage. Eureka!: empowers your next three abilities; configure its use in Rotation. 40% lower rage costs, 2-minute cooldown.',
+    Gnome: 'Expansive Mind: +5% maximum rage, including Boundless Rage. Eureka!: empowers your next three abilities; configure its use in Rotation. 10% more damage and 10% lower rage costs, 2-minute cooldown.',
     Orc: 'Axe Specialization: +1% crit for axe autoattacks and abilities, plus spell crit while an axe is equipped. Blood Fury: +10% attack/spell power for 15 seconds; configure its use in Rotation.',
     Undead: 'Touch of the Grave: 5% chance per landed damaging main-hand, off-hand, or special ability hit to deal 5% of your maximum HP as magic damage. Shares a 1 second internal cooldown across all hits. Health is calculated from your build; use Max Health to override it. Healing is outside the DPS model.',
     Tauren: 'Endurance: +1% hit for autoattacks, abilities and spells. Also increases maximum health by 5%.',

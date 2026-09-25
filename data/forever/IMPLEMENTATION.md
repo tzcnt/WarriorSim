@@ -1,5 +1,14 @@
 # WoW Forever implementation decisions
 
+**2026-09-24 update:** Patch notes supersede the Slam and Bloodthrill decisions
+below. Slam's cooldown is 18 seconds, reduced by 1.5 seconds per Improved Slam
+rank; Improved Slam keeps its cast time, GCD and swing-timer effects. Bloodthrill
+rolls 4% per rank and only from main-hand hits: white swings, queued Heroic
+Strike/Cleave, and main-hand special attacks. Off-hand swings and Whirlwind's
+off-hand hit no longer trigger it. The patch notes do not say whether main-hand
+specials count; this is our interpretation. Bastion and Focused Rage swap tree
+positions, and Eureka! now reduces rage costs by 10%. See [the catalog notes](README.md).
+
 **2026-09-16 update:** Client build 1.60.1.69876 supersedes the original
 estimated talent descriptions. See [the current catalog notes](README.md). Vitality
 is removed, rank scaling is corrected, and Spearing Strike requires a two-handed

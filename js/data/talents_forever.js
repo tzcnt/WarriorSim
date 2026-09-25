@@ -374,11 +374,11 @@ var talentsForever = [
                null
             ],
             "d": [
-               "Your melee attacks against targets afflicted by your Rend have a 2% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec.",
-               "Your melee attacks against targets afflicted by your Rend have a 4% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec.",
-               "Your melee attacks against targets afflicted by your Rend have a 6% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec.",
-               "Your melee attacks against targets afflicted by your Rend have a 8% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec.",
-               "Your melee attacks against targets afflicted by your Rend have a 10% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec."
+               "Your main hand melee attacks, including Heroic Strike and Cleave, against targets afflicted by your Rend have a 4% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec.",
+               "Your main hand melee attacks, including Heroic Strike and Cleave, against targets afflicted by your Rend have a 8% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec.",
+               "Your main hand melee attacks, including Heroic Strike and Cleave, against targets afflicted by your Rend have a 12% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec.",
+               "Your main hand melee attacks, including Heroic Strike and Cleave, against targets afflicted by your Rend have a 16% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec.",
+               "Your main hand melee attacks, including Heroic Strike and Cleave, against targets afflicted by your Rend have a 20% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec."
             ],
             "x": 0,
             "y": 4,
@@ -395,7 +395,8 @@ var talentsForever = [
                   "spellId": 1289682,
                   "notes": []
                },
-               "implementationStatus": "unimplemented"
+               "implementationStatus": "unimplemented",
+               "patch": "2026-09-24"
             }
          },
          {
@@ -473,8 +474,8 @@ var talentsForever = [
                null
             ],
             "d": [
-               "Reduces the global cooldown and cast time of your Slam ability by 0.25 sec. In addition, Slam no longer interrupts your melee swing time.",
-               "Reduces the global cooldown and cast time of your Slam ability by 0.50 sec. In addition, Slam no longer interrupts your melee swing time."
+               "Reduces the cooldown of your Slam ability by 1.5 sec, and its global cooldown and cast time by 0.25 sec. In addition, Slam no longer interrupts your melee swing time.",
+               "Reduces the cooldown of your Slam ability by 3 sec, and its global cooldown and cast time by 0.50 sec. In addition, Slam no longer interrupts your melee swing time."
             ],
             "x": 0,
             "y": 5,
@@ -491,7 +492,8 @@ var talentsForever = [
                   "spellId": 12862,
                   "notes": []
                },
-               "implementationStatus": "unimplemented"
+               "implementationStatus": "unimplemented",
+               "patch": "2026-09-24"
             }
          },
          {
@@ -1662,8 +1664,8 @@ var talentsForever = [
                "Reduces the Rage cost of your offensive abilities by 2.",
                "Reduces the Rage cost of your offensive abilities by 3."
             ],
-            "x": 2,
-            "y": 5,
+            "x": 3,
+            "y": 4,
             "iconname": "ability_warrior_focusedrage",
             "c": 0,
             "forever": {
@@ -1677,7 +1679,8 @@ var talentsForever = [
                   "spellId": 29787,
                   "notes": []
                },
-               "implementationStatus": "unimplemented"
+               "implementationStatus": "unimplemented",
+               "patch": "2026-09-24"
             }
          },
          {
@@ -1698,8 +1701,8 @@ var talentsForever = [
                "Increases all damage you deal by 8% while a shield is equipped.",
                "Increases all damage you deal by 10% while a shield is equipped."
             ],
-            "x": 3,
-            "y": 4,
+            "x": 2,
+            "y": 5,
             "iconname": "inv_shield_04",
             "c": 0,
             "forever": {
@@ -1713,7 +1716,8 @@ var talentsForever = [
                   "spellId": 16538,
                   "notes": []
                },
-               "implementationStatus": "unimplemented"
+               "implementationStatus": "unimplemented",
+               "patch": "2026-09-24"
             }
          },
          {

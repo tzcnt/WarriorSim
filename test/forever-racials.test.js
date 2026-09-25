@@ -212,14 +212,14 @@ function eurekaSetup() {
 test('Eureka empowers exactly three casts, refunds discounted costs, and resets cleanly', () => {
     const {player: p, run} = eurekaSetup();
     const bt = p.spells.bloodthirst, baseCost = bt.eurekabasecost;
-    close(bt.cost, baseCost * .6);
+    close(bt.cost, baseCost * .9);
     const expected = bt.dmg() * p.mh.modifier * 1.1 + p.stats.moddmgtaken;
     close(p.cast(bt), expected);
     assert.equal(p.auras.eureka.stacks, 2);
     p.rage = 100;
     run('p.rollmeleespell = () => RESULT.DODGE');
     assert.equal(p.cast(bt), 0);
-    close(p.rage, 100 - baseCost * .6 * .2);
+    close(p.rage, 100 - baseCost * .9 * .2);
     assert.equal(p.auras.eureka.stacks, 1);
     run('p.rollmeleespell = () => RESULT.HIT');
     close(p.cast(bt), expected);
@@ -353,7 +353,7 @@ test('health includes Endurance, excludes removed Vitality, and uses Human base 
     assert.equal(setup('Skyborne').player.stamina, setup('Human').player.stamina);
 });
 
-test('Eureka becomes usable again at exactly two minutes and re-applies the 40% discount', () => {
+test('Eureka becomes usable again at exactly two minutes and re-applies the 10% discount', () => {
     const {player: p, run} = eurekaSetup();
     p.auras.eureka.prep(200000);
     const bt = p.spells.bloodthirst, cost = bt.eurekabasecost;
@@ -361,7 +361,7 @@ test('Eureka becomes usable again at exactly two minutes and re-applies the 40% 
     run('step = 119999'); assert.equal(p.auras.eureka.canUse(), false);
     run('step = 120000'); assert.equal(p.auras.eureka.canUse(), true);
     p.auras.eureka.use();
-    close(bt.cost, cost * .6);
+    close(bt.cost, cost * .9);
     assert.equal(p.auras.eureka.stacks, 3);
 });
 
@@ -385,7 +385,7 @@ for (const mode of ['classic', 'forever']) test(`${mode}: Berserking details and
 test('saved racial tooltips cannot restore the old provisional values', () => {
     const {run} = setup('Gnome');
     const eureka = run("racialSpellDescription({id: 'forever:eureka', localDescription: 'Old: 10% and 3 minutes'}, 'forever')");
-    assert.match(eureka, /40% less rage/);
+    assert.match(eureka, /10% less rage/);
     assert.match(eureka, /2-minute cooldown/);
     assert.doesNotMatch(eureka, /Provisional/);
     assert.match(run("racialSpellDescription({id: 'forever:elunes-light'}, 'forever')"), /3-minute cooldown/);

@@ -15,7 +15,7 @@ confirmed game data.
 | Touch of the Grave | Damage | 5% of the player's HP |
 | Touch of the Grave | Internal cooldown | 1 second |
 | Skyborne | Base stats | Use Human base stats for now |
-| Eureka! | Cost reduction | 40% |
+| Eureka! | Cost reduction | 10% (patch notes, 2026-09-24; was 40%) |
 | Eureka! | Cooldown | 2 minutes (120 seconds) |
 | Elune’s Light | Cooldown | 3 minutes (180 seconds) |
 
@@ -29,7 +29,7 @@ assumptions are documented below.
 | Human | Swords grant +2 percentage points of autoattack, ability and spell crit; no racial weapon skill. |
 | Dwarf | Maces grant +1 point of autoattack, ability and spell crit; +5% physical and magic damage against Beasts. |
 | Night Elf | Elune’s Light grants +10 points of melee and spell crit for 15 seconds; 3-minute cooldown. |
-| Gnome | Maximum rage multiplied by 1.05 after Boundless Rage; Eureka! makes the next three Warrior abilities cost 40% less rage and deal 10% more damage; 2-minute cooldown. |
+| Gnome | Maximum rage multiplied by 1.05 after Boundless Rage; Eureka! makes the next three Warrior abilities cost 10% less rage and deal 10% more damage; 2-minute cooldown. |
 | Orc | Axes grant +1 point of autoattack, ability and spell crit; Blood Fury multiplies total AP and spell-power contributions by 1.10 for 15 seconds. No racial weapon skill. |
 | Undead | Touch of the Grave: 5% chance per landed damaging main-hand, off-hand, or special ability hit to deal 5% of maximum HP as magic damage, with a shared 1 second internal cooldown and a separate damage report. |
 | Tauren | +1 point of hit for autoattacks, abilities and spells, retaining the spell miss floor; +5% maximum health. |
@@ -81,7 +81,7 @@ off-hand autoattacks as well as abilities and spells.
 
 - Elune’s Light and Eureka! have no rage cost or GCD. Their first use can be
   scheduled in Rotation; they can be reused in long fights.
-- Eureka!'s 40% reduction applies after talent reductions. Fractional rage costs
+- Eureka!'s 10% reduction applies after talent reductions. Fractional rage costs
   are retained. Execute's excess-rage conversion is unchanged. Charges have no
   time limit. Each cast consumes one charge, including misses, dodges and
   non-damaging Warrior abilities. Auto-attacks, stance changes, consumables,

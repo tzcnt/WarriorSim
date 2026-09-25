@@ -69,6 +69,12 @@ user on 2026-09-18.
 **At level 60, Slam's flat damage bonus is 87.** This value is confirmed in-game,
 as reported by the user on 2026-09-18.
 
+**Slam's cooldown is 18 seconds, reduced by 1.5 / 3 seconds with one / two ranks
+of Improved Slam.** Source: the 2026-09-24 patch notes (previously 15 seconds at
+every rank). Improved Slam's cast time, GCD and swing-timer effects are unchanged.
+The notes do not state this; we assume it because they describe the cooldown
+reduction as an addition.
+
 ## Heroic Strike
 
 ### Confirmed behavior

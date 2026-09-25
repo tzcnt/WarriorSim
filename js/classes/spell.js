@@ -470,7 +470,7 @@ class Slam extends Spell {
         this.gcd = 1500;
         if (player.mode === 'forever') {
             this.casttime = this.gcd = 1500 - player.talents.impslam * 250;
-            this.cooldown = 15;
+            this.cooldown = 18 - player.talents.impslam * 1.5;
             this.swingmode = player.talents.impslam ? 2 : 1;
         }
         this.mhthreshold = 0;
@@ -1154,7 +1154,7 @@ class Eureka extends Aura {
     constructor(player, id) {
         super(player, id, 'Eureka!');
         this.cooldown = 120;
-        this.costreduction = .40;
+        this.costreduction = .10;
     }
     canUse() {
         return !this.stacks && step >= this.usestep && step >= (this.cooldowntimer || 0);
