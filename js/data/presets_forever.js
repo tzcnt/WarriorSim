@@ -784,7 +784,7 @@ var profilePresets = [
                         5,
                         1,
                         5,
-                        1,
+                        2,
                         0,
                         1
                     ],
@@ -822,7 +822,7 @@ var profilePresets = [
                         0,
                         0,
                         0,
-                        2,
+                        1,
                         0,
                         0,
                         0,
@@ -963,7 +963,7 @@ var profilePresets = [
                     "active": true,
                     "duration": 15,
                     "durationactive": false,
-                    "minrage": "17",
+                    "minrage": "18",
                     "minrageactive": true,
                     "priority": "1",
                     "expriority": 0
