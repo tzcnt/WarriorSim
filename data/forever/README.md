@@ -7,8 +7,8 @@ The snapshot preserves Hyjal's Warrior object without changing its fields.
 
 Run `node scripts/extract-forever-talents.js` to regenerate `js/data/talents_forever.js`.
 The catalog contains **53 talents: 17 Arms, 18 Fury, 18 Protection**, with all 154
-rank descriptions supplied explicitly by the source. No rank estimation or overrides
-are applied. `rank-text.js` is retained only as a historical extraction helper.
+rank descriptions supplied explicitly by the source or by later patch notes. No rank
+estimation is applied. `rank-text.js` is retained only as a historical extraction helper.
 
 The generated catalog uses the existing `n`/`m`/`d`/`x`/`y` talent structure, converting
 rows and columns to zero-based coordinates. Prerequisites use `[parent index, max rank]`.
@@ -30,6 +30,15 @@ for Spearing Strike. Weaponmaster and Improved Berserker Rage match our prior ov
 Historical optimization results in this directory describe their original source
 snapshot; the stored builds migrate, but the results have not been re-optimized.
 
+The September 24 patch notes postdate the snapshot. The extraction script applies
+them without editing `warrior-source.json` and marks each changed talent with
+`forever.patch`. Focused Rage moves to row 5 column 4 and Bastion to row 6 column 3.
+Bloodthrill becomes 4/8/12/16/20% from main-hand attacks, and Improved Slam also
+reduces Slam's cooldown by 1.5/3 seconds. Those two tooltips are local rewordings;
+the client text is not yet available. Talent keys and indices are unchanged, so the
+schema remains `forever-v2`. Loading a saved build refunds Bastion if fewer than 25
+points are spent in rows 1–5.
+
 ## Combat rules
 
 See [ABILITY_MECHANICS.md](ABILITY_MECHANICS.md) for
@@ -46,8 +55,8 @@ rage-source caps, including refunds and initial rage.
 
 - Bloodthirst: 35% AP + 30/40/50/48 at levels 40/48/54/60.
 - Shield Slam: 225–235 / 264–276 / 303–317 / 421–439 at those levels, plus block value once, with no AP coefficient.
-- Forever Slam has a confirmed 15-second cooldown, starting at cast completion, at every talent rank. Without Improved Slam it pauses weapon timers during casting. Either talent rank lets them advance, deferring due swings until cast completion. Cast time and GCD are 1500/1250/1000 ms at 0/1/2 ranks. Classic has no cooldown and still resets timers at cast completion.
-- Bloodthrill: landed melee damage against the player's active Rend rolls 2% per rank for one six-second Overpower opportunity, with no ICD. It refreshes, does not stack, and is independent of the ordinary dodge window. Adjacent targets without Rend cannot trigger it.
+- Forever Slam has an 18-second cooldown (15 seconds before the September 24 patch), reduced by 1.5 seconds per Improved Slam rank to 18/16.5/15 seconds at 0/1/2 ranks. It starts at cast completion. Without Improved Slam it pauses weapon timers during casting. Either talent rank lets them advance, deferring due swings until cast completion. Cast time and GCD are 1500/1250/1000 ms at 0/1/2 ranks. Classic has no cooldown and still resets timers at cast completion.
+- Bloodthrill: landed main-hand melee damage against the player's active Rend rolls 4% per rank for one six-second Overpower opportunity, with no ICD. White swings, queued Heroic Strike/Cleave and main-hand special attacks roll; off-hand swings and Whirlwind's off-hand hit do not. It refreshes, does not stack, and is independent of the ordinary dodge window. Adjacent targets without Rend cannot trigger it.
 - Weaponmaster: crit/extra-attack effects use existing weapon specialization code; mace/staff bypass 3% armor per rank for that hand, after armor debuffs. The sword proc guard resets between fights in both Classic and Forever so batching does not change results.
 - Raging Blows: Whirlwind rolls each hand independently against each target, with one rage cost/cooldown. Off-hand damage uses the actual off-hand weapon. Cleave costs 2 less rage.
 - Spearing Strike: 40% normalized main-hand damage, or 120% against Giant/Dragonkin/mounted targets selected in Settings. A landed hit dismounts a mounted target. Uses ordinary melee hit/crit/refund rules.

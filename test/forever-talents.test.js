@@ -266,6 +266,50 @@ test('Bloodthrill requires landed melee damage and current Rend; consumes indepe
     assert.equal(player.bloodthrilltimer, 0);
 });
 
+test('Bloodthrill rolls 4% per rank and only from main-hand hits, including queued strikes', () => {
+    const {run, player} = setup();
+    assert.deepEqual([0,1,2,3,4,5].map(rank =>
+        run(`talents[0].t.find(t => t.forever.key === 'arms:bloodthrill').aura(${rank}).bloodthrill`)), [0,4,8,12,16,20]);
+    assert.match(run("talents[0].t.find(t => t.n === 'Bloodthrill').d[4]"), /main hand .*Heroic Strike and Cleave.* 20% chance/);
+    player.reset(100); player.talents.bloodthrill = 20;
+    run('p.auras.rend = {timer: 10000, stacks: 3}; ww = new Whirlwind(p, 1680)');
+    run('rng10k = () => 2000; p.dealdamage(100, RESULT.HIT, p.mh, null, false)');
+    assert.equal(player.bloodthrilltimer, 0, 'roll at the 20% threshold fails');
+    run('rng10k = () => 1999');
+    for (const spell of ['null', 'ww']) {
+        run(`p.dealdamage(100, RESULT.HIT, p.oh, ${spell}, false)`);
+        assert.equal(player.bloodthrilltimer, 0, `off-hand ${spell}`);
+    }
+    for (const spell of ['null', 'new HeroicStrike(p, 11567)', 'new Cleave(p, 20569)', 'ww']) {
+        player.bloodthrilltimer = 0;
+        run(`p.dealdamage(100, RESULT.HIT, p.mh, ${spell}, false)`);
+        assert.equal(player.bloodthrilltimer, 6000, `main-hand ${spell}`);
+    }
+});
+
+test('Focused Rage and Bastion swap rows; saved builds lose Bastion without 25 lower points', () => {
+    const {run} = setup();
+    const position = key => JSON.parse(run(`JSON.stringify((t => [t.y + 1, t.x + 1])(talents[2].t.find(t => t.forever.key === '${key}')))`));
+    assert.deepEqual(position('protection:focused-rage'), [5, 4]);
+    assert.deepEqual(position('protection:bastion'), [6, 3]);
+    const valid = protection => run(`validTalentBuild(talents, [Array(17).fill(0), Array(18).fill(0), ${JSON.stringify(protection)}])`);
+    // 20 points in rows 1-2 open row 5 but not row 6.
+    const base = [5,5,2,5,3,0,0,0,0,0,0,0,0,0,0,0,0,0];
+    assert.equal(valid(base.with(15, 3)), true, 'Focused Rage needs 20 points');
+    assert.equal(valid(base.with(16, 1)), false, 'Bastion needs 25 points');
+    assert.equal(valid(base.with(6, 2).with(15, 3).with(16, 5)), true);
+    const saved = JSON.parse(run(`JSON.stringify(normalizeForeverTalents(talents.map((tree, i) => ({
+        t: i === 2 ? ${JSON.stringify(base.with(16, 5))} : tree.t.map(() => 0), keys: tree.t.map(t => t.forever.key)})), FOREVER_TALENT_SCHEMA))`));
+    assert.deepEqual(saved[2].t, base, 'Bastion is refunded');
+});
+
+test('Improved Slam tooltips include the cooldown reduction', () => {
+    const {run} = setup();
+    const d = JSON.parse(run("JSON.stringify(talents[0].t.find(t => t.n === 'Improved Slam').d)"));
+    assert.match(d[0], /cooldown of your Slam ability by 1\.5 sec.*cast time by 0\.25 sec/);
+    assert.match(d[1], /cooldown of your Slam ability by 3 sec.*cast time by 0\.50 sec/);
+});
+
 test('Spearing Strike applies its conditional multiplier and dismounts on a landed hit', () => {
     const {run, player} = setup();
     player.stats.ap = player.stats.moddmgdone = 0; player.stats.dmgmod = 1;
@@ -301,7 +345,7 @@ for (const [mode, ranks, cast, firstSwing] of [['classic',0,1500,3500], ['foreve
         const slam = player.spells.slam;
         assert.equal(slam.casttime, cast);
         assert.equal(slam.gcd, mode === 'classic' ? 1500 : cast);
-        assert.equal(slam.cooldown, mode === 'forever' ? 15 : 0);
+        assert.equal(slam.cooldown, mode === 'forever' ? 18 - ranks * 1.5 : 0);
         run(`events = []; const originalReset = p.reset.bind(p); p.reset = rage => {
             originalReset(rage); p.stats.haste = 1; p.mh.speed = 2; p.mh.timer = 500;
             p.mh.proc1 = p.mh.proc2 = p.mh.windfury = undefined;
@@ -333,16 +377,16 @@ for (const [mode, ranks] of [['classic',0], ['forever',0], ['forever',1], ['fore
             completions = [];
             const originalUse = p.spells.slam.use.bind(p.spells.slam);
             p.spells.slam.use = () => { completions.push(step); originalUse(); };`);
-        const sim = {...fixture.sim, iterations: 1, timesecsmin: 40, timesecsmax: 40, startrage: 100};
+        const sim = {...fixture.sim, iterations: 1, timesecsmin: 45, timesecsmax: 45, startrage: 100};
         const spec = player.serializeSimulationSpec(sim);
-        assert.equal(spec.player.spells.find(s => s.key === 'slam').props.cooldown, mode === 'forever' ? 15 : 0);
+        const cooldown = mode === 'forever' ? 18 - ranks * 1.5 : 0;
+        assert.equal(spec.player.spells.find(s => s.key === 'slam').props.cooldown, cooldown);
         engine.createSimulation(player, sim).startSync();
         const completions = JSON.parse(run('JSON.stringify(completions)'));
         const casttime = player.spells.slam.casttime;
         assert.ok(completions.length >= 3);
-        assert.deepEqual(completions.slice(0,3), mode === 'forever' ?
-            [casttime, 15000 + 2 * casttime, 30000 + 3 * casttime] :
-            [casttime, 2 * casttime, 3 * casttime]);
+        assert.deepEqual(completions.slice(0,3),
+            [casttime, cooldown * 1000 + 2 * casttime, 2 * cooldown * 1000 + 3 * casttime]);
         if (mode === 'forever') assert.equal(completions.length, 3);
     });
 }

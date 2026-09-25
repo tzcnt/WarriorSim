@@ -1260,7 +1260,7 @@ var session = {
             "timetostartactive": false,
             "timetoend": 10,
             "timetoendactive": true,
-            "localDescription": "Your next three abilities deal 10% more damage and cost 40% less rage. 2-minute cooldown."
+            "localDescription": "Your next three abilities deal 10% more damage and cost 10% less rage. 2-minute cooldown."
         }
     ],
     "sources": [

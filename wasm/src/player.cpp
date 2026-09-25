@@ -656,7 +656,8 @@ double PlayerState::dealDamage(double dmg, Result result, WeaponState& weapon,
         }
     }
     if (landed && dmg > 0 && !adjacent && (!ability || ability->props.integer("defenseType"_prop, 2) == 2)) {
-        if (const auto* rend = aura("rend"_action); talents.number("bloodthrill"_prop) && rend && rend->timer > step && rend->stacks &&
+        // Bloodthrill: main-hand hits only, including queued Heroic Strike/Cleave.
+        if (const auto* rend = aura("rend"_action); talents.number("bloodthrill"_prop) && &weapon == &mh && rend && rend->timer > step && rend->stacks &&
             rng.tenK() < talents.number("bloodthrill"_prop) * 100) bloodthrilltimer = 6000;
         if (auto* sweeping = aura("sweepingstrikes"_action); prop("adjacent"_prop) && sweeping && sweeping->timer && sweeping->stacks) {
             sweeping->idmg += dmg;

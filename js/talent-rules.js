@@ -13,7 +13,7 @@ for (const tree of classicTalents)
         'arms:improved-rend': rank => ({rendmod: [0, 12, 23, 35][rank]}),
         'arms:improved-tactical-mastery': rank => ({rageretained: 10 + 3 * rank}),
         'arms:spearing-strike': linear('spearingstrike'),
-        'arms:bloodthrill': linear('bloodthrill', 2),
+        'arms:bloodthrill': linear('bloodthrill', 4),
         'arms:weaponmaster': rank => ({axecrit: rank, polearmcrit: rank, swordproc: rank, weaponmasterarp: rank * .03}),
         'arms:improved-slam': linear('impslam'),
         'fury:booming-voice': linear('shoutradius', 10),
