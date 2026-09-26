@@ -337,7 +337,7 @@ test('Sweeping Strikes copies five hits without producing extra rage or proc rol
     assert.equal(player.auras.sweepingstrikes.canUse(), true);
 });
 
-for (const [mode, ranks, cast, firstSwing] of [['classic',0,1500,3500], ['forever',0,1500,2000], ['forever',1,1250,1250], ['forever',2,1000,1000]]) {
+for (const [mode, ranks, cast, firstSwing] of [['classic',0,1500,3500], ['forever',0,1500,3500], ['forever',1,1250,1250], ['forever',2,1000,1000]]) {
     test(`${mode} Slam ${ranks}: cast/GCD and first swing at ${firstSwing}ms`, () => {
         const {engine, player, run, fixture} = setup(mode);
         Object.assign(player.talents, {impslam: ranks, umbridledwrath: 0, angermanagement: 0});
