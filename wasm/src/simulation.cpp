@@ -343,13 +343,11 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
         if (!(next >= 0) || !std::isfinite(next)) throw std::runtime_error("invalid next simulation event time");
         player_.step += next;
         if (player_.step > maxSteps) break;
-        if (!slamStep || delayedSpell.spell->props.number("swingmode"_prop) != 1) {
-            player_.mh.timer -= next;
-            if (player_.oh) player_.oh->timer -= next;
-            if (slamStep && delayedSpell.spell->props.number("swingmode"_prop) == 2) {
-                player_.mh.timer = std::max(0.0, player_.mh.timer);
-                if (player_.oh) player_.oh->timer = std::max(0.0, player_.oh->timer);
-            }
+        player_.mh.timer -= next;
+        if (player_.oh) player_.oh->timer -= next;
+        if (slamStep && delayedSpell.spell->props.number("swingmode"_prop)) {
+            player_.mh.timer = std::max(0.0, player_.mh.timer);
+            if (player_.oh) player_.oh->timer = std::max(0.0, player_.oh->timer);
         }
         if (player_.bloodthrilltimer) player_.bloodthrilltimer = std::max(0.0, player_.bloodthrilltimer - next);
         canSpellQueue = false;

@@ -650,13 +650,11 @@ class Simulation {
 
             step += next;
             if (step > this.maxsteps) break;
-            if (!slamstep || delayedspell.swingmode !== 1) {
-                player.mh.step(next);
-                if (player.oh) player.oh.step(next);
-                if (slamstep && delayedspell.swingmode === 2) {
-                    player.mh.timer = Math.max(0, player.mh.timer);
-                    if (player.oh) player.oh.timer = Math.max(0, player.oh.timer);
-                }
+            player.mh.step(next);
+            if (player.oh) player.oh.step(next);
+            if (slamstep && delayedspell.swingmode) {
+                player.mh.timer = Math.max(0, player.mh.timer);
+                if (player.oh) player.oh.timer = Math.max(0, player.oh.timer);
             }
             if (player.bloodthrilltimer) player.bloodthrilltimer = Math.max(0, player.bloodthrilltimer - next);
 

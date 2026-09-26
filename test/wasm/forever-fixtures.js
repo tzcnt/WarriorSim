@@ -32,13 +32,13 @@ function foreverFixtures() {
     };
     arms.expect = {spells: ['spearingstrike', 'slam', 'mortalstrike'], auras: ['sweepingstrikes', 'rend']};
 
-    const pause = structuredClone(arms);
-    pause.name = 'forever-untalented-slam-pauses';
-    pause.talents[0][14] = 0;
-    pause.player.adjacent = 0;
-    pause.player.target.creaturetype = 'Mounted';
-    pause.rotation['forever:sweeping-strikes'].active = false;
-    delete pause.expect;
+    const reset = structuredClone(arms);
+    reset.name = 'forever-untalented-slam-resets';
+    reset.talents[0][14] = 0;
+    reset.player.adjacent = 0;
+    reset.player.target.creaturetype = 'Mounted';
+    reset.rotation['forever:sweeping-strikes'].active = false;
+    delete reset.expect;
 
     const mace = structuredClone(arms);
     mace.name = 'forever-mixed-mace-sword-armor-bypass';
@@ -74,6 +74,6 @@ function foreverFixtures() {
     cap.buffsAdd = [...(cap.buffsAdd || []), 23513];
     cap.rotation = {2687: {active: true, timetostartactive: true, timetostart: 0},
         17528: {active: true, timetostartactive: true, timetostart: 0}};
-    return [arms, pause, mace, fury, shield, cap];
+    return [arms, reset, mace, fury, shield, cap];
 }
 module.exports = {foreverFixtures};
