@@ -34,6 +34,13 @@ bool mainCooldownReady(const PlayerState& player, const SpellState& spell) {
            (mortalstrike && mortalstrike->timer >= maincd);
 }
 
+// Mirrors Spell.cooldownTimer: extended when a final use waits for its end-of-fight schedule.
+double cooldownTimer(const PlayerState& player, const SpellState& spell, double cooldown) {
+    const double duration = cooldown * 1000;
+    return detail::nextUseStep(player.step + duration, spell.endStep, duration) == spell.endStep ?
+        spell.endStep - player.step : duration;
+}
+
 bool rageReady(const PlayerState& player, const SpellState& spell) {
     return value(spell, "cost"_prop) <= player.rage && player.rage >= value(spell, "minrage"_prop);
 }
@@ -233,7 +240,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
         return;
 
     case SpellKind::Bloodrage: {
-        spell.timer = cooldown * 1000;
+        spell.timer = cooldownTimer(player, spell, cooldown);
         player.rage = std::min(player.rage + value(spell, "rage"_prop), player.prop("ragecap"_prop, 100));
         useAura(player, "bloodrage"_action);
         spell.maxdelay = reactionDelay(player);
@@ -286,7 +293,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
     }
 
     case SpellKind::RagePotion: {
-        spell.timer = cooldown * 1000;
+        spell.timer = cooldownTimer(player, spell, cooldown);
         player.rage = std::min(player.rage + static_cast<double>(player.rng.integer(
             value(spell, "value1"_prop), value(spell, "value2"_prop))), player.prop("ragecap"_prop, 100));
         spell.maxdelay = reactionDelay(player);
@@ -305,7 +312,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
     }
 
     case SpellKind::Fireball:
-        spell.timer = 1;
+        spell.timer = cooldownTimer(player, spell, cooldown);
         spell.idmg += fixedMagicProc(player, 371);
         return;
 
@@ -323,7 +330,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
 
     case SpellKind::GrilekFury: {
         player.itemtimer = cooldown * 1000;
-        spell.timer = cooldown * 1000;
+        spell.timer = cooldownTimer(player, spell, cooldown);
         spell.maxdelay = reactionDelay(player);
         player.rage = std::min(player.rage + value(spell, "rage"_prop), player.prop("ragecap"_prop, 100));
         return;
@@ -395,9 +402,12 @@ void spellPrep(PlayerState&, SpellState& spell, int duration) {
     case SpellKind::RagePotion:
     case SpellKind::Fireball:
     case SpellKind::GrilekFury:
-        if (spell.props.has("timetoend"_prop))
-            spell.useStep = std::max(static_cast<double>(duration) - value(spell, "timetoend"_prop), 0.0);
-        if (spell.props.has("timetostart"_prop)) spell.useStep = value(spell, "timetostart"_prop);
+        if (spell.props.has("timetostart"_prop)) {
+            spell.useStep = value(spell, "timetostart"_prop);
+        } else if (spell.props.has("timetoend"_prop)) {
+            spell.endStep = std::max(static_cast<double>(duration) - value(spell, "timetoend"_prop), 0.0);
+            spell.useStep = detail::firstUseBeforeEnd(spell.endStep, value(spell, "cooldown"_prop) * 1000);
+        }
         return;
     default:
         return;

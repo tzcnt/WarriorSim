@@ -63,6 +63,17 @@ inline double jsRemainder(double dividend, double divisor) noexcept {
     return std::fmod(dividend, divisor);
 }
 
+// Mirror scheduleBeforeEnd and nextUseStep in spell.js. An end-of-fight schedule counts
+// back whole cooldowns, each with 2 seconds of slop, to the earliest first use, and its
+// final use waits for the scheduled time.
+inline double firstUseBeforeEnd(double endStep, double cooldownMs) noexcept {
+    return cooldownMs ? jsRemainder(endStep, cooldownMs + 2000) : endStep;
+}
+
+inline double nextUseStep(double ready, double endStep, double cooldownMs) noexcept {
+    return ready < endStep && ready + cooldownMs > endStep ? endStep : ready;
+}
+
 inline std::int32_t jsToInt32(double value) {
     if (value >= -2147483648.0 && value < 2147483648.0)
         return static_cast<std::int32_t>(value);
@@ -279,6 +290,7 @@ struct SpellState {
     double maxdelay = 0;
     double executestep = 0;
     double useStep = std::numeric_limits<double>::quiet_NaN();
+    double endStep = std::numeric_limits<double>::quiet_NaN();
     bool firstuse = true;
     bool offhandhit = false;
     double totaldmg = 0;
@@ -300,6 +312,7 @@ struct AuraState {
     int stacks = 0;
     double starttimer = 0;
     double useStep = std::numeric_limits<double>::quiet_NaN();
+    double endStep = std::numeric_limits<double>::quiet_NaN();
     double maxdelay = 0;
     double mintime = 0;
     double cooldownTimer = 0;
@@ -361,6 +374,11 @@ struct ConfiguredActionLists {
     std::vector<int> noGcdSpells;
     std::vector<int> moreNoGcdAuras;
     std::vector<int> onUseAuras;
+    std::vector<int> offGcdRacials;
+    // Scheduled cooldowns in selection order, as (isAura, index). They are checked as soon
+    // as they are ready and replace a GCD ability that was chosen but not yet cast.
+    std::vector<std::pair<bool, int>> scheduledNoGcd;
+    std::vector<std::pair<bool, int>> scheduledGcd;
     std::vector<int> queuedStrikes;
     std::vector<CachedPeriodicAura> periodicCandidates;
     std::vector<int> tickAuras;

@@ -622,10 +622,10 @@ void PlayerState::buildConfiguredActionLists() {
         addOrderedProc(configured.stepAuras, oh->proc2);
     }
     constexpr std::pair<detail::KnownAction, bool> stepNamed[] = {
-        {"mightyragepotion"_action, true}, {"majorfrenzypotion"_action, false}, {"recklessness"_action, true}, {"deathwish"_action, true},
-        {"cloudkeeper"_action, true}, {"flask"_action, true},
-        {"eluneslight"_action, false}, {"eureka"_action, false}, {"bloodfury"_action, true}, {"berserking"_action, true}, {"slayer"_action, true},
-        {"spider"_action, true}, {"earthstrike"_action, true}, {"pummeler"_action, true}, {"swarmguard"_action, true}, {"zandalarian"_action, true},
+        {"mightyragepotion"_action, false}, {"majorfrenzypotion"_action, false}, {"recklessness"_action, false}, {"deathwish"_action, false},
+        {"cloudkeeper"_action, false}, {"flask"_action, false},
+        {"eluneslight"_action, false}, {"eureka"_action, false}, {"bloodfury"_action, false}, {"berserking"_action, false}, {"slayer"_action, false},
+        {"spider"_action, false}, {"earthstrike"_action, false}, {"pummeler"_action, true}, {"swarmguard"_action, false}, {"zandalarian"_action, false},
         {"battleshout"_action, false}, {"jujuflurry"_action, false},
         };
     for (const auto& [key, firstUse] : stepNamed)
@@ -652,11 +652,11 @@ void PlayerState::buildConfiguredActionLists() {
         addOrderedProc(configured.endAuras, oh->proc2);
     }
     constexpr std::pair<detail::KnownAction, bool> endNamed[] = {
-        {"mightyragepotion"_action, true}, {"majorfrenzypotion"_action, false}, {"recklessness"_action, true}, {"deathwish"_action, true},
-        {"cloudkeeper"_action, true}, {"flask"_action, true},
-        {"eluneslight"_action, false}, {"eureka"_action, false}, {"bloodfury"_action, true}, {"berserking"_action, true}, {"slayer"_action, true},
-        {"spider"_action, true}, {"gabbar"_action, true}, {"earthstrike"_action, true}, {"pummeler"_action, true}, {"swarmguard"_action, true},
-        {"zandalarian"_action, true}, {"battleshout"_action, false},
+        {"mightyragepotion"_action, false}, {"majorfrenzypotion"_action, false}, {"recklessness"_action, false}, {"deathwish"_action, false},
+        {"cloudkeeper"_action, false}, {"flask"_action, false},
+        {"eluneslight"_action, false}, {"eureka"_action, false}, {"bloodfury"_action, false}, {"berserking"_action, false}, {"slayer"_action, false},
+        {"spider"_action, false}, {"gabbar"_action, false}, {"earthstrike"_action, false}, {"pummeler"_action, true}, {"swarmguard"_action, false},
+        {"zandalarian"_action, false}, {"battleshout"_action, false},
         {"jujuflurry"_action, false}, };
     for (const auto& [key, firstUse] : endNamed)
         addOrderedKey(configured.endAuras, key, firstUse);
@@ -680,6 +680,22 @@ void PlayerState::buildConfiguredActionLists() {
     addAuras(configured.moreNoGcdAuras, {"jujuflurry"_action});
     addAuras(configured.onUseAuras, {"cloudkeeper"_action, "pummeler"_action, "slayer"_action,
         "spider"_action, "gabbar"_action, "earthstrike"_action, "zandalarian"_action});
+    addAuras(configured.offGcdRacials, {"eluneslight"_action, "eureka"_action});
+    const auto addScheduled = [&](std::vector<std::pair<bool, int>>& destination,
+                             std::initializer_list<std::pair<detail::KnownAction, bool>> keys) {
+        for (const auto& [key, isAura] : keys) {
+            const int index = isAura ? auraIndex(key) : spellIndex(key);
+            if (index != kNoRef) destination.emplace_back(isAura, index);
+        }
+    };
+    addScheduled(configured.scheduledNoGcd, {{"swarmguard"_action, true}, {"mightyragepotion"_action, true},
+        {"majorfrenzypotion"_action, true}, {"ragepotion"_action, false}, {"fireball"_action, false},
+        {"jujuflurry"_action, true}, {"grilekfury"_action, false}, {"bloodrage"_action, false},
+        {"cloudkeeper"_action, true}, {"pummeler"_action, true}, {"slayer"_action, true}, {"spider"_action, true},
+        {"gabbar"_action, true}, {"earthstrike"_action, true}, {"zandalarian"_action, true},
+        {"eluneslight"_action, true}, {"eureka"_action, true}});
+    addScheduled(configured.scheduledGcd, {{"flask"_action, true}, {"recklessness"_action, true},
+        {"deathwish"_action, true}, {"bloodfury"_action, true}, {"berserking"_action, true}});
     addSpells(configured.queuedStrikes, {"heroicstrike"_action, "cleave"_action});
 
     const auto addPeriodic = [&](detail::KnownAction key, double interval) {
@@ -693,12 +709,13 @@ void PlayerState::buildConfiguredActionLists() {
     addSpells(configured.timedSpells, {"spearingstrike"_action, "bloodthirst"_action, "mortalstrike"_action,
         "shieldslam"_action, "whirlwind"_action,
         "bloodrage"_action, "berserkerrage"_action, "ragepotion"_action,
+        "grilekfury"_action, "fireball"_action,
         "overpower"_action, "execute"_action, "slam"_action});
     addSpells(configured.stepSpells, {"spearingstrike"_action, "berserkerrage"_action,
         "bloodthirst"_action, "mortalstrike"_action, "shieldslam"_action,
         "whirlwind"_action, "bloodrage"_action,
-        "ragepotion"_action, "overpower"_action, "execute"_action,
-        "hamstring"_action, "thunderclap"_action, "sunderarmor"_action,
+        "ragepotion"_action, "grilekfury"_action, "fireball"_action,
+        "overpower"_action, "execute"_action, "hamstring"_action, "thunderclap"_action, "sunderarmor"_action,
         "slam"_action});
     addAuras(configured.periodicAuras, {"rend"_action, "deepwounds"_action,
         "deepwounds2"_action, "deepwounds3"_action, "deepwounds4"_action});

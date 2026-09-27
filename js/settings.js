@@ -345,6 +345,7 @@ SIM.SETTINGS = {
             if (e.originalEvent && e.originalEvent.isTrusted && ($(this).data('id') == 'timetoendactive' || $(this).data('id') == 'timetostartactive')) {
                 spell.active = active;
             }
+            view.buildUseTimes(spell);
 
             SIM.UI.updateSession();
         });
@@ -353,8 +354,10 @@ SIM.SETTINGS = {
             let id = $(this).parents('.details').data('id');
 
             for (let spell of spells)
-                if (spell.id == id)
+                if (spell.id == id) {
                     spell[$(this).attr('name')] = $(this).val();
+                    view.buildUseTimes(spell);
+                }
 
             SIM.UI.updateSession();
         });
@@ -545,6 +548,11 @@ SIM.SETTINGS = {
 
         details.css('visibility','hidden');
         details.append(ul);
+        if (spell.timetostart !== undefined || spell.timetoend !== undefined) {
+            details.data('cooldown', view.scheduledCooldown(spell));
+            details.append('<div class="usetimes"></div>');
+            view.buildUseTimes(spell);
+        }
         let height = details.height();
 
         setTimeout(function() {
@@ -561,6 +569,60 @@ SIM.SETTINGS = {
         details.removeClass('visible');
         el.css('margin-bottom', '0px');
 
+    },
+
+    // The cooldown the simulation uses, read from the action it would construct.
+    scheduledCooldown(spell) {
+        try {
+            const player = new Player();
+            return eval(`new ${spell.classname}(player, spell.id)`).cooldown || 0;
+        }
+        catch (e) {
+            return 0;
+        }
+    },
+
+    // Seconds from the start or end of the fight of each use after the scheduled one, as the
+    // simulation makes them: on cooldown after a start schedule, or counting back whole
+    // cooldowns plus 2 seconds of slop from an end schedule.
+    useTimes(scheduled, cooldown, fromEnd, duration) {
+        const times = [];
+        if (!cooldown || isNaN(scheduled)) return times;
+        const period = fromEnd ? cooldown + 2 : cooldown;
+        for (let time = scheduled + period; fromEnd ? time <= duration : time < duration; time += period)
+            if (time > 0) times.push(time);
+        return times;
+    },
+
+    formatUseTime(seconds) {
+        const minutes = Math.floor(seconds / 60), rest = seconds % 60;
+        const unit = (value, name) => `${value} ${name}${value == 1 ? '' : 's'}`;
+        return [minutes ? unit(minutes, 'minute') : '', rest || !minutes ? unit(rest, 'second') : '']
+            .filter(Boolean).join(', ');
+    },
+
+    // Lists the additional uses of an enabled "Use N seconds" schedule in the configured fight.
+    buildUseTimes(spell) {
+        const view = this;
+        const details = view.rotation.find('.details');
+        const container = details.find('.usetimes');
+        container.empty();
+        const fromEnd = Boolean(spell.timetoendactive && spell.timetoend !== undefined);
+        const fromStart = Boolean(spell.timetostartactive && spell.timetostart !== undefined);
+        if (fromEnd || fromStart) {
+            // Fight lengths vary between the minimum and maximum, so list the uses of the longest.
+            const times = view.useTimes(parseInt(fromEnd ? spell.timetoend : spell.timetostart),
+                details.data('cooldown'), fromEnd, parseInt(view.fight.find('input[name="timesecsmax"]').val()));
+            if (times.length) {
+                const ul = $('<ul></ul>');
+                for (const time of times)
+                    ul.append(`<li class="nobox">Use ${view.formatUseTime(time)} from the ${fromEnd ? 'end' : 'start'} of the fight</li>`);
+                container.append('<div class="label">Additional use times:</div>');
+                container.append(ul);
+            }
+        }
+        if (details.hasClass('visible'))
+            view.rotation.find('.spell.open').css('margin-bottom', details.height() + 30 + 'px');
     },
 
     toggleArticle: function(label) {

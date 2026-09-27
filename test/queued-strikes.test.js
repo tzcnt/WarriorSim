@@ -95,9 +95,9 @@ for (const mode of ['classic', 'forever']) test(`${mode}: rotation details expos
     const element = {
         find() { return this; }, data() { return this; }, empty() { return this; },
         append(value) { if (typeof value === 'string') rows.push(value); return this; },
-        css() { return this; }, height() { return 0; },
+        css() { return this; }, height() { return 0; }, hasClass() { return false; }, val() { return ''; },
     };
-    engine.evaluate('$ = () => element; setTimeout = () => {}; SIM.SETTINGS.rotation = element;', {element});
+    engine.evaluate('$ = () => element; setTimeout = () => {}; SIM.SETTINGS.rotation = SIM.SETTINGS.fight = element;', {element});
     for (const id of [25286, 20569]) {
         rows.length = 0;
         engine.evaluate('SIM.SETTINGS.buildSpellDetails(spells.find(spell => spell.id === id), element)', {id});

@@ -73,14 +73,15 @@ for (const fixture of frenzyFixtures()) {
         };
         engine.createSimulation(player, fixture.sim).startSync();
         const fromEnd = fixture.rotation['major-frenzy-potion'].timetoendactive;
-        assert.equal(casts.length, (fromEnd ? 1 : 3) * fixture.sim.iterations);
-        const earliest = fromEnd ? 249000 : 0;
-        for (let i = 0; i < casts.length; i += fromEnd ? 1 : 3) {
+        // Either schedule fits three uses in 280 seconds. From the end, the first use
+        // counts back two cooldowns plus 2 seconds of slop each: 249 - 2 * 122 = 5.
+        assert.equal(casts.length, 3 * fixture.sim.iterations);
+        const earliest = fromEnd ? 5000 : 0;
+        for (let i = 0; i < casts.length; i += 3) {
             assert.ok(casts[i] >= earliest && casts[i] < earliest + 1000);
-            if (!fromEnd) {
-                assert.ok(casts[i + 1] - casts[i] >= 120000);
-                assert.ok(casts[i + 2] - casts[i + 1] >= 120000);
-            }
+            assert.ok(casts[i + 1] - casts[i] >= 120000);
+            assert.ok(casts[i + 2] - casts[i + 1] >= 120000);
+            if (fromEnd) assert.ok(casts[i + 2] >= 249000 && casts[i + 2] < 250000, 'the last use waits for its end-of-fight schedule');
         }
     });
 }

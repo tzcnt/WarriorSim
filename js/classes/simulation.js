@@ -353,6 +353,16 @@ class Simulation {
         let next = 0;
         let slamstep = 0;
         let stopstep = 0;
+        // Scheduled cooldowns are the highest priority once due. They are checked as soon as
+        // they are ready, and replace a GCD ability that was chosen but not yet cast.
+        const scheduled = [player.auras.swarmguard, player.auras.mightyragepotion, player.auras.majorfrenzypotion,
+            player.spells.ragepotion, player.spells.fireball, player.auras.jujuflurry, player.spells.grilekfury,
+            player.spells.bloodrage, player.auras.cloudkeeper, player.auras.pummeler, player.auras.slayer,
+            player.auras.spider, player.auras.gabbar, player.auras.earthstrike, player.auras.zandalarian,
+            player.auras.eluneslight, player.auras.eureka].filter(Boolean);
+        const scheduledgcd = [player.auras.flask, player.auras.recklessness, player.auras.deathwish,
+            player.auras.bloodfury, player.auras.berserking].filter(Boolean);
+        let preemptible = false;
 
         // determine when to use on use items
         let itemdelay = 0;
@@ -423,8 +433,15 @@ class Simulation {
                     spellcheck = true;
                 }
 
+                const reserve = this.reservedRage();
+                if (spellcheck && player.spelldelay && preemptible) {
+                    const due = this.dueScheduled(scheduled, scheduledgcd);
+                    if (due) { player.spelldelay = 1; delayedspell = due; preemptible = false; }
+                }
+
                 // Spells
                 if (spellcheck && !player.spelldelay) {
+                    preemptible = false;
 
                     // Use no GCD spells
                     if (player.auras.swarmguard && player.auras.swarmguard.canUse()) { player.spelldelay = 1; delayedspell = player.auras.swarmguard; }
@@ -434,7 +451,8 @@ class Simulation {
                     else if (player.spells.fireball && player.spells.fireball.canUse()) { player.spelldelay = 1; delayedspell = player.spells.fireball; }
                     else if (player.auras.jujuflurry && player.auras.jujuflurry.canUse()) { player.spelldelay = 1; delayedspell = player.auras.jujuflurry; }
                     else if (player.spells.grilekfury && player.spells.grilekfury.canUse()) { player.spelldelay = 1; delayedspell = player.spells.grilekfury; }
-                    else if (player.auras.sweepingstrikes && !player.auras.sweepingstrikes.gcd && player.auras.sweepingstrikes.canUse()) { player.spelldelay = 1; delayedspell = player.auras.sweepingstrikes; }
+                    else if (player.auras.sweepingstrikes && !player.auras.sweepingstrikes.gcd && player.auras.sweepingstrikes.canUse() &&
+                        (!reserve || player.rage - player.auras.sweepingstrikes.cost >= reserve)) { player.spelldelay = 1; delayedspell = player.auras.sweepingstrikes; }
 
                     else if (player.spells.berserkerrage && player.spells.berserkerrage.zerkerpriority && player.spells.berserkerrage.canUse()) { player.spelldelay = 1; delayedspell = player.spells.berserkerrage; }
                     else if (player.spells.bloodrage && player.spells.bloodrage.canUse()) { player.spelldelay = 1; delayedspell = player.spells.bloodrage; }
@@ -447,26 +465,27 @@ class Simulation {
                     else if (player.auras.gabbar && player.auras.gabbar.canUse()) { player.spelldelay = 1; delayedspell = player.auras.gabbar; }
                     else if (player.auras.earthstrike && player.auras.earthstrike.canUse()) { player.spelldelay = 1; delayedspell = player.auras.earthstrike; }
                     else if (player.auras.zandalarian && player.auras.zandalarian.canUse()) { player.spelldelay = 1; delayedspell = player.auras.zandalarian; }
+                    else if (player.auras.eluneslight && player.auras.eluneslight.canUse()) { player.spelldelay = 1; delayedspell = player.auras.eluneslight; }
+                    else if (player.auras.eureka && player.auras.eureka.canUse()) { player.spelldelay = 1; delayedspell = player.auras.eureka; }
                     else if (player.spells.stanceswitch.canUse()) { player.spelldelay = 1; delayedspell = player.spells.stanceswitch; }
                     else if (player.timer) { }
                     else if (player.auras.flask && player.auras.flask.canUse()) { player.spelldelay = 1; delayedspell = player.auras.flask; }
                     else if (player.auras.recklessness && player.auras.recklessness.canUse()) { player.spelldelay = 1; delayedspell = player.auras.recklessness; }
                     else if (player.auras.deathwish && player.auras.deathwish.canUse()) { player.spelldelay = 1; delayedspell = player.auras.deathwish; }
-                    else if (player.auras.eluneslight && player.auras.eluneslight.canUse()) { player.spelldelay = 1; delayedspell = player.auras.eluneslight; }
-                    else if (player.auras.eureka && player.auras.eureka.canUse()) { player.spelldelay = 1; delayedspell = player.auras.eureka; }
                     else if (player.auras.bloodfury && player.auras.bloodfury.canUse()) { player.spelldelay = 1; delayedspell = player.auras.bloodfury; }
                     else if (player.auras.berserking && player.auras.berserking.canUse()) { player.spelldelay = 1; delayedspell = player.auras.berserking; }
-                    else if (player.auras.battleshout && player.auras.battleshout.canUse()) { player.spelldelay = 1; delayedspell = player.auras.battleshout; }
+                    else if (reserve) { }
+                    else if (player.auras.battleshout && player.auras.battleshout.canUse()) { player.spelldelay = 1; delayedspell = player.auras.battleshout; preemptible = true; }
                     else if (step >= this.executestep) {
                         for(let i = 0; i < player.executespells_c; i++) {
-                            if (player.executespells[i].canUse()) { player.spelldelay = 1; delayedspell = player.executespells[i]; break; }
+                            if (player.executespells[i].canUse()) { player.spelldelay = 1; delayedspell = player.executespells[i]; preemptible = true; break; }
                         }
                     }
 
                     // Normal phase
                     else {
                         for(let i = 0; i < player.normalspells_c; i++) {
-                            if (player.normalspells[i].canUse()) { player.spelldelay = 1; delayedspell = player.normalspells[i]; break; }
+                            if (player.normalspells[i].canUse()) { player.spelldelay = 1; delayedspell = player.normalspells[i]; preemptible = true; break; }
                         }
                     }
 
@@ -476,10 +495,12 @@ class Simulation {
                 // Heroic Strike
                 if (spellcheck && !player.heroicdelay) {
                     if (!player.spells.execute || step < this.executestep) {
-                        if (player.spells.heroicstrike && player.spells.heroicstrike.canUse()) {
+                        if (player.spells.heroicstrike && player.spells.heroicstrike.canUse() &&
+                            (!reserve || player.rage - player.spells.heroicstrike.cost >= reserve)) {
                             player.heroicdelay = 1; delayedheroic = player.spells.heroicstrike;
                         }
-                        else if (player.spells.cleave && player.spells.cleave.canUse()) {
+                        else if (player.spells.cleave && player.spells.cleave.canUse() &&
+                            (!reserve || player.rage - player.spells.cleave.cost >= reserve)) {
                             player.heroicdelay = 1; delayedheroic = player.spells.cleave;
                         }
                     }
@@ -494,7 +515,8 @@ class Simulation {
                     if (player.heroicdelay && delayedheroic && player.heroicdelay > delayedheroic.maxdelay)
                         player.heroicdelay = delayedheroic.maxdelay - 99;
 
-                    if (delayedspell.canUse()) {
+                    // A GCD ability chosen before Death Wish or Berserking was due waits behind it.
+                    if (delayedspell.canUse() && !(preemptible && reserve)) {
                         // Start casting slam
                         if (delayedspell instanceof Slam) {
                             slamstep = step + delayedspell.casttime;
@@ -600,6 +622,14 @@ class Simulation {
             if (player.auras.enrage?.timer > step && player.auras.enrage.timer - step < next) next = player.auras.enrage.timer - step;
             if (player.auras.sweepingstrikes?.duration && player.auras.sweepingstrikes.timer > step && player.auras.sweepingstrikes.timer - step < next) next = player.auras.sweepingstrikes.timer - step;
             if (player.auras.sweepingstrikes?.cooldowntimer > step && player.auras.sweepingstrikes.cooldowntimer - step < next) next = player.auras.sweepingstrikes.cooldowntimer - step;
+            for (const action of scheduled) {
+                const wait = Math.max(action.usestep, action.cooldowntimer || 0) - step;
+                if (wait > 0 && wait < next) next = wait;
+            }
+            for (const action of scheduledgcd) {
+                const wait = action.usestep - step;
+                if (wait > 0 && wait < next) next = wait;
+            }
 
             // Auras with periodic ticks
             if (player.target.speed && (player.target.speed - (step % player.target.speed)) < next) next = player.target.speed - (step % player.target.speed);
@@ -631,6 +661,8 @@ class Simulation {
             if (player.spells.whirlwind && player.spells.whirlwind.timer && player.spells.whirlwind.timer < next) next = player.spells.whirlwind.timer;
             if (player.spells.bloodrage && player.spells.bloodrage.timer && player.spells.bloodrage.timer < next) next = player.spells.bloodrage.timer;
             if (player.spells.ragepotion && player.spells.ragepotion.timer && player.spells.ragepotion.timer < next) next = player.spells.ragepotion.timer;
+            if (player.spells.grilekfury?.timer > 0 && player.spells.grilekfury.timer < next) next = player.spells.grilekfury.timer;
+            if (player.spells.fireball?.timer > 0 && player.spells.fireball.timer < next) next = player.spells.fireball.timer;
             if (player.spells.overpower && player.spells.overpower.timer && player.spells.overpower.timer < next) next = player.spells.overpower.timer;
             if (player.spells.execute && player.spells.execute.timer && player.spells.execute.timer < next) next = player.spells.execute.timer;
             if (player.spells.slam && player.spells.slam.timer && player.spells.slam.timer < next) next = player.spells.slam.timer;
@@ -675,6 +707,10 @@ class Simulation {
                 if (!player.auras.sweepingstrikes.timer) spellcheck = true;
             }
             if (player.auras.sweepingstrikes && player.auras.sweepingstrikes.cooldowntimer === step) spellcheck = true;
+            if (!player.spelldelay || preemptible) {
+                for (const action of scheduled) if (action.canUse()) spellcheck = true;
+                if (!player.timer) for (const action of scheduledgcd) if (action.canUse()) spellcheck = true;
+            }
             if (player.spells.berserkerrage && player.spells.berserkerrage.timer && !player.spells.berserkerrage.step(next) && !player.spelldelay) spellcheck = true;
             if (player.spells.bloodthirst && player.spells.bloodthirst.timer && !player.spells.bloodthirst.step(next) && !player.spelldelay) spellcheck = true;
             if (player.spells.mortalstrike && player.spells.mortalstrike.timer && !player.spells.mortalstrike.step(next) && !player.spelldelay) spellcheck = true;
@@ -682,6 +718,8 @@ class Simulation {
             if (player.spells.whirlwind && player.spells.whirlwind.timer && !player.spells.whirlwind.step(next) && !player.spelldelay) spellcheck = true;
             if (player.spells.bloodrage && player.spells.bloodrage.timer && !player.spells.bloodrage.step(next) && !player.spelldelay) spellcheck = true;
             if (player.spells.ragepotion && player.spells.ragepotion.timer && !player.spells.ragepotion.step(next) && !player.spelldelay) spellcheck = true;
+            if (player.spells.grilekfury?.timer && !player.spells.grilekfury.step(next) && !player.spelldelay) spellcheck = true;
+            if (player.spells.fireball?.timer && !player.spells.fireball.step(next) && !player.spelldelay) spellcheck = true;
             if (player.spells.overpower && player.spells.overpower.timer && !player.spells.overpower.step(next) && !player.spelldelay) spellcheck = true;
             if (player.spells.execute && player.spells.execute.timer && !player.spells.execute.step(next) && !player.spelldelay) spellcheck = true;
             if (player.spells.hamstring && player.spells.hamstring.timer && !player.spells.hamstring.step(next) && !player.spelldelay) spellcheck = true;
@@ -747,6 +785,18 @@ class Simulation {
                 totalduration: this.totalduration,
             });
         }
+    }
+    // The first scheduled cooldown that can be used now, in the selection chain's order.
+    dueScheduled(scheduled, scheduledgcd) {
+        for (const action of scheduled) if (action.canUse()) return action;
+        if (!this.player.timer) for (const action of scheduledgcd) if (action.canUse()) return action;
+    }
+    // Rage a due Death Wish or Berserking is waiting for. Nothing else may spend it.
+    reservedRage() {
+        const wish = this.player.auras.deathwish, zerk = this.player.auras.berserking;
+        if (wish && !wish.timer && step >= wish.usestep) return wish.cost ?? 10;
+        if (zerk && !zerk.timer && step >= zerk.usestep) return 5;
+        return 0;
     }
     finished() {
         if (this.cb_finished) {

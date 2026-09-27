@@ -80,14 +80,15 @@ for (const fixture of extraFixtures()) {
             }
         if (fixture.name.includes('phantom')) assert.ok(expected.player.mh.totalprocdmg > 0);
         for (const [key, duration] of Object.entries({slayer: 20000, spider: 15000, earthstrike: 20000})) {
-            if (expected.player.auras[key]) {
-                assert.equal(expected.player.auras[key].uptime, duration * fixture.sim.iterations,
-                    `${key} must expire after exactly one use per long fight`);
+            if (/^classic-long-(slayer-spider|earthstrike)$/.test(fixture.name) && expected.player.auras[key]) {
+                assert.equal(expected.player.auras[key].uptime, 2 * duration * fixture.sim.iterations,
+                    `${key} must expire and be reused after its 2-minute cooldown in a long fight`);
             }
         }
         if (fixture.name === 'classic-long-on-use-orc') {
-            assert.equal(expected.player.auras.bloodfury.uptime, 15000 * fixture.sim.iterations);
-            assert.equal(expected.player.auras.flask.uptime, 60000 * fixture.sim.iterations);
+            assert.equal(expected.player.auras.bloodfury.uptime, 2 * 15000 * fixture.sim.iterations);
+            assert.equal(expected.player.auras.flask.uptime, 60000 * fixture.sim.iterations,
+                'the 6-minute Diamond Flask cooldown allows one use');
         }
         if (/bloodrage-(start-schedule|end-schedule|explicit-step)$/.test(fixture.name)) {
             assert.ok(expected.player.auras.bloodrage.uptime > 0);
@@ -100,6 +101,135 @@ for (const fixture of extraFixtures()) {
         }
     });
 }
+
+function traceCasts(fixture, keys) {
+    const engine = createReferenceEngine(fixture.mode);
+    const player = createConfiguredPlayer(engine, fixture);
+    const casts = Object.fromEntries(keys.map(key => [key, []]));
+    for (const key of keys) {
+        const action = player.spells[key] || player.auras[key];
+        const use = action.use;
+        action.use = function(...args) {
+            casts[key].push(engine.evaluate('step'));
+            return use.apply(this, args);
+        };
+    }
+    engine.createSimulation(player, fixture.sim).startSync();
+    return casts;
+}
+
+// Cooldown, scheduled final use, and how late that final use may start in 300 second
+// fights. Off-GCD uses wait only for reaction time. Blood Fury can also wait for the GCD,
+// and Death Wish for the GCD and 10 rage, for example while Execute spends it. Kiss of
+// the Spider takes the last 15 seconds, so Slayer's Crest is scheduled to end first.
+const endSchedules = {
+    'classic-long-end-schedule': {
+        slayer: [120000, 265000, 1000],
+        spider: [120000, 285000, 1000],
+        bloodfury: [120000, 282000, 2000],
+        mightyragepotion: [120000, 279000, 1000],
+        bloodrage: [60000, 265000, 1000],
+        deathwish: [180000, 269000, 5000],
+    },
+    'forever-racial-night-elf-end-schedule': {eluneslight: [180000, 269000, 1000], deathwish: [180000, 269000, 5000]},
+    'forever-racial-gnome-end-schedule': {eureka: [120000, 290000, 1000], deathwish: [180000, 269000, 5000]},
+};
+
+for (const [name, schedules] of Object.entries(endSchedules)) test(`${name}: end-of-fight schedules count back whole cooldowns to the earliest first use`, () => {
+    const fixture = extraFixtures().find(value => value.name === name);
+    const casts = traceCasts(fixture, Object.keys(schedules));
+    for (const [key, [cooldown, last, late]] of Object.entries(schedules)) {
+        const uses = Math.floor(last / (cooldown + 2000)) + 1;
+        const first = last % (cooldown + 2000);
+        assert.equal(casts[key].length, uses * fixture.sim.iterations, key);
+        for (let i = 0; i < casts[key].length; i += uses) {
+            assert.ok(casts[key][i] >= first && casts[key][i] < first + 2000, `${key} first use at ${casts[key][i]}`);
+            for (let j = i + 1; j < i + uses; ++j)
+                assert.ok(casts[key][j] - casts[key][j - 1] >= cooldown, `${key} is reused on cooldown`);
+            // Delays in earlier uses must not leave it on cooldown at the scheduled final use.
+            assert.ok(casts[key][i + uses - 2] + cooldown <= last, `${key} is ready for its final use`);
+            assert.ok(casts[key][i + uses - 1] >= last && casts[key][i + uses - 1] < last + late,
+                `${key} final use at ${casts[key][i + uses - 1]}`);
+        }
+    }
+});
+
+function traceFights(fixture, actions) {
+    const engine = createReferenceEngine(fixture.mode);
+    const player = createConfiguredPlayer(engine, fixture);
+    const fights = [];
+    const reset = player.reset;
+    player.reset = function(...args) {
+        fights.push([]);
+        return reset.apply(this, args);
+    };
+    for (const [action, name] of actions(player)) {
+        const use = action.use;
+        action.use = function(...args) {
+            fights[fights.length - 1].push([engine.evaluate('step'), name]);
+            return use.apply(this, args);
+        };
+    }
+    engine.createSimulation(player, fixture.sim).startSync();
+    return fights;
+}
+
+for (const name of Object.keys(endSchedules).filter(value => endSchedules[value].deathwish)) {
+    test(`${name}: once Death Wish is due, no other GCD ability goes before it`, () => {
+        const [cooldown, last] = endSchedules[name].deathwish;
+        const first = last % (cooldown + 2000);
+        // Slam's traced use is its cast completion, which can follow a cast started earlier.
+        const fights = traceFights(extraFixtures().find(value => value.name === name), player => [
+            [player.auras.deathwish, 'deathwish'],
+            ...[...new Set([...player.normalspells, ...player.executespells])]
+                .filter(action => action.constructor.name !== 'Slam').map(action => [action, action.name]),
+        ]);
+        for (const events of fights) {
+            const casts = events.filter(([, action]) => action === 'deathwish').map(([time]) => time);
+            assert.equal(casts.length, 2);
+            for (const [due, cast] of [[first, casts[0]], [last, casts[1]]]) {
+                const before = events.filter(([time, action]) => action !== 'deathwish' && time >= due && time < cast);
+                assert.deepEqual(before, [], `Death Wish due at ${due} and cast at ${cast}`);
+            }
+        }
+    });
+}
+
+test('start-of-fight schedules reuse items as soon as their cooldowns end', () => {
+    const fixture = extraFixtures().find(value => value.name === 'classic-long-grilek-swarmguard');
+    const casts = traceCasts(fixture, ['grilekfury', 'swarmguard']);
+    for (const key of ['grilekfury', 'swarmguard']) {
+        assert.equal(casts[key].length, 2 * fixture.sim.iterations, key);
+        for (let i = 0; i < casts[key].length; i += 2) {
+            assert.ok(casts[key][i] < 1000, `${key} first use at ${casts[key][i]}`);
+            assert.ok(casts[key][i + 1] - casts[key][i] >= 180000 && casts[key][i + 1] - casts[key][i] < 181000,
+                `${key} reused ${casts[key][i + 1] - casts[key][i]} ms later`);
+        }
+    }
+});
+
+test('end-of-fight schedules count back with 2 seconds of slop and hold the final use', () => {
+    const engine = createReferenceEngine('classic');
+    const schedule = (duration, timetoend, cooldown) => ({...engine.evaluate(
+        '(() => { const action = {cooldown}; scheduleBeforeEnd(action, duration - timetoend); return action; })()',
+        {duration, timetoend, cooldown})});
+    const nextUse = (action, ready) => engine.evaluate('nextUseStep(action, ready)', {action, ready});
+    // 2:30 with a 2 minute cooldown, 15 seconds before the end: once near the start.
+    assert.deepEqual(schedule(150000, 15000, 120), {cooldown: 120, endstep: 135000, usestep: 13000});
+    // 5:00: first used 4:19 before the end. The second use is ready as soon as the
+    // cooldown ends; the third waits for 4:45 because no later use could fit before it.
+    const action = schedule(300000, 15000, 120);
+    assert.equal(300000 - action.usestep, 259000);
+    assert.equal(nextUse(action, 161000), 161000);
+    assert.equal(nextUse(action, 281000), 285000);
+    // A late use and uses after the scheduled time are not held.
+    assert.equal(nextUse(action, 286000), 286000);
+    // Without a cooldown, or with a schedule before the pull, it is used once at that time.
+    assert.deepEqual(schedule(300000, 15000, 0), {cooldown: 0, endstep: 285000, usestep: 285000});
+    assert.deepEqual(schedule(10000, 15000, 120), {cooldown: 120, endstep: 0, usestep: 0});
+    // Start-of-fight schedules have no end time to hold for.
+    assert.equal(nextUse({cooldown: 120}, 125000), 125000);
+});
 
 for (const mode of ['classic', 'forever']) {
     test(`${mode}: Overpower requires Battle Stance and returns after the stance cooldown`, () => {

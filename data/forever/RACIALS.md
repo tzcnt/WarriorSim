@@ -80,7 +80,8 @@ mixed-weapon behavior. Racial hit bonuses likewise apply to main-hand and
 off-hand autoattacks as well as abilities and spells.
 
 - Elune’s Light and Eureka! have no rage cost or GCD. Their first use can be
-  scheduled in Rotation; they can be reused in long fights.
+  scheduled in Rotation; they can be reused in long fights. They do not wait for the
+  GCD and are used as soon as they are ready, after the usual reaction delay.
 - Eureka!'s 10% reduction applies after talent reductions. Fractional rage costs
   are retained. Execute's excess-rage conversion is unchanged. Charges have no
   time limit. Each cast consumes one charge, including misses, dodges and
@@ -89,9 +90,16 @@ off-hand autoattacks as well as abilities and spells.
   at the actual swing; multiple targets and Whirlwind's off-hand share the cast's
   damage bonus and charge. Rend evaluates the current bonus on each tick. Sweeping
   Strikes copies resulting hit damage without applying a second multiplier.
-- Blood Fury retains the existing 1.5-second GCD and single scheduled use per fight.
-  Berserking retains the existing 5-rage cost and single scheduled use per fight.
-  The dump gives no replacement costs, GCDs or cooldowns for either ability.
+- Blood Fury retains the existing 1.5-second GCD and Berserking the existing 5-rage
+  cost. The dump gives no replacement costs, GCDs or cooldowns for either ability, so
+  they use Classic's 2-minute and 3-minute cooldowns and are reused in long fights.
+- Every scheduled cooldown is reused as soon as it is ready after its first use. A
+  schedule N seconds before the end counts back whole cooldowns, plus 2 seconds each
+  for GCD and reaction delays, to the first use; the final use waits for that time.
+  Once due, scheduled cooldowns are the highest priority. They replace a GCD ability
+  chosen but not yet cast, and while a due Death Wish or Berserking waits for rage,
+  no other GCD ability is used and Heroic Strike, Cleave and Classic Sweeping Strikes
+  may only spend rage above its cost.
 
 Current health, incoming health loss, temporary health abilities such as Last
 Stand, healing, mana, Spirit regeneration, avoidance, mitigation, crowd control,
