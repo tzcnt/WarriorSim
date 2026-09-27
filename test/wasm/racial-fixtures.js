@@ -32,6 +32,14 @@ function racialFixtures() {
     rend.player.race = 'Gnome';
     rend.rotation['forever:eureka'] = {active: true, timetostartactive: true, timetostart: 0, timetoendactive: false};
     fixtures.push(rend);
+    for (const [race, id, timetoend] of [['Night Elf', 'forever:elunes-light', 31], ['Gnome', 'forever:eureka', 10]]) {
+        const endSchedule = structuredClone(fixtures.find(f => f.player.race === race));
+        endSchedule.name = `forever-racial-${race.toLowerCase().replace(' ', '-')}-end-schedule`;
+        endSchedule.sim = {...endSchedule.sim, timesecsmin: 300, timesecsmax: 300};
+        endSchedule.rotation[id] = {active: true, timetostartactive: false, timetoendactive: true, timetoend};
+        endSchedule.rotation[12328] = {active: true, timetostartactive: false, timetoendactive: true, timetoend: 31};
+        fixtures.push(endSchedule);
+    }
     const cleave = structuredClone(fixtures.find(f => f.player.race === 'Gnome'));
     cleave.name = 'forever-racial-gnome-cleave';
     cleave.rotation[11567] = cleave.rotation[25286] = {active: false};

@@ -680,6 +680,22 @@ void PlayerState::buildConfiguredActionLists() {
     addAuras(configured.moreNoGcdAuras, {"jujuflurry"_action});
     addAuras(configured.onUseAuras, {"cloudkeeper"_action, "pummeler"_action, "slayer"_action,
         "spider"_action, "gabbar"_action, "earthstrike"_action, "zandalarian"_action});
+    addAuras(configured.offGcdRacials, {"eluneslight"_action, "eureka"_action});
+    const auto addScheduled = [&](std::vector<std::pair<bool, int>>& destination,
+                             std::initializer_list<std::pair<detail::KnownAction, bool>> keys) {
+        for (const auto& [key, isAura] : keys) {
+            const int index = isAura ? auraIndex(key) : spellIndex(key);
+            if (index != kNoRef) destination.emplace_back(isAura, index);
+        }
+    };
+    addScheduled(configured.scheduledNoGcd, {{"swarmguard"_action, true}, {"mightyragepotion"_action, true},
+        {"majorfrenzypotion"_action, true}, {"ragepotion"_action, false}, {"fireball"_action, false},
+        {"jujuflurry"_action, true}, {"grilekfury"_action, false}, {"bloodrage"_action, false},
+        {"cloudkeeper"_action, true}, {"pummeler"_action, true}, {"slayer"_action, true}, {"spider"_action, true},
+        {"gabbar"_action, true}, {"earthstrike"_action, true}, {"zandalarian"_action, true},
+        {"eluneslight"_action, true}, {"eureka"_action, true}});
+    addScheduled(configured.scheduledGcd, {{"flask"_action, true}, {"recklessness"_action, true},
+        {"deathwish"_action, true}, {"bloodfury"_action, true}, {"berserking"_action, true}});
     addSpells(configured.queuedStrikes, {"heroicstrike"_action, "cleave"_action});
 
     const auto addPeriodic = [&](detail::KnownAction key, double interval) {

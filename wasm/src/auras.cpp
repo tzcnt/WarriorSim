@@ -10,6 +10,15 @@ double durationMs(const AuraState& aura) { return aura.props.number("duration"_p
 double cooldownMs(const AuraState& aura) { return aura.props.number("cooldown"_prop) * 1000.0; }
 bool active(const AuraState& aura) { return aura.timer != 0; }
 
+void scheduleBeforeEnd(AuraState& aura, double endStep) {
+    aura.endStep = std::max(endStep, 0.0);
+    aura.useStep = detail::firstUseBeforeEnd(aura.endStep, cooldownMs(aura));
+}
+
+double nextUseStep(const AuraState& aura, double ready) {
+    return detail::nextUseStep(ready, aura.endStep, cooldownMs(aura));
+}
+
 void accountRefresh(PlayerState& player, AuraState& aura) {
     if (active(aura)) aura.uptime += player.step - aura.starttimer;
 }
@@ -43,7 +52,7 @@ bool stepWithUpdate(PlayerState& player, AuraState& aura,
                     bool setCooldown = false) {
     if (player.step < aura.timer) return true;
     expire(player, aura, firstuse);
-    if (setCooldown) aura.useStep = aura.starttimer + cooldownMs(aura);
+    if (setCooldown) aura.useStep = nextUseStep(aura, aura.starttimer + cooldownMs(aura));
     (player.*update)();
     return false;
 }
@@ -132,11 +141,10 @@ int auraPrep(PlayerState&, AuraState& aura, double duration, double itemdelay) {
     const int timeToEnd = aura.props.integer("timetoend"_prop);
     const int auraDuration = static_cast<int>(durationMs(aura));
     if (aura.props.boolean("item"_prop) && !aura.props.boolean("noitemcd"_prop)) {
-        aura.useStep = detail::firstUseBeforeEnd(std::min(duration - timeToEnd,
-            duration - itemdelay - auraDuration), cooldownMs(aura));
+        scheduleBeforeEnd(aura, std::min(duration - timeToEnd, duration - itemdelay - auraDuration));
         return auraDuration;
     }
-    aura.useStep = detail::firstUseBeforeEnd(duration - timeToEnd, cooldownMs(aura));
+    scheduleBeforeEnd(aura, duration - timeToEnd);
     return 0;
 }
 
@@ -277,13 +285,13 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         break;
     case AuraKind::ElunesLight:
         useWithUpdate(player, aura, &PlayerState::updateAuras, 0, true);
-        aura.cooldownTimer = player.step + cooldownMs(aura);
+        aura.cooldownTimer = nextUseStep(aura, player.step + cooldownMs(aura));
         break;
     case AuraKind::Eureka:
         aura.timer = 1;
         aura.stacks = 3;
         aura.starttimer = player.step;
-        aura.cooldownTimer = player.step + cooldownMs(aura);
+        aura.cooldownTimer = nextUseStep(aura, player.step + cooldownMs(aura));
         player.updateEurekaCosts(true);
         setDelay(player, aura);
         break;
@@ -517,7 +525,7 @@ bool auraStep(PlayerState& player, AuraState& aura) {
         if (player.step >= aura.timer) {
             expire(player, aura);
             aura.stacks = 0;
-            aura.useStep = aura.starttimer + cooldownMs(aura);
+            aura.useStep = nextUseStep(aura, aura.starttimer + cooldownMs(aura));
             player.updateArmorReduction();
             return false;
         }
@@ -572,7 +580,7 @@ bool auraStep(PlayerState& player, AuraState& aura) {
     case AuraKind::JujuFlurry:
         if (player.step >= aura.timer) {
             expire(player, aura, true);
-            aura.useStep = aura.starttimer + cooldownMs(aura);
+            aura.useStep = nextUseStep(aura, aura.starttimer + cooldownMs(aura));
             player.updateHasteDamage();
             player.updateHaste();
             return false;

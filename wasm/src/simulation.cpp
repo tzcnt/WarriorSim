@@ -49,6 +49,34 @@ bool choose(PlayerState& player, Action& result, int index, bool isAura) {
     return false;
 }
 
+// Mirrors Simulation.dueScheduled: the first scheduled cooldown that can be used now.
+Action dueScheduled(PlayerState& player) {
+    for (const auto& [isAura, index] : player.configured.scheduledNoGcd) {
+        const Action action = findAction(player, index, isAura);
+        if (canUse(player, action)) return action;
+    }
+    if (!player.timer) {
+        for (const auto& [isAura, index] : player.configured.scheduledGcd) {
+            const Action action = findAction(player, index, isAura);
+            if (canUse(player, action)) return action;
+        }
+    }
+    return {};
+}
+
+// Mirrors Simulation.reservedRage: rage a due Death Wish or Berserking is waiting for.
+double reservedRage(const PlayerState& player) {
+    if (const auto* wish = player.aura("deathwish"_action); wish && !wish->timer && player.step >= wish->useStep)
+        return wish->props.number("cost"_prop, 10);
+    if (const auto* zerk = player.aura("berserking"_action); zerk && !zerk->timer && player.step >= zerk->useStep)
+        return 5;
+    return 0;
+}
+
+bool leavesReserve(const PlayerState& player, double cost, double reserve) {
+    return !reserve || player.rage - cost >= reserve;
+}
+
 double positiveModulo(double value, double divisor) {
     if (!divisor) return 0;
     double result = detail::jsRemainder(value, divisor);
@@ -121,6 +149,7 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
     bool canSpellQueue = false;
     double next = 0;
     double slamStep = 0;
+    bool preemptible = false;
     std::uint64_t loopGuard = 0;
 
     while (player_.step < maxSteps) {
@@ -149,8 +178,18 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
             if (player_.mh.timer <= 0) { damage += player_.attackMh(player_.mh); spellcheck = true; }
             if (player_.oh && player_.oh->timer <= 0) { damage += player_.attackOh(*player_.oh); spellcheck = true; }
 
+            const double reserve = reservedRage(player_);
+            if (spellcheck && player_.spelldelay && preemptible) {
+                if (const Action due = dueScheduled(player_)) {
+                    player_.spelldelay = 1;
+                    delayedSpell = due;
+                    preemptible = false;
+                }
+            }
+
             if (spellcheck && !player_.spelldelay) {
                 delayedSpell = {};
+                preemptible = false;
                 // This order is combat behavior: preserve the JavaScript else-if chain.
                 for (const int index : player_.configured.noGcdAuras)
                     if (choose(player_, delayedSpell, index, true)) break;
@@ -163,7 +202,8 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
                         if (choose(player_, delayedSpell, index, true)) break;
                 }
                 if (!delayedSpell) choose(player_, delayedSpell, "grilekfury"_action, false);
-                if (const auto* sweeping = player_.aura("sweepingstrikes"_action); !delayedSpell && sweeping && !sweeping->props.number("gcd"_prop))
+                if (const auto* sweeping = player_.aura("sweepingstrikes"_action); !delayedSpell && sweeping && !sweeping->props.number("gcd"_prop) &&
+                    leavesReserve(player_, sweeping->props.number("cost"_prop), reserve))
                     choose(player_, delayedSpell, "sweepingstrikes"_action, true);
 
                 if (!delayedSpell) {
@@ -178,18 +218,21 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
                     for (const int index : player_.configured.onUseAuras)
                         if (choose(player_, delayedSpell, index, true)) break;
                 }
+                if (!delayedSpell) {
+                    for (const int index : player_.configured.offGcdRacials)
+                        if (choose(player_, delayedSpell, index, true)) break;
+                }
                 if (!delayedSpell && player_.configured.stanceSwitchSelection != kNoRef)
                     choose(player_, delayedSpell, player_.configured.stanceSwitchSelection, false);
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "flask"_action, true);
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "recklessness"_action, true);
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "deathwish"_action, true);
-                if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "eluneslight"_action, true);
-                if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "eureka"_action, true);
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "bloodfury"_action, true);
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "berserking"_action, true);
-                if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "battleshout"_action, true);
+                if (!delayedSpell && !player_.timer && !reserve)
+                    preemptible = choose(player_, delayedSpell, "battleshout"_action, true);
 
-                if (!delayedSpell && !player_.timer) {
+                if (!delayedSpell && !player_.timer && !reserve) {
                     const auto& priority = player_.step >= executeStep ? player_.executeSpells : player_.normalSpells;
                     for (const auto [isAura, index] : priority) {
                         if (isAura) {
@@ -200,6 +243,7 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
                             if (spellCanUse(player_, value)) { delayedSpell.spell = &value; break; }
                         }
                     }
+                    if (delayedSpell) preemptible = true;
                 }
                 if (delayedSpell) { player_.spelldelay = 1; }
                 if (player_.heroicdelay) spellcheck = false;
@@ -208,9 +252,11 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
             if (spellcheck && !player_.heroicdelay) {
                 const auto* execute = player_.spell("execute"_action);
                 if (!execute || player_.step < executeStep) {
-                    if (auto* heroic = player_.spell("heroicstrike"_action); heroic && spellCanUse(player_, *heroic)) {
+                    if (auto* heroic = player_.spell("heroicstrike"_action); heroic && spellCanUse(player_, *heroic) &&
+                        leavesReserve(player_, heroic->props.number("cost"_prop), reserve)) {
                         player_.heroicdelay = 1; delayedHeroic = heroic;
-                    } else if (auto* cleave = player_.spell("cleave"_action); cleave && spellCanUse(player_, *cleave)) {
+                    } else if (auto* cleave = player_.spell("cleave"_action); cleave && spellCanUse(player_, *cleave) &&
+                        leavesReserve(player_, cleave->props.number("cost"_prop), reserve)) {
                         player_.heroicdelay = 1; delayedHeroic = cleave;
                     }
                 }
@@ -221,7 +267,7 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
                 (canSpellQueue || player_.spelldelay > delayedSpell.maxDelay())) {
                 if (player_.heroicdelay && delayedHeroic && player_.heroicdelay > delayedHeroic->maxdelay)
                     player_.heroicdelay = delayedHeroic->maxdelay - 99;
-                if (canUse(player_, delayedSpell)) {
+                if (canUse(player_, delayedSpell) && !(preemptible && reserve)) {
                     if (delayedSpell.spell && delayedSpell.spell->kind == SpellKind::Slam) {
                         auto& slam = *delayedSpell.spell;
                         const double casttime = slam.props.number("casttime"_prop);
@@ -319,6 +365,16 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
             minPositive(sweeping->timer - player_.step, next);
         if (const auto* sweeping = player_.aura("sweepingstrikes"_action); sweeping && sweeping->cooldownTimer > player_.step)
             minPositive(sweeping->cooldownTimer - player_.step, next);
+        for (const auto& [isAura, index] : player_.configured.scheduledNoGcd) {
+            const double ready = isAura
+                ? std::max(player_.auras[static_cast<std::size_t>(index)].useStep, player_.auras[static_cast<std::size_t>(index)].cooldownTimer)
+                : std::max(player_.spells[static_cast<std::size_t>(index)].useStep, 0.0);
+            if (const double wait = ready - player_.step; wait > 0) minPositive(wait, next);
+        }
+        for (const auto& [isAura, index] : player_.configured.scheduledGcd) {
+            if (const double wait = player_.auras[static_cast<std::size_t>(index)].useStep - player_.step; wait > 0)
+                minPositive(wait, next);
+        }
         if (targetSpeed) minPositive(targetSpeed - positiveModulo(player_.step, targetSpeed), next);
         if (player_.talents.number("angermanagement"_prop)) minPositive(3000 - positiveModulo(player_.step, 3000), next);
         if (player_.flag("vaelbuff"_prop)) minPositive(1000 - positiveModulo(player_.step, 1000), next);
@@ -367,6 +423,14 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
         if (auto* sweeping = player_.aura("sweepingstrikes"_action); sweeping && sweeping->props.number("duration"_prop) && sweeping->timer)
             if (!auraStep(player_, *sweeping)) spellcheck = true;
         if (const auto* sweeping = player_.aura("sweepingstrikes"_action); sweeping && sweeping->cooldownTimer == player_.step) spellcheck = true;
+        if (!player_.spelldelay || preemptible) {
+            for (const auto& [isAura, index] : player_.configured.scheduledNoGcd)
+                if (canUse(player_, findAction(player_, index, isAura))) spellcheck = true;
+            if (!player_.timer) {
+                for (const auto& [isAura, index] : player_.configured.scheduledGcd)
+                    if (canUse(player_, findAction(player_, index, isAura))) spellcheck = true;
+            }
+        }
         for (const int index : player_.configured.stepSpells) {
             auto& value = player_.spells[static_cast<std::size_t>(index)];
             if (value.timer && !spellStep(player_, value, next) && !player_.spelldelay)

@@ -1,9 +1,15 @@
-// A cooldown scheduled N seconds before the end of the fight keeps that final use, and
-// is first used at the earliest time that still reaches it by reusing the ability on
-// cooldown. Each earlier use allows 2 seconds of slop for the GCD and reaction delays.
-function firstUseBeforeEnd(endstep, cooldown) {
-    if (endstep <= 0) return 0;
-    return cooldown ? endstep % (cooldown + 2000) : endstep;
+// A cooldown scheduled N seconds before the end of the fight keeps a final use at that
+// time. It is first used at the earliest time that still reaches it by reusing the
+// ability on cooldown, with 2 seconds of slop per earlier use for GCD and reaction delays.
+function scheduleBeforeEnd(action, endstep) {
+    action.endstep = Math.max(endstep, 0);
+    action.usestep = action.cooldown ? action.endstep % (action.cooldown * 1000 + 2000) : action.endstep;
+}
+
+// A cooldown is ready again when it ends. If no later use could be ready by the end of
+// fight schedule, this final use waits for that exact time.
+function nextUseStep(action, ready) {
+    return ready < action.endstep && ready + action.cooldown * 1000 > action.endstep ? action.endstep : ready;
 }
 
 class Spell {
@@ -59,6 +65,10 @@ class Spell {
         this.player.rage -= this.cost;
         this.timer = this.cooldown * 1000;
         this.maxdelay = rng(this.player.reactionmin, this.player.reactionmax);
+    }
+    // The cooldown timer, extended when a final use waits for its end-of-fight schedule.
+    cooldownTimer() {
+        return nextUseStep(this, step + this.cooldown * 1000) === this.endstep ? this.endstep - step : this.cooldown * 1000;
     }
     step(a) {
         if (this.timer <= a) {
@@ -234,7 +244,7 @@ class Bloodrage extends Spell {
         this.offensive = false;
     }
     use() {
-        this.timer = this.cooldown * 1000;
+        this.timer = this.cooldownTimer();
         this.player.rage = Math.min(this.player.rage + this.rage, this.player.ragecap || 100);
         this.player.auras.bloodrage.use();
         this.maxdelay = rng(this.player.reactionmin, this.player.reactionmax);
@@ -243,8 +253,8 @@ class Bloodrage extends Spell {
         return !this.timer && step >= this.usestep;
     }
     prep(duration) {
-        if (typeof this.timetoend !== 'undefined') this.usestep = firstUseBeforeEnd(duration - this.timetoend, this.cooldown * 1000);
         if (typeof this.timetostart !== 'undefined') this.usestep = this.timetostart;
+        else if (typeof this.timetoend !== 'undefined') scheduleBeforeEnd(this, duration - this.timetoend);
         return 0;
     }
 }
@@ -454,12 +464,12 @@ class RagePotion extends Spell {
         this.offensive = false;
     }
     prep(duration) {
-        if (typeof this.timetoend !== 'undefined') this.usestep = firstUseBeforeEnd(duration - this.timetoend, this.cooldown * 1000);
         if (typeof this.timetostart !== 'undefined') this.usestep = this.timetostart;
+        else if (typeof this.timetoend !== 'undefined') scheduleBeforeEnd(this, duration - this.timetoend);
         return 0;
     }
     use() {
-        this.timer = this.cooldown * 1000;
+        this.timer = this.cooldownTimer();
         this.player.rage = Math.min(this.player.rage + ~~rng(this.value1, this.value2), this.player.ragecap || 100);
         this.maxdelay = rng(this.player.reactionmin, this.player.reactionmax);
     }
@@ -523,12 +533,12 @@ class Fireball extends Spell {
         this.cooldown = 900;
     }
     prep(duration) {
-        if (typeof this.timetoend !== 'undefined') this.usestep = firstUseBeforeEnd(duration - this.timetoend, this.cooldown * 1000);
         if (typeof this.timetostart !== 'undefined') this.usestep = this.timetostart;
+        else if (typeof this.timetoend !== 'undefined') scheduleBeforeEnd(this, duration - this.timetoend);
         return 0;
     }
     use() {
-        this.timer = this.cooldown * 1000;
+        this.timer = this.cooldownTimer();
         let procdmg = this.player.magicproc(this.proc);
         this.idmg += procdmg;
         /* start-log */ if (this.player.logging) this.player.log(`Fireball hit for ${procdmg}`); /* end-log */
@@ -593,13 +603,13 @@ class GrilekFury extends Spell {
         this.offensive = false;
     }
     prep(duration) {
-        if (typeof this.timetoend !== 'undefined') this.usestep = firstUseBeforeEnd(duration - this.timetoend, this.cooldown * 1000);
         if (typeof this.timetostart !== 'undefined') this.usestep = this.timetostart;
+        else if (typeof this.timetoend !== 'undefined') scheduleBeforeEnd(this, duration - this.timetoend);
         return 0;
     }
     use() {
         this.player.itemtimer = this.cooldown * 1000;
-        this.timer = this.cooldown * 1000;
+        this.timer = this.cooldownTimer();
         this.maxdelay = rng(this.player.reactionmin, this.player.reactionmax);
 
         this.player.rage = Math.min(this.player.rage + this.rage, this.player.ragecap || 100);
@@ -663,7 +673,7 @@ class Aura {
             this.timer = 0;
             this.firstuse = false;
             // On-use items recharge from the time they were used.
-            if (this.item && this.cooldown) this.usestep = this.starttimer + this.cooldown * 1000;
+            if (this.item && this.cooldown) this.usestep = nextUseStep(this, this.starttimer + this.cooldown * 1000);
             this.player.updateAuras();
             /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
         }
@@ -679,11 +689,11 @@ class Aura {
         }
         if (typeof this.timetoend !== 'undefined') {
             if (this.item && !this.noitemcd) {
-                this.usestep = firstUseBeforeEnd(Math.min(duration - this.timetoend, duration - itemdelay - (this.duration * 1000)), this.cooldown * 1000);
+                scheduleBeforeEnd(this, Math.min(duration - this.timetoend, duration - itemdelay - (this.duration * 1000)));
                 return this.duration * 1000;
             }
             else {
-                this.usestep = firstUseBeforeEnd(duration - this.timetoend, this.cooldown * 1000);
+                scheduleBeforeEnd(this, duration - this.timetoend);
             }
         }
         return 0;
@@ -769,7 +779,7 @@ class Recklessness extends Aura {
         if (step >= this.timer) {
             this.uptime += (this.timer - this.starttimer);
             this.timer = 0;
-            this.usestep = this.starttimer + (this.cooldown * 1000);
+            this.usestep = nextUseStep(this, this.starttimer + this.cooldown * 1000);
             this.player.updateAuras();
             /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
         }
@@ -985,7 +995,7 @@ class DeathWish extends Aura {
         if (step >= this.timer) {
             this.uptime += (this.timer - this.starttimer);
             this.timer = 0;
-            this.usestep = this.starttimer + (this.cooldown * 1000);
+            this.usestep = nextUseStep(this, this.starttimer + this.cooldown * 1000);
             this.player.updateDmgMod();
             /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
         }
@@ -1036,7 +1046,7 @@ class MightyRagePotion extends Aura {
         if (step >= this.timer) {
             this.uptime += (this.timer - this.starttimer);
             this.timer = 0;
-            this.usestep = this.starttimer + this.cooldown * 1000;
+            this.usestep = nextUseStep(this, this.starttimer + this.cooldown * 1000);
             this.player.updateStrength();
             /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
         }
@@ -1065,7 +1075,7 @@ class MajorFrenzyPotion extends Aura {
         if (step >= this.timer) {
             this.uptime += (this.timer - this.starttimer);
             this.timer = 0;
-            this.usestep = this.starttimer + this.cooldown * 1000;
+            this.usestep = nextUseStep(this, this.starttimer + this.cooldown * 1000);
             this.player.updateAP();
             /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
         }
@@ -1092,7 +1102,7 @@ class BloodFury extends Aura {
         if (step >= this.timer) {
             this.uptime += (this.timer - this.starttimer);
             this.timer = 0;
-            this.usestep = this.starttimer + this.cooldown * 1000;
+            this.usestep = nextUseStep(this, this.starttimer + this.cooldown * 1000);
             this.player.updateAuras();
             /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
         }
@@ -1122,7 +1132,7 @@ class Berserking extends Aura {
         if (step >= this.timer) {
             this.uptime += (this.timer - this.starttimer);
             this.timer = 0;
-            this.usestep = this.starttimer + this.cooldown * 1000;
+            this.usestep = nextUseStep(this, this.starttimer + this.cooldown * 1000);
             this.player.updateHaste();
             /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
         }
@@ -1161,7 +1171,7 @@ class ElunesLight extends Aura {
     }
     use() {
         super.use();
-        this.cooldowntimer = step + this.cooldown * 1000;
+        this.cooldowntimer = nextUseStep(this, step + this.cooldown * 1000);
     }
 }
 
@@ -1195,7 +1205,7 @@ class Eureka extends Aura {
         this.timer = 1; // Charges have no duration in the dump.
         this.stacks = 3;
         this.starttimer = step;
-        this.cooldowntimer = step + this.cooldown * 1000;
+        this.cooldowntimer = nextUseStep(this, step + this.cooldown * 1000);
         this.updateCosts(true);
         this.maxdelay = rng(this.player.reactionmin, this.player.reactionmax);
     }
@@ -1487,7 +1497,7 @@ class Swarmguard extends Aura {
             this.uptime += (this.timer - this.starttimer);
             this.timer = 0;
             this.stacks = 0;
-            this.usestep = this.starttimer + this.cooldown * 1000;
+            this.usestep = nextUseStep(this, this.starttimer + this.cooldown * 1000);
             this.player.updateArmorReduction();
             /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
         }
@@ -1604,7 +1614,7 @@ class Gabbar extends Aura {
         if (step >= this.timer) {
             this.uptime += (this.timer - this.starttimer);
             this.timer = 0;
-            this.usestep = this.starttimer + this.cooldown * 1000;
+            this.usestep = nextUseStep(this, this.starttimer + this.cooldown * 1000);
             this.player.updateAP();
             /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
         }
@@ -1688,7 +1698,7 @@ class Zandalarian extends Aura {
         if (step >= this.timer) {
             this.uptime += (this.timer - this.starttimer);
             this.timer = 0;
-            this.usestep = this.starttimer + this.cooldown * 1000;
+            this.usestep = nextUseStep(this, this.starttimer + this.cooldown * 1000);
             this.player.updateBonusDmg();
             /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
         }
@@ -1881,7 +1891,7 @@ class JujuFlurry extends Aura {
             this.uptime += (this.timer - this.starttimer);
             this.timer = 0;
             this.firstuse = false;
-            this.usestep = this.starttimer + (this.cooldown * 1000);
+            this.usestep = nextUseStep(this, this.starttimer + this.cooldown * 1000);
             this.player.updateHasteDamage();
             this.player.updateHaste();
             /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */

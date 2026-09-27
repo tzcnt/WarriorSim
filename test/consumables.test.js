@@ -81,7 +81,7 @@ for (const fixture of frenzyFixtures()) {
             assert.ok(casts[i] >= earliest && casts[i] < earliest + 1000);
             assert.ok(casts[i + 1] - casts[i] >= 120000);
             assert.ok(casts[i + 2] - casts[i + 1] >= 120000);
-            if (fromEnd) assert.ok(casts[i + 1] + 120000 <= 249000, 'ready again for its end-of-fight schedule');
+            if (fromEnd) assert.ok(casts[i + 2] >= 249000 && casts[i + 2] < 250000, 'the last use waits for its end-of-fight schedule');
         }
     });
 }

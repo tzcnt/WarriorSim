@@ -62,6 +62,7 @@ function extraFixtures() {
         22954: {timetoendactive: true, timetoend: 15, timetostartactive: false},
         17528: {active: true, timetoendactive: true, timetoend: 21, timetostartactive: false},
         2687: {active: true, timetoendactive: true, timetoend: 35, timetostartactive: false},
+        12328: {active: true, timetoendactive: true, timetoend: 31, timetostartactive: false},
     };
 
     const itemSpells = structuredClone(trinkets);
