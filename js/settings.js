@@ -453,7 +453,7 @@ SIM.SETTINGS = {
                 'Increases Attack Power by 111.' : racialSpellDescription(spell, mode));
             if (description) {
                 div.find('a').removeClass('wh-tooltip').attr('href', '#');
-                div.find('.icon').attr('title', spell.name + '\n' + description);
+                SIM.TOOLTIP.set(div.find('.icon'), {name: spell.name, description});
             }
             if (spell.buff) buffs += div[0].outerHTML;
             else if (spell.item) items += div[0].outerHTML;
@@ -684,7 +684,7 @@ SIM.SETTINGS = {
                 ? 'Increases Attack Power by 133.' : buff.description;
             if (description) {
                 const icon = $(html);
-                icon.attr('title', (buff.title || buff.name) + '\n' + description);
+                SIM.TOOLTIP.set(icon, {name: buff.title || buff.name, description});
                 icon.find('a').removeClass('wh-tooltip').attr('href', '#');
                 html = icon[0].outerHTML;
             }
@@ -730,10 +730,9 @@ SIM.SETTINGS = {
 
     updateTalentTooltip: function (div, talent) {
         if (talent.forever) {
-            const text = [talent.n + ' (' + talent.c + '/' + talent.m + ')',
-                talent.d[Math.max(0, talent.c - 1)], talent.c > 0 && talent.c < talent.m ? 'Next rank: ' + talent.d[talent.c] : '',
-                talent.forever.cost, talent.forever.reqText].filter(Boolean).join('\n\n');
-            div.attr('title', text).attr('aria-label', text);
+            SIM.TOOLTIP.set(div, {name: talent.n, rank: 'Rank ' + talent.c + '/' + talent.m,
+                cost: talent.forever.cost, requires: talent.forever.reqText, description: talent.d[Math.max(0, talent.c - 1)],
+                next: talent.c > 0 && talent.c < talent.m ? talent.d[talent.c] : ''});
             div.find('a').removeClass('wh-tooltip').attr('href', '#');
         } else {
             div.find('a').attr('href', WEB_DB_URL + 'spell=' + talent.s[Math.max(0, talent.c - 1)]);

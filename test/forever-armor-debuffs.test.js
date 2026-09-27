@@ -62,15 +62,19 @@ test('Curse of Recklessness applies in Classic only', () => {
 
 function renderBuffs(mode, activeIds) {
     const engine = createReferenceEngine(mode);
+    engine.evaluate(fs.readFileSync(require.resolve('../js/tooltip.js'), 'utf8'));
     engine.evaluate(fs.readFileSync(require.resolve('../js/settings.js'), 'utf8'));
     const rows = [];
     const element = {empty() { return this; }, append(value) { rows.push(value); return this; }};
-    // Icons with a local tooltip are rebuilt with $(html): keep the title and drop the Wowhead class.
+    // Icons with a local tooltip are rebuilt with $(html): keep their attributes and drop the Wowhead class.
     const localIcon = html => {
-        let title;
+        const attributes = {};
+        const escape = value => value.replace(/[&"<>]/g, c => ({'&': '&amp;', '"': '&quot;', '<': '&lt;', '>': '&gt;'})[c]);
         const anchor = {removeClass(cls) { html = html.replace(` class="${cls}"`, ''); return this; }, attr() { return this; }};
-        return {attr(key, value) { title = value; return this; }, find: () => anchor,
-            0: {get outerHTML() { return html.replace('<div ', `<div title="${title}" `); }}};
+        return {attr(key, value) { attributes[key] = value; return this; }, find: () => anchor,
+            0: {get outerHTML() {
+                return html.replace('<div ', `<div ${Object.entries(attributes).map(([k, v]) => `${k}="${escape(v)}"`).join(' ')} `);
+            }}};
     };
     engine.evaluate(`$ = localIcon; WEB_DB_URL = ''; localStorage = {[mode + 0]: JSON.stringify({level: '60', aqbooks: 'No'})};
         SIM.UI = {updateSession() {}, updateSidebar() {}}; SIM.SETTINGS.buffs = element;
@@ -93,20 +97,22 @@ test('Forever Sunder Armor and Faerie Fire icons and tooltips include the debuff
     const splitIcon = /class="icon[^"]*\bsplit\b/;
     const icon = (html, id) => html.match(new RegExp(`<div [^>]*data-id="${id}"[^]*?</div>`))[0];
     const forever = renderBuffs('forever', [11597]).html;
-    for (const [id, other, title] of [
-        [11597, 'ability_warrior_riposte', 'Sunder Armor (or Expose Armor)\nReduces armor by 2250 at 5 stacks.'],
-        [9907, 'spell_shadow_unholystrength', 'Faerie Fire (or Curse of Recklessness)\nReduces armor by 505.'],
+    for (const [id, other, title, description] of [
+        [11597, 'ability_warrior_riposte', 'Sunder Armor (or Expose Armor)', 'Reduces armor by 2250 at 5 stacks.'],
+        [9907, 'spell_shadow_unholystrength', 'Faerie Fire (or Curse of Recklessness)', 'Reduces armor by 505.'],
     ]) {
         assert.match(icon(forever, id), splitIcon, `${id}`);
         assert.ok(icon(forever, id).includes(`medium/${other}.jpg`), `${id}`);
-        assert.ok(icon(forever, id).includes(`title="${title}"`), `${id}`);
+        assert.ok(icon(forever, id).includes(`aria-label="${title}\n${description}"`), `${id}`);
+        assert.ok(icon(forever, id).includes(`data-tooltip="&lt;div class=&quot;name&quot;&gt;${title}&lt;/div&gt;` +
+            `&lt;div class=&quot;q&quot;&gt;${description}&lt;/div&gt;"`), `${id}`);
         assert.ok(!icon(forever, id).includes('wh-tooltip'), `${id}`);
     }
 
     const classic = renderBuffs('classic', [11597]).html;
     assert.doesNotMatch(classic, splitIcon);
     for (const id of [11597, 9907]) {
-        assert.ok(!icon(classic, id).includes('title='), `${id}`);
+        assert.ok(!icon(classic, id).includes('data-tooltip='), `${id}`);
         assert.ok(icon(classic, id).includes('wh-tooltip'), `${id}`);
     }
 

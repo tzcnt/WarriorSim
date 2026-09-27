@@ -392,14 +392,31 @@ for (const [mode, ranks] of [['classic',0], ['forever',0], ['forever',1], ['fore
 }
 
 test('Forever talent tooltips use local descriptions and never null game IDs', () => {
-    const {engine, run} = setup();
+    const {engine} = setup();
+    engine.evaluate(fs.readFileSync(require.resolve('../js/tooltip.js'), 'utf8'));
     engine.evaluate(fs.readFileSync(require.resolve('../js/settings.js'), 'utf8'));
-    const attributes = {}, anchor = {removeClass() {return this;}, attr(k,v) {attributes[k] = v; return this;}};
-    const div = {attr(k,v) {attributes[k] = v; return this;}, find() {return anchor;}};
-    engine.evaluate('SIM.SETTINGS.updateTalentTooltip(div, talents[0].t[13])', {div});
-    assert.equal(attributes.href, '#');
-    assert.match(attributes.title, /Weaponmaster/);
-    assert.doesNotMatch(attributes.href, /null/);
+    const tooltip = key => {
+        const attributes = {}, anchor = {removeClass() {return this;}, attr(k,v) {attributes[k] = v; return this;}};
+        const div = {attr(k,v) {attributes[k] = v; return this;}, find() {return anchor;}};
+        engine.evaluate('SIM.SETTINGS.updateTalentTooltip(div, talents.flatMap(tree => tree.t).find(t => t.forever.key === key))', {div, key});
+        return attributes;
+    };
+    const weaponmaster = tooltip('arms:weaponmaster');
+    assert.equal(weaponmaster.href, '#');
+    assert.doesNotMatch(weaponmaster.href, /null/);
+    assert.match(weaponmaster['data-tooltip'], /^<div class="name">Weaponmaster<\/div><div>Rank 0\/\d<\/div><div class="q">/);
+    assert.match(weaponmaster['aria-label'], /^Weaponmaster\nRank 0\/\d\n/);
+
+    // Costs follow Wowhead's layout: cost | range, then cast time | cooldown.
+    assert.ok(tooltip('arms:spearing-strike')['data-tooltip'].includes('<div class="columns"><span>15 Rage</span><span>Melee Range</span></div>' +
+        '<div class="columns"><span>Instant</span><span>20 sec cooldown</span></div>' +
+        '<div>Requires Two-Handed Axe, Two-Handed Mace, Polearm, Two-Handed Sword, Staff</div>'));
+    const html = content => engine.evaluate('SIM.TOOLTIP.html(content)', {content});
+    assert.equal(html({name: 'A', cost: 'Instant; 3 min cooldown'}),
+        '<div class="name">A</div><div class="columns"><span>Instant</span><span>3 min cooldown</span></div>');
+    assert.equal(html({name: 'A', cost: '10 Rage; Instant'}), '<div class="name">A</div><div>10 Rage</div><div>Instant</div>');
+    assert.equal(html({name: '<A & "B">', description: 'x', next: 'y'}),
+        '<div class="name">&lt;A &amp; &quot;B&quot;&gt;</div><div class="q">x</div><div class="next">Next rank:</div><div class="q">y</div>');
 });
 
 
