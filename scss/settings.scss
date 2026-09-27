@@ -263,9 +263,13 @@
                 margin-top: 12px;
                 margin-bottom: 6px;
             }
-            .usetimes li {
-                cursor: default;
-                margin-bottom: 4px;
+            // .details wraps its children as a flex row; keep this on its own line.
+            .usetimes {
+                width: 100%;
+                li {
+                    cursor: default;
+                    margin-bottom: 4px;
+                }
             }
         }
 

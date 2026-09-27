@@ -589,14 +589,9 @@ SIM.SETTINGS = {
         const times = [];
         if (!cooldown || isNaN(scheduled)) return times;
         const period = fromEnd ? cooldown + 2 : cooldown;
-        for (let time = scheduled + period; this.fitsUseTime(time, fromEnd, duration); time += period)
+        for (let time = scheduled + period; fromEnd ? time <= duration : time < duration; time += period)
             if (time > 0) times.push(time);
         return times;
-    },
-
-    // Whether a fight lasting this many seconds includes the use.
-    fitsUseTime(time, fromEnd, duration) {
-        return fromEnd ? time <= duration : time < duration;
     },
 
     formatUseTime(seconds) {
@@ -616,17 +611,12 @@ SIM.SETTINGS = {
         const fromStart = Boolean(spell.timetostartactive && spell.timetostart !== undefined);
         if (fromEnd || fromStart) {
             // Fight lengths vary between the minimum and maximum, so list the uses of the longest.
-            const max = parseInt(view.fight.find('input[name="timesecsmax"]').val());
-            const min = Math.min(parseInt(view.fight.find('input[name="timesecsmin"]').val()) || max, max);
             const times = view.useTimes(parseInt(fromEnd ? spell.timetoend : spell.timetostart),
-                details.data('cooldown'), fromEnd, max);
+                details.data('cooldown'), fromEnd, parseInt(view.fight.find('input[name="timesecsmax"]').val()));
             if (times.length) {
                 const ul = $('<ul></ul>');
-                for (const time of times) {
-                    const only = view.fitsUseTime(time, fromEnd, min) ? '' :
-                        ` (only in fights of ${view.formatUseTime(time)} or longer)`;
-                    ul.append(`<li class="nobox">Use ${view.formatUseTime(time)} from the ${fromEnd ? 'end' : 'start'} of the fight${only}</li>`);
-                }
+                for (const time of times)
+                    ul.append(`<li class="nobox">Use ${view.formatUseTime(time)} from the ${fromEnd ? 'end' : 'start'} of the fight</li>`);
                 container.append('<div class="label">Additional use times:</div>');
                 container.append(ul);
             }

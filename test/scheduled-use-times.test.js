@@ -59,12 +59,12 @@ for (const mode of ['classic', 'forever']) {
         ]);
     });
 
-    test(`${mode}: uses that only fit the longer fights say so`, () => {
+    test(`${mode}: a range of fight lengths lists the uses of the longest fight`, () => {
         const ui = setup(mode);
         assert.deepEqual(ui.useTimes(17528, {timetoendactive: true, timetoend: 16}, 200, 300), [
             'Additional use times:',
             'Use 2 minutes, 18 seconds from the end of the fight',
-            'Use 4 minutes, 20 seconds from the end of the fight (only in fights of 4 minutes, 20 seconds or longer)',
+            'Use 4 minutes, 20 seconds from the end of the fight',
         ]);
     });
 
