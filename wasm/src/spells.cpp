@@ -305,7 +305,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
     }
 
     case SpellKind::Fireball:
-        spell.timer = 1;
+        spell.timer = cooldown * 1000;
         spell.idmg += fixedMagicProc(player, 371);
         return;
 
@@ -396,7 +396,8 @@ void spellPrep(PlayerState&, SpellState& spell, int duration) {
     case SpellKind::Fireball:
     case SpellKind::GrilekFury:
         if (spell.props.has("timetoend"_prop))
-            spell.useStep = std::max(static_cast<double>(duration) - value(spell, "timetoend"_prop), 0.0);
+            spell.useStep = detail::firstUseBeforeEnd(static_cast<double>(duration) - value(spell, "timetoend"_prop),
+                value(spell, "cooldown"_prop) * 1000);
         if (spell.props.has("timetostart"_prop)) spell.useStep = value(spell, "timetostart"_prop);
         return;
     default:

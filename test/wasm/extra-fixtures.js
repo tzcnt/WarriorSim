@@ -50,6 +50,30 @@ function extraFixtures() {
     earthstrike.gear = {trinket1: [21180], trinket2: []};
     earthstrike.rotation = {21180: {timetostartactive: true, timetostart: 0}};
 
+    // End-of-fight schedules count back whole cooldowns (plus 2 seconds each) so every
+    // use that fits is kept, including stacked on-use trinkets.
+    const endSchedule = structuredClone(long);
+    endSchedule.name = 'classic-long-end-schedule';
+    endSchedule.sim = {...endSchedule.sim, timesecsmin: 300, timesecsmax: 300};
+    endSchedule.gear = {trinket1: [23041], trinket2: [22954]};
+    endSchedule.rotation = {
+        20572: {active: true, timetoendactive: true, timetoend: 18, timetostartactive: false},
+        23041: {timetoendactive: true, timetoend: 20, timetostartactive: false},
+        22954: {timetoendactive: true, timetoend: 15, timetostartactive: false},
+        17528: {active: true, timetoendactive: true, timetoend: 21, timetostartactive: false},
+        2687: {active: true, timetoendactive: true, timetoend: 35, timetostartactive: false},
+    };
+
+    const itemSpells = structuredClone(trinkets);
+    itemSpells.name = 'classic-long-grilek-swarmguard';
+    itemSpells.gear = {trinket1: [21670], trinket2: []};
+    itemSpells.rotation = {21670: {timetostartactive: true, timetostart: 0}};
+    itemSpells.mutatePlayer = (player, engine) => {
+        // Gri'lek's Charm has no catalog entry, so add its action directly.
+        player.spells.grilekfury = engine.createSpell(player, 'GrilekFury');
+        player.spells.grilekfury.usestep = 0;
+    };
+
     const priority = base('classic-dw-fury');
     priority.name = 'classic-stable-action-priorities';
     priority.rotation = {
@@ -107,7 +131,7 @@ function extraFixtures() {
 
     return [
         phantom, suppression, long, trinkets, ...frenzyFixtures(),
-        earthstrike, priority, clocks, gabbar, hamstring, ...bloodrageCases, ...armorProcCases, ...stanceCases,
+        earthstrike, endSchedule, itemSpells, priority, clocks, gabbar, hamstring, ...bloodrageCases, ...armorProcCases, ...stanceCases,
         ...aliasCases, orderedProcs, ...foreverFixtures(), ...racialFixtures(), ...swordResets, ...sweepingFixtures(), ...queuedStrikeFixtures(), ...berserkerRageFixtures(), ...bleedFixtures(),
     ];
 }

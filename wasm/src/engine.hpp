@@ -63,6 +63,13 @@ inline double jsRemainder(double dividend, double divisor) noexcept {
     return std::fmod(dividend, divisor);
 }
 
+// Mirrors firstUseBeforeEnd in spell.js: count back from an end-of-fight schedule in
+// whole cooldowns, each with 2 seconds of slop, to the earliest first use.
+inline double firstUseBeforeEnd(double endStep, double cooldownMs) noexcept {
+    if (endStep <= 0) return 0;
+    return cooldownMs ? jsRemainder(endStep, cooldownMs + 2000) : endStep;
+}
+
 inline std::int32_t jsToInt32(double value) {
     if (value >= -2147483648.0 && value < 2147483648.0)
         return static_cast<std::int32_t>(value);

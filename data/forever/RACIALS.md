@@ -89,9 +89,12 @@ off-hand autoattacks as well as abilities and spells.
   at the actual swing; multiple targets and Whirlwind's off-hand share the cast's
   damage bonus and charge. Rend evaluates the current bonus on each tick. Sweeping
   Strikes copies resulting hit damage without applying a second multiplier.
-- Blood Fury retains the existing 1.5-second GCD and single scheduled use per fight.
-  Berserking retains the existing 5-rage cost and single scheduled use per fight.
-  The dump gives no replacement costs, GCDs or cooldowns for either ability.
+- Blood Fury retains the existing 1.5-second GCD and Berserking the existing 5-rage
+  cost. The dump gives no replacement costs, GCDs or cooldowns for either ability, so
+  they use Classic's 2-minute and 3-minute cooldowns and are reused in long fights.
+- Every scheduled cooldown is reused as soon as it is ready after its first use. A
+  schedule N seconds before the end keeps that final use and counts back whole
+  cooldowns, plus 2 seconds each for GCD and reaction delays, to the first use.
 
 Current health, incoming health loss, temporary health abilities such as Last
 Stand, healing, mana, Spirit regeneration, avoidance, mitigation, crowd control,
