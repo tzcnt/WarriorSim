@@ -470,9 +470,9 @@ for (const mode of ['classic', 'forever']) test(`${mode}: Slam next-auto option 
     const element = {
         find() { return this; }, data() { return this; }, empty() { return this; },
         append(value) { if (typeof value === 'string') rows.push(value); return this; },
-        css() { return this; }, height() { return 0; },
+        css() { return this; }, height() { return 0; }, hasClass() { return false; }, val() { return ''; },
     };
-    engine.evaluate('$ = () => element; setTimeout = () => {}; SIM.SETTINGS.rotation = element;', {element});
+    engine.evaluate('$ = () => element; setTimeout = () => {}; SIM.SETTINGS.rotation = SIM.SETTINGS.fight = element;', {element});
     for (const id of [1464, 8820, 11604, 11605]) {
         rows.length = 0;
         run(`SIM.SETTINGS.buildSpellDetails(spells.find(s => s.id === ${id}), element)`);

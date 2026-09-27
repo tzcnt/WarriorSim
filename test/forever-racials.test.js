@@ -372,9 +372,9 @@ for (const mode of ['classic', 'forever']) test(`${mode}: Berserking details and
     const element = {
         find() { return this; }, data() { return this; }, empty() { return this; },
         append(value) { if (typeof value === 'string') rows.push(value); return this; },
-        css() { return this; }, height() { return 0; },
+        css() { return this; }, height() { return 0; }, hasClass() { return false; }, val() { return ''; },
     };
-    engine.evaluate('$ = () => element; setTimeout = () => {}; SIM.SETTINGS.rotation = element;', {element});
+    engine.evaluate('$ = () => element; setTimeout = () => {}; SIM.SETTINGS.rotation = SIM.SETTINGS.fight = element;', {element});
     run('SIM.SETTINGS.buildSpellDetails(spells.find(s => s.id == 26296), element)');
     assert.equal(rows.join('').includes('name="haste"'), mode === 'classic');
     const description = run(`racialSpellDescription(spells.find(s => s.id == 26296), '${mode}')`);
