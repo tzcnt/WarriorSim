@@ -77,6 +77,19 @@ for (const mode of ['forever', 'classic']) test(`${mode}: fresh exports include 
         'older exports enable exactly the same abilities and retain the same settings');
 });
 
+test('importing a profile with the old name-style consumable IDs keeps its potion settings', () => {
+    const {context, profile} = browserExport();
+    profile.buffs.push('elixir-of-the-grizzly');
+    profile.rotation.push({id: 'major-frenzy-potion', active: true, timetostart: 12, timetostartactive: true});
+    context.imported = profile;
+    assert.equal(vm.runInContext('SIM.PROFILES.importProfile(JSON.stringify(imported), 1, session)', context), true);
+    assert.ok(!context.profileIssues.some(issue => issue.code === 'unknown-buff' || issue.code === 'unknown-spell'));
+    const potion = JSON.parse(context.localStorage.forever1).rotation.find(spell => spell.id === 1251940);
+    assert.equal(potion.active, true);
+    assert.equal(potion.timetostart, 12);
+    assert.equal(potion.timetostartactive, true);
+});
+
 test('CLI inserts a browser export that the site can load with matching selections', t => {
     const {target, run} = fixture(t);
     const {context, exported, profile} = browserExport();

@@ -51,14 +51,16 @@ function updateGlobals(params) {
     for (let j of buffs) j.active = false;
     for (let i of params.buffs)
         for (let j of buffs)
-            if (i == j.id) j.active = true;
+            if (currentId(i) == j.id) j.active = true;
 
-    for (let i of params.rotation)
+    for (let i of params.rotation) {
+        const id = currentId(i.id);
         for (let j of spells)
-            if (i.id == j.id)
+            if (id == j.id)
                 for (let prop in i)
                     if (prop != 'minlevel' && prop != 'maxlevel' && prop != 'iconname')
-                        j[prop] = i[prop];
+                        j[prop] = prop == 'id' ? id : i[prop];
+    }
 
     for (let type in gear)
         for (let j of gear[type])

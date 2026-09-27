@@ -1049,12 +1049,12 @@ var spells = [
 
 // Major Frenzy Potion
 {
-    id: 'major-frenzy-potion',
+    id: 1251940,
     name: 'Major Frenzy Potion',
     mode: 'forever',
     description: 'Increases Attack Power by 40 for 30 seconds. 2-minute cooldown.',
     classname: 'MajorFrenzyPotion',
-    iconname: 'inv_potion_41',
+    iconname: 'inv_potione_6',
     timetoend: 31,
     timetoendactive: false,
     timetostart: 0,
@@ -1324,3 +1324,15 @@ var spells = [
 },
 
 ];
+
+// Forever consumables used name-style IDs until Wowhead listed them. Saved sessions,
+// exported profiles and presets may still contain the old IDs, so resolve them on load.
+var renamedIds = new Map([
+    ['elixir-of-the-grizzly', 250351],
+    ['elixir-of-ferocity', 250350],
+    ['major-frenzy-potion', 1251940],
+]);
+
+function currentId(id) {
+    return renamedIds.has(id) ? renamedIds.get(id) : id;
+}

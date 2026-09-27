@@ -32,6 +32,17 @@ test('Forever presets use known buff IDs and enable Battle Shout as an ability',
     }
 });
 
+test('Forever profiles that use the old name-style consumable IDs are still recognized', () => {
+    const {context, profile} = fixture();
+    profile.buffs = [...profile.buffs, 'elixir-of-the-grizzly', 'elixir-of-ferocity'];
+    profile.rotation = [...profile.rotation, {id: 'major-frenzy-potion', active: true},
+        {id: 1251940, active: true}];
+    const codes = report(profile, context).map(issue => issue.code);
+    assert.ok(!codes.includes('unknown-buff'));
+    assert.ok(!codes.includes('unknown-spell'));
+    assert.deepEqual(codes.filter(code => code === 'duplicate-spell'), ['duplicate-spell']);
+});
+
 test('current fully specified Forever profiles need no changes and reporting is read-only', () => {
     const {context, profile} = fixture();
     const before = JSON.stringify(profile), base = JSON.stringify(context.base);

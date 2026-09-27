@@ -17,7 +17,7 @@ function profileContext(mode = 'forever') {
         enchant: context.enchant, buffs: context.buffs, spells: context.spells,
         talents: context.talents, classicTalents: context.classicTalents,
         talentSchema: context.FOREVER_TALENT_SCHEMA, normalizeTalents: context.normalizeForeverTalents,
-        racialSpellAvailable: context.racialSpellAvailable};
+        racialSpellAvailable: context.racialSpellAvailable, currentId: context.currentId};
 }
 
 module.exports = {profileContext};

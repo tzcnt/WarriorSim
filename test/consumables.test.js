@@ -5,12 +5,14 @@ const {createReferenceEngine, createConfiguredPlayer, loadFixtures} = require('.
 const {frenzyFixtures} = require('./wasm/frenzy-fixtures');
 const {NATURAL_FLASKS} = require('./wasm/flask-fixtures');
 
-const FOREVER_BUFFS = ['elixir-of-the-grizzly', 'elixir-of-ferocity', ...Object.values(NATURAL_FLASKS)];
+// Elixir of the Grizzly, Elixir of Ferocity and the Natural flasks.
+const FOREVER_BUFFS = [250351, 250350, ...Object.values(NATURAL_FLASKS)];
+const MAJOR_FRENZY = 1251940;
 
 test('classic: Forever-only consumables are unavailable and stale selections are ignored', () => {
     const engine = createReferenceEngine('classic');
-    const modes = engine.evaluate(`[...buffs.filter(b => ids.includes(b.id)), spells.find(s => s.id === 'major-frenzy-potion')]
-        .map(entry => entry.mode)`, {ids: FOREVER_BUFFS});
+    const modes = engine.evaluate(`[...buffs.filter(b => ids.includes(b.id)), spells.find(s => s.id === potion)]
+        .map(entry => entry.mode)`, {ids: FOREVER_BUFFS, potion: MAJOR_FRENZY});
     assert.deepEqual([...modes], Array(FOREVER_BUFFS.length + 1).fill('forever'));
 
     const fixture = structuredClone(loadFixtures().find(f => f.mode === 'classic'));
@@ -18,7 +20,7 @@ test('classic: Forever-only consumables are unavailable and stale selections are
     delete fixture.buffsAdd;
     const baseline = createConfiguredPlayer(engine, fixture);
     fixture.buffs = FOREVER_BUFFS;
-    fixture.rotation = {'major-frenzy-potion': {active: true, timetostartactive: true, timetostart: 0}};
+    fixture.rotation = {[MAJOR_FRENZY]: {active: true, timetostartactive: true, timetostart: 0}};
     const stale = createConfiguredPlayer(engine, fixture);
     assert.equal(JSON.stringify(stale.base), JSON.stringify(baseline.base));
     assert.equal(JSON.stringify(stale.target), JSON.stringify(baseline.target));
@@ -28,8 +30,8 @@ test('classic: Forever-only consumables are unavailable and stale selections are
 test('forever: new consumables apply stats and follow their neighboring elixirs', () => {
     const engine = createReferenceEngine('forever');
     for (const [id, previous, stats] of [
-        ['elixir-of-the-grizzly', 'Elixir of the Mongoose', {str: 25, crit: 2}],
-        ['elixir-of-ferocity', 'Elixir of Giants', {str: 18, agi: 18}],
+        [250351, 'Elixir of the Mongoose', {str: 25, crit: 2}],
+        [250350, 'Elixir of Giants', {str: 18, agi: 18}],
     ]) {
         assert.equal(engine.evaluate('buffs[buffs.findIndex(b => b.id === id) - 1].name', {id}), previous);
         const fixture = structuredClone(loadFixtures().find(f => f.mode === 'forever'));
@@ -48,6 +50,25 @@ test('forever: new consumables apply stats and follow their neighboring elixirs'
     assert.equal(potion.timetoendactive, false);
     assert.equal(potion.timetostart, 0);
     assert.equal(potion.timetoend, 31);
+});
+
+test('forever: saved selections that use the old name-style consumable IDs still apply', () => {
+    const engine = createReferenceEngine('forever');
+    const load = (buffs, potion, timetostart) => {
+        const fixture = structuredClone(loadFixtures().find(f => f.mode === 'forever'));
+        fixture.buffs = buffs;
+        delete fixture.buffsAdd;
+        fixture.rotation = {[potion]: {active: true, timetostartactive: true, timetostart}};
+        return createConfiguredPlayer(engine, fixture);
+    };
+    // The potion is disabled by default, so its aura only exists if the old entry was applied.
+    const legacy = load(['elixir-of-the-grizzly', 'elixir-of-ferocity'], 'major-frenzy-potion', 9);
+    assert.ok(legacy.auras.majorfrenzypotion);
+    const potion = engine.evaluate('spells.find(s => s.classname === "MajorFrenzyPotion")');
+    assert.equal(potion.id, MAJOR_FRENZY);
+    assert.equal(potion.timetostart, 9);
+    const current = load([250351, 250350], MAJOR_FRENZY, 0);
+    assert.equal(JSON.stringify(legacy.base), JSON.stringify(current.base));
 });
 
 test('forever: Natural flasks follow the other flasks and grant 60 Stamina plus their zone bonus', () => {
@@ -136,7 +157,7 @@ for (const fixture of frenzyFixtures()) {
             return use.apply(this, args);
         };
         engine.createSimulation(player, fixture.sim).startSync();
-        const fromEnd = fixture.rotation['major-frenzy-potion'].timetoendactive;
+        const fromEnd = fixture.rotation[MAJOR_FRENZY].timetoendactive;
         // Either schedule fits three uses in 280 seconds. From the end, the first use
         // counts back two cooldowns plus 2 seconds of slop each: 249 - 2 * 122 = 5.
         assert.equal(casts.length, 3 * fixture.sim.iterations);

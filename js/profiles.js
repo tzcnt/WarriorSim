@@ -349,7 +349,7 @@ SIM.PROFILES = {
 
     validationContext(base, baseLabel, format = 'export') {
         return {mode, base, baseLabel, format, gear, enchant, buffs, spells, talents, classicTalents,
-            talentSchema: FOREVER_TALENT_SCHEMA, normalizeTalents: normalizeForeverTalents, racialSpellAvailable};
+            talentSchema: FOREVER_TALENT_SCHEMA, normalizeTalents: normalizeForeverTalents, racialSpellAvailable, currentId};
     },
 
     showIssues(issues) {
@@ -408,7 +408,7 @@ SIM.PROFILES = {
                 }
             }
             for (let spell of storage.rotation) {
-                let newspell = minified.rotation.filter(s => s.id == spell.id)[0];
+                let newspell = minified.rotation.filter(s => currentId(s.id) == spell.id)[0];
                 if (newspell) {
                     // Legacy exports omit active; presets can retain disabled spell settings.
                     spell.active = newspell.active !== false;

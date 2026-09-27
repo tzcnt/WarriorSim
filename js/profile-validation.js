@@ -24,7 +24,7 @@ var ProfileValidation = (() => {
         }
         const {mode, base = {}, baseLabel = 'defaults', gear = {}, enchant = {}, buffs = [],
             spells = [], talents = [], classicTalents = [], talentSchema, normalizeTalents,
-            racialSpellAvailable, format = 'export'} = context;
+            racialSpellAvailable, currentId = id => id, format = 'export'} = context;
         const saved = format === 'session';
         const value = field => typeof profile[field] === 'string' ? profile[field] : base[field];
         const level = value('level') || 60;
@@ -125,7 +125,7 @@ var ProfileValidation = (() => {
         if (!Array.isArray(profile.buffs)) add('structure', 'buffs', 'Buffs are missing or malformed; the loader may use defaults or fail to load them.');
         for (const id of list(profile.buffs)) {
             // Existing sessions include a null placeholder from the buff heading.
-            if (id !== null && !buffs.some(buff => String(buff.id) === String(id))) add('unknown-buff', 'buffs',
+            if (id !== null && !buffs.some(buff => String(buff.id) === String(currentId(id)))) add('unknown-buff', 'buffs',
                 `Unknown buff ID ${display(id)}; it will be ignored when the profile is loaded.`);
         }
 
@@ -137,9 +137,10 @@ var ProfileValidation = (() => {
                 continue;
             }
             const field = `rotation[${entry.id}]`;
-            if (seen.has(String(entry.id))) add('duplicate-spell', field, `Duplicate ability ID ${display(entry.id)}; importing an export uses the first matching entry.`);
-            seen.add(String(entry.id));
-            const spell = spells.find(spell => String(spell.id) === String(entry.id));
+            const id = String(currentId(entry.id));
+            if (seen.has(id)) add('duplicate-spell', field, `Duplicate ability ID ${display(entry.id)}; importing an export uses the first matching entry.`);
+            seen.add(id);
+            const spell = spells.find(spell => String(spell.id) === id);
             if (!spell) {
                 add('unknown-spell', field, `Unknown ability ID ${display(entry.id)}; it will be ignored by the current sim.`);
                 continue;
@@ -163,10 +164,10 @@ var ProfileValidation = (() => {
                 }
             }
             if (!saved) {
-                const fallback = list(base.rotation).find(row => String(row.id) === String(entry.id)) || spell;
+                const fallback = list(base.rotation).find(row => String(row.id) === id) || spell;
                 const inherited = rotationOptions.filter(key => entry[key] === undefined && fallback[key] !== undefined);
                 if (inherited.length) add('rotation-defaults', field,
-                    `${name} inherits missing options from ${list(base.rotation).some(row => String(row.id) === String(entry.id)) ? baseLabel : 'the ability catalog'}: ${inherited.map(key => `${key}=${display(fallback[key])}`).join(', ')}.`);
+                    `${name} inherits missing options from ${list(base.rotation).some(row => String(row.id) === id) ? baseLabel : 'the ability catalog'}: ${inherited.map(key => `${key}=${display(fallback[key])}`).join(', ')}.`);
             }
             for (const key of rotationOptions) {
                 if (entry[key] === undefined) continue;
