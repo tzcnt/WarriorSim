@@ -66,11 +66,10 @@ rage-source caps, including refunds and initial rage.
 Target armor debuffs use the highest-rank values in client build 1.60.1.70009
 ([wago.tools](https://wago.tools/db2/SpellEffect?build=1.60.1.70009), Classic Beta).
 Sunder Armor Rank 5 (11597) removes 450 armor per stack, 2250 at five stacks.
-Faerie Fire Rank 4 (9907) and Curse of Recklessness Rank 4 (11717) each remove
-505. Forever's Curse no longer grants attack power, and its reduction is lower
-than Classic's 640. Forever omits Expose Armor and Improved Expose Armor, which
-share the Sunder Armor slot. Lower Curse ranks still use Classic values, though
-the client lists 175/285/395 for ranks 1–3 (Classic 140/290/465).
+Faerie Fire Rank 4 (9907) removes 505. Forever omits Curse of Recklessness: it
+does not stack with Faerie Fire, so the option is hidden and stale profiles that
+enable it are ignored. Forever also omits Expose Armor and Improved Expose Armor,
+which share the Sunder Armor slot.
 
 Classic also implements Sweeping Strikes using spell 12292 and the same copy logic.
 Its five charges expire after 20 seconds, and activation neither requires a free GCD

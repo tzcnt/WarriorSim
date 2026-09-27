@@ -995,6 +995,7 @@ var buffs = [
       id: 704,
       spellid: true,
       name: "Curse of Recklessness",
+      mode: "classic",
       iconname: "spell_shadow_unholystrength",
       group: "reck",
       armor: 140,
@@ -1005,6 +1006,7 @@ var buffs = [
       id: 7658,
       spellid: true,
       name: "Curse of Recklessness",
+      mode: "classic",
       iconname: "spell_shadow_unholystrength",
       group: "reck",
       armor: 290,
@@ -1015,6 +1017,7 @@ var buffs = [
       id: 7659,
       spellid: true,
       name: "Curse of Recklessness",
+      mode: "classic",
       iconname: "spell_shadow_unholystrength",
       group: "reck",
       armor: 465,
@@ -1025,6 +1028,7 @@ var buffs = [
       id: 11717,
       spellid: true,
       name: "Curse of Recklessness",
+      mode: "classic",
       iconname: "spell_shadow_unholystrength",
       group: "reck",
       armor: 640,
@@ -1046,16 +1050,10 @@ var foreverTotemBuffs = {
    windfury: {wfap: 246, description: 'Each mainhand autoattack hit or ability hit has a 20% chance to grant an extra attack with 246 extra Attack Power.'},
 };
 
-// Forever client data (build 1.60.1.70009). Faerie Fire Rank 4 (505) and Sunder
-// Armor Rank 5 (450 per stack) match Classic; Expose Armor is Classic-only.
-var foreverArmorDebuffs = {
-   11717: {armor: 505, description: 'Reduces armor by 505.'}, // Curse of Recklessness Rank 4
-};
-
+// Forever client data (build 1.60.1.70009): Faerie Fire Rank 4 (505) and Sunder
+// Armor Rank 5 (450 per stack) match Classic. Expose Armor is Classic-only, and so
+// is Curse of Recklessness because it does not stack with Faerie Fire in Forever.
 function getBuffForMode(buff, gameMode) {
-   if (gameMode === 'forever' && foreverArmorDebuffs[buff.id]) {
-      return {...buff, ...foreverArmorDebuffs[buff.id]};
-   }
    if (gameMode === 'forever' && buff.group === 'motw') {
       return {...buff, str: 16, agi: 16, sta: 16, int: 16, spi: 16, playerarmor: 385,
          resist: {fire: 27, frost: 27, nature: 27, shadow: 27, arcane: 27},
