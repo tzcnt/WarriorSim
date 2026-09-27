@@ -521,6 +521,7 @@ var buffs = [
    {
       id: "elixir-of-the-grizzly",
       name: "Elixir of the Grizzly",
+      mode: "forever",
       description: "Increases Strength by 25 and critical strike chance by 2%.",
       iconname: "inv_potion_32",
       group: "elixir",
@@ -588,6 +589,7 @@ var buffs = [
    {
       id: "elixir-of-ferocity",
       name: "Elixir of Ferocity",
+      mode: "forever",
       description: "Increases Strength and Agility by 18.",
       iconname: "inv_potion_61",
       group: "str",
@@ -995,6 +997,7 @@ var buffs = [
       id: 704,
       spellid: true,
       name: "Curse of Recklessness",
+      mode: "classic",
       iconname: "spell_shadow_unholystrength",
       group: "reck",
       armor: 140,
@@ -1005,6 +1008,7 @@ var buffs = [
       id: 7658,
       spellid: true,
       name: "Curse of Recklessness",
+      mode: "classic",
       iconname: "spell_shadow_unholystrength",
       group: "reck",
       armor: 290,
@@ -1015,6 +1019,7 @@ var buffs = [
       id: 7659,
       spellid: true,
       name: "Curse of Recklessness",
+      mode: "classic",
       iconname: "spell_shadow_unholystrength",
       group: "reck",
       armor: 465,
@@ -1025,6 +1030,7 @@ var buffs = [
       id: 11717,
       spellid: true,
       name: "Curse of Recklessness",
+      mode: "classic",
       iconname: "spell_shadow_unholystrength",
       group: "reck",
       armor: 640,
@@ -1046,15 +1052,22 @@ var foreverTotemBuffs = {
    windfury: {wfap: 246, description: 'Each mainhand autoattack hit or ability hit has a 20% chance to grant an extra attack with 246 extra Attack Power.'},
 };
 
-// Forever client data (build 1.60.1.70009). Faerie Fire Rank 4 (505) and Sunder
-// Armor Rank 5 (450 per stack) match Classic; Expose Armor is Classic-only.
-var foreverArmorDebuffs = {
-   11717: {armor: 505, description: 'Reduces armor by 505.'}, // Curse of Recklessness Rank 4
+// Forever client data (build 1.60.1.70009): Faerie Fire Rank 4 (505) and Sunder
+// Armor Rank 5 (450 per stack) match Classic. Expose Armor is Classic-only, and so
+// is Curse of Recklessness because it does not stack with Faerie Fire in Forever.
+// Forever's Sunder Armor and Faerie Fire icons and tooltips also show the debuff that
+// shares their slot. The title is display-only; the simulation still matches on name.
+var foreverSharedDebuffs = {
+   sunder: {spliticon: 'ability_warrior_riposte', title: 'Sunder Armor (or Expose Armor)',
+      description: armor => `Reduces armor by ${armor} at 5 stacks.`},
+   faerie: {spliticon: 'spell_shadow_unholystrength', title: 'Faerie Fire (or Curse of Recklessness)',
+      description: armor => `Reduces armor by ${armor}.`},
 };
 
 function getBuffForMode(buff, gameMode) {
-   if (gameMode === 'forever' && foreverArmorDebuffs[buff.id]) {
-      return {...buff, ...foreverArmorDebuffs[buff.id]};
+   const shared = gameMode === 'forever' && foreverSharedDebuffs[buff.group];
+   if (shared) {
+      return {...buff, ...shared, description: shared.description(buff.armor)};
    }
    if (gameMode === 'forever' && buff.group === 'motw') {
       return {...buff, str: 16, agi: 16, sta: 16, int: 16, spi: 16, playerarmor: 385,
