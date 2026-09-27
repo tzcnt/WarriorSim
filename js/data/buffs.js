@@ -521,6 +521,7 @@ var buffs = [
    {
       id: "elixir-of-the-grizzly",
       name: "Elixir of the Grizzly",
+      mode: "forever",
       description: "Increases Strength by 25 and critical strike chance by 2%.",
       iconname: "inv_potion_32",
       group: "elixir",
@@ -588,6 +589,7 @@ var buffs = [
    {
       id: "elixir-of-ferocity",
       name: "Elixir of Ferocity",
+      mode: "forever",
       description: "Increases Strength and Agility by 18.",
       iconname: "inv_potion_61",
       group: "str",
