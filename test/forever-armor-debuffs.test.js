@@ -64,14 +64,17 @@ function renderBuffs(mode, activeIds) {
     const engine = createReferenceEngine(mode);
     engine.evaluate(fs.readFileSync(require.resolve('../js/settings.js'), 'utf8'));
     const rows = [];
-    const element = {
-        0: {outerHTML: ''},
-        empty() { return this; }, find() { return this; }, attr() { return this; }, removeClass() { return this; },
-        append(value) { rows.push(value); return this; },
+    const element = {empty() { return this; }, append(value) { rows.push(value); return this; }};
+    // Icons with a local tooltip are rebuilt with $(html): keep the title and drop the Wowhead class.
+    const localIcon = html => {
+        let title;
+        const anchor = {removeClass(cls) { html = html.replace(` class="${cls}"`, ''); return this; }, attr() { return this; }};
+        return {attr(key, value) { title = value; return this; }, find: () => anchor,
+            0: {get outerHTML() { return html.replace('<div ', `<div title="${title}" `); }}};
     };
-    engine.evaluate(`$ = () => element; WEB_DB_URL = ''; localStorage = {[mode + 0]: JSON.stringify({level: '60', aqbooks: 'No'})};
+    engine.evaluate(`$ = localIcon; WEB_DB_URL = ''; localStorage = {[mode + 0]: JSON.stringify({level: '60', aqbooks: 'No'})};
         SIM.UI = {updateSession() {}, updateSidebar() {}}; SIM.SETTINGS.buffs = element;
-        buffs.forEach(b => b.active = ids.includes(b.id)); SIM.SETTINGS.buildBuffs();`, {element, ids: activeIds});
+        buffs.forEach(b => b.active = ids.includes(b.id)); SIM.SETTINGS.buildBuffs();`, {element, localIcon, ids: activeIds});
     return {html: rows.join(''), active: [...engine.evaluate('buffs.filter(b => b.active).map(b => b.id)')]};
 }
 
@@ -84,6 +87,32 @@ test('Forever hides Curse of Recklessness and clears a stale selection', () => {
     for (const id of CURSE_IDS) assert.ok(!forever.html.includes(`data-id="${id}"`), `${id}`);
     assert.ok(forever.html.includes('data-id="9907"'));
     assert.deepEqual(forever.active, [9907]);
+});
+
+test('Forever Sunder Armor and Faerie Fire icons and tooltips include the debuff sharing their slot', () => {
+    const splitIcon = /class="icon[^"]*\bsplit\b/;
+    const icon = (html, id) => html.match(new RegExp(`<div [^>]*data-id="${id}"[^]*?</div>`))[0];
+    const forever = renderBuffs('forever', [11597]).html;
+    for (const [id, other, title] of [
+        [11597, 'ability_warrior_riposte', 'Sunder Armor (or Expose Armor)\nReduces armor by 2250 at 5 stacks.'],
+        [9907, 'spell_shadow_unholystrength', 'Faerie Fire (or Curse of Recklessness)\nReduces armor by 505.'],
+    ]) {
+        assert.match(icon(forever, id), splitIcon, `${id}`);
+        assert.ok(icon(forever, id).includes(`medium/${other}.jpg`), `${id}`);
+        assert.ok(icon(forever, id).includes(`title="${title}"`), `${id}`);
+        assert.ok(!icon(forever, id).includes('wh-tooltip'), `${id}`);
+    }
+
+    const classic = renderBuffs('classic', [11597]).html;
+    assert.doesNotMatch(classic, splitIcon);
+    for (const id of [11597, 9907]) {
+        assert.ok(!icon(classic, id).includes('title='), `${id}`);
+        assert.ok(icon(classic, id).includes('wh-tooltip'), `${id}`);
+    }
+
+    // The simulation identifies Faerie Fire by name, so only the tooltip title changes.
+    const engine = createReferenceEngine('forever');
+    assert.equal(engine.evaluate('getBuffForMode(buffs.find(b => b.id === 9907), "forever").name'), 'Faerie Fire');
 });
 
 test('Forever presets and defaults do not enable Curse of Recklessness', () => {

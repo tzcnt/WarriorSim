@@ -1053,7 +1053,20 @@ var foreverTotemBuffs = {
 // Forever client data (build 1.60.1.70009): Faerie Fire Rank 4 (505) and Sunder
 // Armor Rank 5 (450 per stack) match Classic. Expose Armor is Classic-only, and so
 // is Curse of Recklessness because it does not stack with Faerie Fire in Forever.
+// Forever's Sunder Armor and Faerie Fire icons and tooltips also show the debuff that
+// shares their slot. The title is display-only; the simulation still matches on name.
+var foreverSharedDebuffs = {
+   sunder: {spliticon: 'ability_warrior_riposte', title: 'Sunder Armor (or Expose Armor)',
+      description: armor => `Reduces armor by ${armor} at 5 stacks.`},
+   faerie: {spliticon: 'spell_shadow_unholystrength', title: 'Faerie Fire (or Curse of Recklessness)',
+      description: armor => `Reduces armor by ${armor}.`},
+};
+
 function getBuffForMode(buff, gameMode) {
+   const shared = gameMode === 'forever' && foreverSharedDebuffs[buff.group];
+   if (shared) {
+      return {...buff, ...shared, description: shared.description(buff.armor)};
+   }
    if (gameMode === 'forever' && buff.group === 'motw') {
       return {...buff, str: 16, agi: 16, sta: 16, int: 16, spi: 16, playerarmor: 385,
          resist: {fire: 27, frost: 27, nature: 27, shadow: 27, arcane: 27},

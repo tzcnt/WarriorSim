@@ -65,6 +65,23 @@
         filter: grayscale(100%);
         transition: all 0.2s ease-in;
     }
+
+    // Two icons divided from the bottom-left to the top-right corner.
+    &.split {
+        img + img {
+            position: absolute;
+            inset: 0;
+            clip-path: polygon(100% 0, 100% 100%, 0 100%);
+        }
+
+        &:after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top left, transparent calc(50% - 1px), #000 calc(50% - 1px),
+                #000 calc(50% + 1px), transparent calc(50% + 1px));
+        }
+    }
 }
 
 .tablesorter-default {

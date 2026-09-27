@@ -674,15 +674,17 @@ SIM.SETTINGS = {
             let active = buff.active ? 'active' : '';
             let group = buff.group ? `data-group="${buff.group}"` : '';
             let disable = buff.disableSpell ? `data-disable-spell="${buff.disableSpell}"` : '';
-            let html = `<div data-id="${buff.id}" class="icon ${active}" ${group} ${disable}>
+            let split = buff.spliticon ? 'split' : '';
+            let html = `<div data-id="${buff.id}" class="icon ${active} ${split}" ${group} ${disable}>
                             <img src="https://wow.zamimg.com/images/wow/icons/medium/${buff.iconname.toLowerCase()}.jpg " alt="${buff.name}">
+                            ${split && `<img src="https://wow.zamimg.com/images/wow/icons/medium/${buff.spliticon}.jpg" alt="">`}
                             <a href="${WEB_DB_URL}${wh}=${tooltip}" class="wh-tooltip"></a>
                         </div>`;
             const description = mode === 'forever' && buff.group === 'blessingmight'
                 ? 'Increases Attack Power by 133.' : buff.description;
             if (description) {
                 const icon = $(html);
-                icon.attr('title', buff.name + '\n' + description);
+                icon.attr('title', (buff.title || buff.name) + '\n' + description);
                 icon.find('a').removeClass('wh-tooltip').attr('href', '#');
                 html = icon[0].outerHTML;
             }
