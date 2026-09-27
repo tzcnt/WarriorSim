@@ -71,6 +71,16 @@ does not stack with Faerie Fire, so the option is hidden and stale profiles that
 enable it are ignored. Forever also omits Expose Armor and Improved Expose Armor,
 which share the Sunder Armor slot.
 
+The Natural flasks ([Wowhead](https://www.wowhead.com/forever/item=274276/flask-of-natural-swiftness),
+items 274273–274276, spells 1293740–1293743 in the same build) each grant 60 Stamina.
+In Mount Hyjal, Hyjal Summit and the Barrow Deeps, each also grants a bonus. The
+simulator has no zone setting, so it always applies that bonus. Swiftness gives 5%
+melee haste. Its 5% casting speed does not shorten Slam, which has the Ability
+attribute (0x10). Aggression gives 4% melee and spell crit, and Accuracy gives 5%
+melee and spell hit. Precision's expertise aura (240) removes 5 percentage points
+from the target's dodge chance. Attacks from behind cannot be parried, so parry is
+unaffected. The Natural flasks share the flask slot with Flask of the Titans.
+
 Classic also implements Sweeping Strikes using spell 12292 and the same copy logic.
 Its five charges expire after 20 seconds, and activation neither requires a free GCD
 nor starts or clears one, matching the [Classic spell data](https://www.wowhead.com/classic/spell=12292/sweeping-strikes).

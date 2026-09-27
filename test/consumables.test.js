@@ -3,14 +3,15 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 const {createReferenceEngine, createConfiguredPlayer, loadFixtures} = require('./wasm/reference-engine');
 const {frenzyFixtures} = require('./wasm/frenzy-fixtures');
+const {NATURAL_FLASKS} = require('./wasm/flask-fixtures');
 
-const FOREVER_BUFFS = ['elixir-of-the-grizzly', 'elixir-of-ferocity'];
+const FOREVER_BUFFS = ['elixir-of-the-grizzly', 'elixir-of-ferocity', ...Object.values(NATURAL_FLASKS)];
 
 test('classic: Forever-only consumables are unavailable and stale selections are ignored', () => {
     const engine = createReferenceEngine('classic');
     const modes = engine.evaluate(`[...buffs.filter(b => ids.includes(b.id)), spells.find(s => s.id === 'major-frenzy-potion')]
         .map(entry => entry.mode)`, {ids: FOREVER_BUFFS});
-    assert.deepEqual([...modes], ['forever', 'forever', 'forever']);
+    assert.deepEqual([...modes], Array(FOREVER_BUFFS.length + 1).fill('forever'));
 
     const fixture = structuredClone(loadFixtures().find(f => f.mode === 'classic'));
     fixture.buffs = [];
@@ -20,6 +21,7 @@ test('classic: Forever-only consumables are unavailable and stale selections are
     fixture.rotation = {'major-frenzy-potion': {active: true, timetostartactive: true, timetostart: 0}};
     const stale = createConfiguredPlayer(engine, fixture);
     assert.equal(JSON.stringify(stale.base), JSON.stringify(baseline.base));
+    assert.equal(JSON.stringify(stale.target), JSON.stringify(baseline.target));
     assert.equal(stale.auras.majorfrenzypotion, undefined);
 });
 
@@ -46,6 +48,51 @@ test('forever: new consumables apply stats and follow their neighboring elixirs'
     assert.equal(potion.timetoendactive, false);
     assert.equal(potion.timetostart, 0);
     assert.equal(potion.timetoend, 31);
+});
+
+test('forever: Natural flasks follow the other flasks and grant 60 Stamina plus their zone bonus', () => {
+    const engine = createReferenceEngine('forever');
+    const ids = Object.values(NATURAL_FLASKS);
+    const catalog = engine.evaluate('buffs.slice(buffs.findIndex(b => b.name === "Flask of Chromatic Resistance") + 1).slice(0, count)',
+        {count: ids.length});
+    assert.deepEqual(Array.from(catalog, buff => buff.id), ids);
+    for (const buff of catalog) {
+        assert.equal(buff.mode, 'forever');
+        assert.equal(buff.group, 'flask');
+        assert.equal(buff.minlevel, 55);
+        assert.equal(buff.consume, true);
+    }
+
+    const fixture = structuredClone(loadFixtures().find(f => f.mode === 'forever'));
+    fixture.buffs = [];
+    delete fixture.buffsAdd;
+    const baseline = createConfiguredPlayer(engine, fixture);
+    const withFlask = id => {
+        fixture.buffs = [String(id)];
+        const player = createConfiguredPlayer(engine, fixture);
+        assert.equal(player.base.sta - baseline.base.sta, 60);
+        assert.equal(player.maxhealth - baseline.maxhealth, 600);
+        return player;
+    };
+
+    const swiftness = withFlask(NATURAL_FLASKS.swiftness);
+    assert.equal(swiftness.stats.haste, baseline.stats.haste * 1.05);
+
+    const aggression = withFlask(NATURAL_FLASKS.aggression);
+    assert.equal(aggression.base.crit - baseline.base.crit, 4);
+    assert.equal(aggression.base.spellcrit - baseline.base.spellcrit, 4);
+
+    // Hit applies to melee and to spell procs, like Forever's Precision talent.
+    const accuracy = withFlask(NATURAL_FLASKS.accuracy);
+    assert.equal(accuracy.base.hit - baseline.base.hit, 5);
+    assert.equal(baseline.target.misschance - accuracy.target.misschance, 500);
+    assert.ok(accuracy.target.binaryresist < baseline.target.binaryresist);
+
+    const precision = withFlask(NATURAL_FLASKS.precision);
+    assert.equal(baseline.mh.dodge, 6.5);
+    assert.equal(precision.mh.dodge, 1.5);
+    assert.equal(precision.oh.dodge, 1.5);
+    assert.equal(precision.serializeSimulationSpec(fixture.sim).player.target.dodge, 5);
 });
 
 test('forever: Major Frenzy grants 40 AP for 30 seconds and recharges from use time', () => {

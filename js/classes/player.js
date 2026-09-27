@@ -500,6 +500,11 @@ class Player {
                 this.base.moddmgtaken += buff.moddmgtaken || 0;
                 this.base.defense += buff.defense || 0;
                 if (buff.playerarmor) this.base.armor = (this.base.armor || 0) + buff.playerarmor;
+                if (buff.spellhit) {
+                    this.target.misschance = Math.max(100, this.target.misschance - buff.spellhit * 100);
+                    this.target.binaryresist = this.getTargetSpellBinaryResist();
+                }
+                this.target.dodge += buff.expertise || 0;
 
                 if (buff.resist) {
                     let impmotw = buff.name == "Mark of the Wild" && buffs.filter(s => s.motwmod && s.active && (!s.mode || s.mode === this.mode))[0];

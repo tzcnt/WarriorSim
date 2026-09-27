@@ -758,6 +758,60 @@ var buffs = [
       },
       consume: true
    },
+   // Forever client data (build 1.60.1.70009). Each flask grants 60 Stamina, plus a
+   // bonus in Mount Hyjal, Hyjal Summit and the Barrow Deeps that is always applied here.
+   {
+      id: 274276,
+      name: "Flask of Natural Swiftness",
+      mode: "forever",
+      description: "Increases your Stamina by 60. While in Mount Hyjal, Hyjal Summit, and the Barrow Deeps, you also gain 5% Haste.",
+      iconname: "inv_potionc_4",
+      minlevel: 55,
+      group: 'flask',
+      sta: 60,
+      // Also 5% casting speed, which does not apply to Slam (an ability).
+      haste: 5,
+      consume: true
+   },
+   {
+      id: 274274,
+      name: "Flask of Natural Aggression",
+      mode: "forever",
+      description: "Increases your Stamina by 60. While in Mount Hyjal, Hyjal Summit, and the Barrow Deeps, you also gain 4% Critical Strike Chance.",
+      iconname: "inv_potionc_1",
+      minlevel: 55,
+      group: 'flask',
+      sta: 60,
+      crit: 4,
+      spellcrit: 4,
+      consume: true
+   },
+   {
+      id: 274273,
+      name: "Flask of Natural Accuracy",
+      mode: "forever",
+      description: "Increases your Stamina by 60. While in Mount Hyjal, Hyjal Summit, and the Barrow Deeps, you also gain 5% Hit Chance.",
+      iconname: "inv_potionc_5",
+      minlevel: 55,
+      group: 'flask',
+      sta: 60,
+      hit: 5,
+      spellhit: 5,
+      consume: true
+   },
+   {
+      id: 274275,
+      name: "Flask of Natural Precision",
+      mode: "forever",
+      description: "Increases your Stamina by 60. While in Mount Hyjal, Hyjal Summit, and the Barrow Deeps, you also gain 5% reduced chance to be dodged or parried.",
+      iconname: "inv_potionc_3",
+      minlevel: 55,
+      group: 'flask',
+      sta: 60,
+      // Percentage points removed from the target's dodge chance (attacks from behind cannot be parried).
+      expertise: 5,
+      consume: true
+   },
    {
       id: 12455,
       name: "Juju Ember",
