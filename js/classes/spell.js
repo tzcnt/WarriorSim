@@ -1088,12 +1088,14 @@ class BloodFury extends Aura {
         this.duration = 15;
         this.mult_stats = player.mode === 'forever' ? {apmod: 10} : {baseapmod: 25};
         this.cooldown = 120;
+        // Forever's Blood Fury neither triggers nor waits for the GCD.
+        this.gcd = player.mode === 'forever' ? 0 : 1500;
     }
     use(a, prepull = 0) {
         if (this.timer) this.uptime += (step - this.starttimer);
         this.timer = step + this.duration * 1000 - prepull;
         this.starttimer = step - prepull;
-        this.player.timer = 1500;
+        if (this.gcd) this.player.timer = this.gcd;
         this.player.updateAuras();
         this.maxdelay = rng(this.player.reactionmin, this.player.reactionmax);
         /* start-log */ if (this.player.logging) this.player.log(`${this.name} applied`); /* end-log */
@@ -1108,7 +1110,7 @@ class BloodFury extends Aura {
         }
     }
     canUse() {
-        return !this.timer && !this.player.timer && step >= this.usestep;
+        return !this.timer && (!this.gcd || !this.player.timer) && step >= this.usestep;
     }
 }
 
@@ -1118,12 +1120,14 @@ class Berserking extends Aura {
         this.duration = 10;
         if (player.mode === 'forever') this.mult_stats = {haste: 10};
         this.cooldown = 180;
+        // Forever's Berserking has no rage cost.
+        this.cost = player.mode === 'forever' ? 0 : 5;
     }
     use(a, prepull = 0) {
         if (this.timer) this.uptime += (step - this.starttimer);
         this.timer = step + this.duration * 1000 - prepull;
         this.starttimer = step - prepull;
-        this.player.rage -= 5;
+        this.player.rage -= this.cost;
         this.player.updateHaste();
         this.maxdelay = rng(this.player.reactionmin, this.player.reactionmax);
         /* start-log */ if (this.player.logging) this.player.log(`${this.name} applied`); /* end-log */
@@ -1138,7 +1142,7 @@ class Berserking extends Aura {
         }
     }
     canUse() {
-        return !this.timer && this.player.rage >= 5 && step >= this.usestep;
+        return !this.timer && this.player.rage >= this.cost && step >= this.usestep;
     }
 }
 

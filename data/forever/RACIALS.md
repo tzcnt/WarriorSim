@@ -30,10 +30,10 @@ assumptions are documented below.
 | Dwarf | Maces grant +1 point of autoattack, ability and spell crit; +5% physical and magic damage against Beasts. |
 | Night Elf | Elune’s Light grants +10 points of melee and spell crit for 15 seconds; 3-minute cooldown. |
 | Gnome | Maximum rage multiplied by 1.05 after Boundless Rage; Eureka! makes the next three Warrior abilities cost 10% less rage and deal 10% more damage; 2-minute cooldown. |
-| Orc | Axes grant +1 point of autoattack, ability and spell crit; Blood Fury multiplies total AP and spell-power contributions by 1.10 for 15 seconds. No racial weapon skill. |
+| Orc | Axes grant +1 point of autoattack, ability and spell crit; Blood Fury multiplies total AP and spell-power contributions by 1.10 for 15 seconds, with no GCD or rage cost. No racial weapon skill. |
 | Undead | Touch of the Grave: 5% chance per landed damaging main-hand, off-hand, or special ability hit to deal 5% of maximum HP as magic damage, with a shared 1 second internal cooldown and a separate damage report. |
 | Tauren | +1 point of hit for autoattacks, abilities and spells, retaining the spell miss floor; +5% maximum health. |
-| Troll | Berserking is fixed at +10% haste for 10 seconds regardless of old saved haste settings; +5% physical and magic damage against Beasts. |
+| Troll | Berserking is fixed at +10% haste for 10 seconds regardless of old saved haste settings, with no GCD or rage cost; +5% physical and magic damage against Beasts. |
 | Skyborne | One race for both factions: +1% haste and +5% physical and magic damage against Elementals. Uses Human base stats, without Human racials. |
 
 ## Health for Touch of the Grave
@@ -79,7 +79,8 @@ also grants spell crit; dual wielding does not stack it. The dump does not speci
 mixed-weapon behavior. Racial hit bonuses likewise apply to main-hand and
 off-hand autoattacks as well as abilities and spells.
 
-- Elune’s Light and Eureka! have no rage cost or GCD. Their first use can be
+- Elune’s Light, Eureka!, Blood Fury and Berserking have no rage cost or GCD (Blood
+  Fury and Berserking per the owner, September 28, 2026). Their first use can be
   scheduled in Rotation; they can be reused in long fights. They do not wait for the
   GCD and are used as soon as they are ready, after the usual reaction delay.
 - Eureka!'s 10% reduction applies after talent reductions. Fractional rage costs
@@ -90,16 +91,15 @@ off-hand autoattacks as well as abilities and spells.
   at the actual swing; multiple targets and Whirlwind's off-hand share the cast's
   damage bonus and charge. Rend evaluates the current bonus on each tick. Sweeping
   Strikes copies resulting hit damage without applying a second multiplier.
-- Blood Fury retains the existing 1.5-second GCD and Berserking the existing 5-rage
-  cost. The dump gives no replacement costs, GCDs or cooldowns for either ability, so
-  they use Classic's 2-minute and 3-minute cooldowns and are reused in long fights.
+- The dump gives no replacement cooldowns for Blood Fury or Berserking, so they use
+  Classic's 2-minute and 3-minute cooldowns and are reused in long fights.
 - Every scheduled cooldown is reused as soon as it is ready after its first use. A
   schedule N seconds before the end counts back whole cooldowns, plus 2 seconds each
   for GCD and reaction delays, to the first use; the final use waits for that time.
   Once due, scheduled cooldowns are the highest priority. They replace a GCD ability
-  chosen but not yet cast, and while a due Death Wish or Berserking waits for rage,
-  no other GCD ability is used and Heroic Strike, Cleave and Classic Sweeping Strikes
-  may only spend rage above its cost.
+  chosen but not yet cast, and while a due Death Wish waits for rage, no other GCD
+  ability is used and Heroic Strike, Cleave and Classic Sweeping Strikes may only
+  spend rage above its cost.
 
 Current health, incoming health loss, temporary health abilities such as Last
 Stand, healing, mana, Spirit regeneration, avoidance, mitigation, crowd control,

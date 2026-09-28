@@ -353,15 +353,18 @@ class Simulation {
         let next = 0;
         let slamstep = 0;
         let stopstep = 0;
+        // Forever's Blood Fury and Berserking ignore the GCD, like its other active racials.
+        const offgcdracials = player.mode === 'forever';
+        const racials = [player.auras.bloodfury, player.auras.berserking];
         // Scheduled cooldowns are the highest priority once due. They are checked as soon as
         // they are ready, and replace a GCD ability that was chosen but not yet cast.
         const scheduled = [player.auras.swarmguard, player.auras.mightyragepotion, player.auras.majorfrenzypotion,
             player.spells.ragepotion, player.spells.fireball, player.auras.jujuflurry, player.spells.grilekfury,
             player.spells.bloodrage, player.auras.cloudkeeper, player.auras.pummeler, player.auras.slayer,
             player.auras.spider, player.auras.gabbar, player.auras.earthstrike, player.auras.zandalarian,
-            player.auras.eluneslight, player.auras.eureka].filter(Boolean);
+            player.auras.eluneslight, player.auras.eureka, ...(offgcdracials ? racials : [])].filter(Boolean);
         const scheduledgcd = [player.auras.flask, player.auras.recklessness, player.auras.deathwish,
-            player.auras.bloodfury, player.auras.berserking].filter(Boolean);
+            ...(offgcdracials ? [] : racials)].filter(Boolean);
         let preemptible = false;
 
         // determine when to use on use items
@@ -467,13 +470,15 @@ class Simulation {
                     else if (player.auras.zandalarian && player.auras.zandalarian.canUse()) { player.spelldelay = 1; delayedspell = player.auras.zandalarian; }
                     else if (player.auras.eluneslight && player.auras.eluneslight.canUse()) { player.spelldelay = 1; delayedspell = player.auras.eluneslight; }
                     else if (player.auras.eureka && player.auras.eureka.canUse()) { player.spelldelay = 1; delayedspell = player.auras.eureka; }
+                    else if (offgcdracials && player.auras.bloodfury && player.auras.bloodfury.canUse()) { player.spelldelay = 1; delayedspell = player.auras.bloodfury; }
+                    else if (offgcdracials && player.auras.berserking && player.auras.berserking.canUse()) { player.spelldelay = 1; delayedspell = player.auras.berserking; }
                     else if (player.spells.stanceswitch.canUse()) { player.spelldelay = 1; delayedspell = player.spells.stanceswitch; }
                     else if (player.timer) { }
                     else if (player.auras.flask && player.auras.flask.canUse()) { player.spelldelay = 1; delayedspell = player.auras.flask; }
                     else if (player.auras.recklessness && player.auras.recklessness.canUse()) { player.spelldelay = 1; delayedspell = player.auras.recklessness; }
                     else if (player.auras.deathwish && player.auras.deathwish.canUse()) { player.spelldelay = 1; delayedspell = player.auras.deathwish; }
-                    else if (player.auras.bloodfury && player.auras.bloodfury.canUse()) { player.spelldelay = 1; delayedspell = player.auras.bloodfury; }
-                    else if (player.auras.berserking && player.auras.berserking.canUse()) { player.spelldelay = 1; delayedspell = player.auras.berserking; }
+                    else if (!offgcdracials && player.auras.bloodfury && player.auras.bloodfury.canUse()) { player.spelldelay = 1; delayedspell = player.auras.bloodfury; }
+                    else if (!offgcdracials && player.auras.berserking && player.auras.berserking.canUse()) { player.spelldelay = 1; delayedspell = player.auras.berserking; }
                     else if (reserve) { }
                     else if (player.auras.battleshout && player.auras.battleshout.canUse()) { player.spelldelay = 1; delayedspell = player.auras.battleshout; preemptible = true; }
                     else if (step >= this.executestep) {
@@ -791,11 +796,11 @@ class Simulation {
         for (const action of scheduled) if (action.canUse()) return action;
         if (!this.player.timer) for (const action of scheduledgcd) if (action.canUse()) return action;
     }
-    // Rage a due Death Wish or Berserking is waiting for. Nothing else may spend it.
+    // Rage a due Death Wish or Classic Berserking is waiting for. Nothing else may spend it.
     reservedRage() {
         const wish = this.player.auras.deathwish, zerk = this.player.auras.berserking;
         if (wish && !wish.timer && step >= wish.usestep) return wish.cost ?? 10;
-        if (zerk && !zerk.timer && step >= zerk.usestep) return 5;
+        if (zerk && zerk.cost && !zerk.timer && step >= zerk.usestep) return zerk.cost;
         return 0;
     }
     finished() {

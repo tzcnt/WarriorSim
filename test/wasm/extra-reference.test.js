@@ -119,9 +119,10 @@ function traceCasts(fixture, keys) {
 }
 
 // Cooldown, scheduled final use, and how late that final use may start in 300 second
-// fights. Off-GCD uses wait only for reaction time. Blood Fury can also wait for the GCD,
-// and Death Wish for the GCD and 10 rage, for example while Execute spends it. Kiss of
-// the Spider takes the last 15 seconds, so Slayer's Crest is scheduled to end first.
+// fights. Off-GCD uses, including Forever's Blood Fury and Berserking, wait only for
+// reaction time. Classic Blood Fury can also wait for the GCD, and Death Wish for the
+// GCD and 10 rage, for example while Execute spends it. Kiss of the Spider takes the
+// last 15 seconds, so Slayer's Crest is scheduled to end first.
 const endSchedules = {
     'classic-long-end-schedule': {
         slayer: [120000, 265000, 1000],
@@ -133,6 +134,8 @@ const endSchedules = {
     },
     'forever-racial-night-elf-end-schedule': {eluneslight: [180000, 269000, 1000], deathwish: [180000, 269000, 5000]},
     'forever-racial-gnome-end-schedule': {eureka: [120000, 290000, 1000], deathwish: [180000, 269000, 5000]},
+    'forever-racial-orc-end-schedule': {bloodfury: [120000, 282000, 1000], deathwish: [180000, 269000, 5000]},
+    'forever-racial-troll-end-schedule': {berserking: [180000, 287000, 1000], deathwish: [180000, 269000, 5000]},
 };
 
 for (const [name, schedules] of Object.entries(endSchedules)) test(`${name}: end-of-fight schedules count back whole cooldowns to the earliest first use`, () => {

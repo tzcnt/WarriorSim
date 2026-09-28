@@ -100,9 +100,9 @@ bool auraCanUse(PlayerState& player, AuraState& aura) {
     case AuraKind::MightyRagePotion:
         return ready;
     case AuraKind::BloodFury:
-        return ready && !player.timer;
+        return ready && (!aura.props.number("gcd"_prop) || !player.timer);
     case AuraKind::Berserking:
-        return ready && player.rage >= 5;
+        return ready && player.rage >= aura.props.number("cost"_prop);
     case AuraKind::Pummeler:
         // No cooldown: its three charges do not recharge, so use it once per fight.
         return aura.firstuse && ready && !player.itemtimer;
@@ -296,12 +296,12 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         setDelay(player, aura);
         break;
     case AuraKind::BloodFury:
-        player.timer = 1500;
+        if (const double gcd = aura.props.number("gcd"_prop)) player.timer = gcd;
         useWithUpdate(player, aura, &PlayerState::updateAuras, precounter, true);
         break;
     case AuraKind::Berserking:
         begin(player, aura, precounter);
-        player.rage -= 5;
+        player.rage -= aura.props.number("cost"_prop);
         player.updateHaste();
         setDelay(player, aura);
         break;

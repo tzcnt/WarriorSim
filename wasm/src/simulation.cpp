@@ -64,12 +64,13 @@ Action dueScheduled(PlayerState& player) {
     return {};
 }
 
-// Mirrors Simulation.reservedRage: rage a due Death Wish or Berserking is waiting for.
+// Mirrors Simulation.reservedRage: rage a due Death Wish or Classic Berserking is waiting for.
 double reservedRage(const PlayerState& player) {
     if (const auto* wish = player.aura("deathwish"_action); wish && !wish->timer && player.step >= wish->useStep)
         return wish->props.number("cost"_prop, 10);
-    if (const auto* zerk = player.aura("berserking"_action); zerk && !zerk->timer && player.step >= zerk->useStep)
-        return 5;
+    if (const auto* zerk = player.aura("berserking"_action); zerk && zerk->props.number("cost"_prop) && !zerk->timer &&
+        player.step >= zerk->useStep)
+        return zerk->props.number("cost"_prop);
     return 0;
 }
 
@@ -227,8 +228,9 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "flask"_action, true);
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "recklessness"_action, true);
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "deathwish"_action, true);
-                if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "bloodfury"_action, true);
-                if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "berserking"_action, true);
+                // Forever's Blood Fury and Berserking are in offGcdRacials instead.
+                if (!delayedSpell && !player_.timer && !player_.foreverMode) choose(player_, delayedSpell, "bloodfury"_action, true);
+                if (!delayedSpell && !player_.timer && !player_.foreverMode) choose(player_, delayedSpell, "berserking"_action, true);
                 if (!delayedSpell && !player_.timer && !reserve)
                     preemptible = choose(player_, delayedSpell, "battleshout"_action, true);
 

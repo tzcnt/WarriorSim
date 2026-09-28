@@ -681,6 +681,8 @@ void PlayerState::buildConfiguredActionLists() {
     addAuras(configured.onUseAuras, {"cloudkeeper"_action, "pummeler"_action, "slayer"_action,
         "spider"_action, "gabbar"_action, "earthstrike"_action, "zandalarian"_action});
     addAuras(configured.offGcdRacials, {"eluneslight"_action, "eureka"_action});
+    // Forever's Blood Fury and Berserking ignore the GCD, like its other active racials.
+    if (foreverMode) addAuras(configured.offGcdRacials, {"bloodfury"_action, "berserking"_action});
     const auto addScheduled = [&](std::vector<std::pair<bool, int>>& destination,
                              std::initializer_list<std::pair<detail::KnownAction, bool>> keys) {
         for (const auto& [key, isAura] : keys) {
@@ -695,7 +697,9 @@ void PlayerState::buildConfiguredActionLists() {
         {"gabbar"_action, true}, {"earthstrike"_action, true}, {"zandalarian"_action, true},
         {"eluneslight"_action, true}, {"eureka"_action, true}});
     addScheduled(configured.scheduledGcd, {{"flask"_action, true}, {"recklessness"_action, true},
-        {"deathwish"_action, true}, {"bloodfury"_action, true}, {"berserking"_action, true}});
+        {"deathwish"_action, true}});
+    addScheduled(foreverMode ? configured.scheduledNoGcd : configured.scheduledGcd,
+        {{"bloodfury"_action, true}, {"berserking"_action, true}});
     addSpells(configured.queuedStrikes, {"heroicstrike"_action, "cleave"_action});
 
     const auto addPeriodic = [&](detail::KnownAction key, double interval) {

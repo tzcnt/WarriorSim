@@ -186,6 +186,51 @@ test('Forever Berserking ignores legacy haste settings while Classic preserves t
     }
 });
 
+for (const mode of ['classic', 'forever']) test(`${mode}: Blood Fury's GCD and Berserking's rage cost match the selected rules`, () => {
+    const forever = mode === 'forever';
+    const {player: orc} = setup('Orc', mode);
+    const fury = orc.auras.bloodfury;
+    fury.prep(60000);
+    orc.timer = 1000;
+    assert.equal(fury.canUse(), forever, 'only Classic Blood Fury waits for the GCD');
+    fury.use();
+    assert.equal(orc.timer, forever ? 1000 : 1500, 'only Classic Blood Fury triggers the GCD');
+
+    const {player: troll, engine, fixture} = setup('Troll', mode);
+    const zerk = troll.auras.berserking;
+    zerk.prep(60000);
+    troll.rage = 4;
+    assert.equal(zerk.canUse(), forever, 'only Classic Berserking needs 5 rage');
+    assert.equal(engine.createSimulation(troll, fixture.sim).reservedRage(), forever ? 0 : 5,
+        'only Classic reserves rage for a due Berserking');
+    troll.timer = 1000;
+    troll.rage = 50;
+    zerk.use();
+    assert.equal(troll.rage, forever ? 50 : 45);
+    assert.equal(troll.timer, 1000, 'Berserking never triggers the GCD');
+});
+
+for (const mode of ['classic', 'forever']) test(`${mode}: combat uses Blood Fury and Berserking ${mode === 'forever' ? 'during' : 'after'} the GCD`, () => {
+    for (const [race, key] of [['Orc', 'bloodfury'], ['Troll', 'berserking']]) {
+        const {player: p, engine, fixture} = setup(race, mode);
+        const aura = p.auras[key];
+        // Due mid-rotation, where GCD abilities often have the GCD running.
+        aura.timetostart = 5000;
+        const casts = [];
+        const use = aura.use;
+        aura.use = function(...args) {
+            const before = p.timer;
+            use.apply(this, args);
+            casts.push([before, p.timer]);
+        };
+        engine.createSimulation(p, fixture.sim).startSync();
+        assert.equal(casts.length, fixture.sim.iterations, `${key} is used once per fight`);
+        assert.equal(casts.some(([before]) => before > 0), mode === 'forever', `${key} is used during the GCD`);
+        const gcd = mode === 'classic' && key === 'bloodfury';
+        for (const [before, after] of casts) assert.equal(after, gcd ? 1500 : before, `${key} GCD`);
+    }
+});
+
 test('Elune’s Light grants both crit stats, expires, reuses and resets', () => {
     const {player: p, run} = setup('Night Elf');
     const crit = p.stats.crit, spellcrit = p.stats.spellcrit;
