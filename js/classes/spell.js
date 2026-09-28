@@ -758,7 +758,7 @@ class SweepingStrikes extends Aura {
 class Recklessness extends Aura {
     constructor(player, id) {
         super(player, id);
-        this.duration = 12;
+        this.duration = 15;
         this.stats = { crit: 100 };
         this.cooldown = 1800;
     }
