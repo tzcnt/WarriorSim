@@ -116,7 +116,7 @@ test('forever: Natural flasks follow the other flasks and grant 60 Stamina plus 
     assert.equal(precision.serializeSimulationSpec(fixture.sim).player.target.dodge, 5);
 });
 
-test('forever: Major Frenzy grants 40 AP for 30 seconds and recharges from use time', () => {
+test('forever: Major Frenzy grants 80 AP for 30 seconds and recharges from use time', () => {
     const engine = createReferenceEngine('forever');
     const fixture = frenzyFixtures().find(f => f.mode === 'forever');
     fixture.buffs = [];
@@ -127,12 +127,12 @@ test('forever: Major Frenzy grants 40 AP for 30 seconds and recharges from use t
     aura.prep(280000, 0);
     const ap = player.stats.ap;
     aura.use();
-    assert.equal(player.stats.ap, ap + 40);
+    assert.equal(player.stats.ap, ap + 80);
     assert.equal(player.timer, 0);
     assert.equal(aura.canUse(), false);
     engine.evaluate('step = 29999');
     player.stepauras();
-    assert.equal(player.stats.ap, ap + 40);
+    assert.equal(player.stats.ap, ap + 80);
     engine.evaluate('step = 30000');
     player.stepauras();
     assert.equal(player.stats.ap, ap);
@@ -142,7 +142,7 @@ test('forever: Major Frenzy grants 40 AP for 30 seconds and recharges from use t
     engine.evaluate('step = 120000');
     assert.equal(aura.canUse(), true);
     aura.use();
-    assert.equal(player.stats.ap, ap + 40);
+    assert.equal(player.stats.ap, ap + 80);
 });
 
 for (const fixture of frenzyFixtures()) {

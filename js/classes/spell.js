@@ -1056,7 +1056,7 @@ class MightyRagePotion extends Aura {
 class MajorFrenzyPotion extends Aura {
     constructor(player, id) {
         super(player, id, 'Major Frenzy Potion');
-        this.stats = { ap: 40 };
+        this.stats = { ap: 80 };
         this.duration = 30;
         this.cooldown = 120;
     }

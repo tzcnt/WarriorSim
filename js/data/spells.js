@@ -1052,7 +1052,7 @@ var spells = [
     id: 1251940,
     name: 'Major Frenzy Potion',
     mode: 'forever',
-    description: 'Increases Attack Power by 40 for 30 seconds. 2-minute cooldown.',
+    description: 'Increases Attack Power by 80 for 30 seconds. 2-minute cooldown.',
     classname: 'MajorFrenzyPotion',
     iconname: 'inv_potione_6',
     timetoend: 31,
