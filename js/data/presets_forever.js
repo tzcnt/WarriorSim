@@ -193,9 +193,9 @@ var profilePresets = [
                 "finger2": 12548,
                 "trinket1": 11815,
                 "trinket2": 13965,
-                "ranged": 17069,
-                "mainhand": 17068,
-                "offhand": 18832
+                "ranged": 18323,
+                "mainhand": 12940,
+                "offhand": 12939
             },
             "rotation": [
                 {
@@ -560,8 +560,8 @@ var profilePresets = [
                 "finger2": 12548,
                 "trinket1": 11815,
                 "trinket2": 13965,
-                "ranged": 17069,
-                "twohand": 17076
+                "ranged": 18323,
+                "twohand": 12784
             },
             "rotation": [
                 {
@@ -690,6 +690,10 @@ var profilePresets = [
                 }
             ],
             "enchant": {
+                "twohand": [
+                    18262,
+                    20034
+                ],
                 "head": [
                     11645
                 ],
@@ -907,8 +911,8 @@ var profilePresets = [
                 "finger2": 12548,
                 "trinket1": 11815,
                 "trinket2": 13965,
-                "ranged": 17069,
-                "twohand": 17076
+                "ranged": 18323,
+                "twohand": 12784
             },
             "rotation": [
                 {
@@ -1042,6 +1046,10 @@ var profilePresets = [
                 }
             ],
             "enchant": {
+                "twohand": [
+                    18262,
+                    20034
+                ],
                 "head": [
                     11645
                 ],
