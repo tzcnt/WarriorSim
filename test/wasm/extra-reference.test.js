@@ -120,9 +120,8 @@ function traceCasts(fixture, keys) {
 
 // Cooldown, scheduled final use, and how late that final use may start in 300 second
 // fights. Off-GCD uses, including Forever's Blood Fury and Berserking, wait only for
-// reaction time. Classic Blood Fury can also wait for the GCD, and Death Wish for the
-// GCD and 10 rage, for example while Execute spends it. Kiss of the Spider takes the
-// last 15 seconds, so Slayer's Crest is scheduled to end first.
+// reaction time. Classic Blood Fury and Death Wish can also wait for the GCD. Kiss of
+// the Spider takes the last 15 seconds, so Slayer's Crest is scheduled to end first.
 const endSchedules = {
     'classic-long-end-schedule': {
         slayer: [120000, 265000, 1000],
@@ -130,16 +129,26 @@ const endSchedules = {
         bloodfury: [120000, 282000, 2000],
         mightyragepotion: [120000, 279000, 1000],
         bloodrage: [60000, 265000, 1000],
-        deathwish: [180000, 269000, 5000],
+        deathwish: [180000, 269000, 2000],
     },
-    'forever-racial-night-elf-end-schedule': {eluneslight: [180000, 269000, 1000], deathwish: [180000, 269000, 5000]},
-    'forever-racial-gnome-end-schedule': {eureka: [120000, 290000, 1000], deathwish: [180000, 269000, 5000]},
-    'forever-racial-orc-end-schedule': {bloodfury: [120000, 282000, 1000], deathwish: [180000, 269000, 5000]},
-    'forever-racial-troll-end-schedule': {berserking: [180000, 287000, 1000], deathwish: [180000, 269000, 5000]},
+    'forever-racial-night-elf-end-schedule': {eluneslight: [180000, 269000, 1000], deathwish: [180000, 269000, 2000]},
+    'forever-racial-gnome-end-schedule': {eureka: [120000, 290000, 1000], deathwish: [180000, 269000, 2000]},
+    'forever-racial-orc-end-schedule': {bloodfury: [120000, 282000, 1000], deathwish: [180000, 269000, 2000]},
+    'forever-racial-troll-end-schedule': {berserking: [180000, 287000, 1000], deathwish: [180000, 269000, 2000]},
 };
 
+// Death Wish also needs 10 rage. In a few percent of fights, a Heroic Strike queued just
+// before it is due leaves too little for several seconds. Waive the cost here so these
+// traces depend on scheduling, not on the fixture seed's rage.
+function freeDeathWish(fixture) {
+    return {...fixture, mutatePlayer(player, engine) {
+        fixture.mutatePlayer?.(player, engine);
+        if (player.auras.deathwish) player.auras.deathwish.cost = 0;
+    }};
+}
+
 for (const [name, schedules] of Object.entries(endSchedules)) test(`${name}: end-of-fight schedules count back whole cooldowns to the earliest first use`, () => {
-    const fixture = extraFixtures().find(value => value.name === name);
+    const fixture = freeDeathWish(extraFixtures().find(value => value.name === name));
     const casts = traceCasts(fixture, Object.keys(schedules));
     for (const [key, [cooldown, last, late]] of Object.entries(schedules)) {
         const uses = Math.floor(last / (cooldown + 2000)) + 1;
@@ -182,7 +191,7 @@ for (const name of Object.keys(endSchedules).filter(value => endSchedules[value]
         const [cooldown, last] = endSchedules[name].deathwish;
         const first = last % (cooldown + 2000);
         // Slam's traced use is its cast completion, which can follow a cast started earlier.
-        const fights = traceFights(extraFixtures().find(value => value.name === name), player => [
+        const fights = traceFights(freeDeathWish(extraFixtures().find(value => value.name === name)), player => [
             [player.auras.deathwish, 'deathwish'],
             ...[...new Set([...player.normalspells, ...player.executespells])]
                 .filter(action => action.constructor.name !== 'Slam').map(action => [action, action.name]),

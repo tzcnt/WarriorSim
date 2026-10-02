@@ -1,6 +1,6 @@
 {
   "oracle": "destination JavaScript; no native execution",
-  "revision": "19cf63dae099543df1ba9cb6be41e8624b7ca1d7",
+  "revision": "259c59e1f2cdc7c31a8c6e38a33ef335a0c47249",
   "reports": {
     "classic-dw-fury": {
       "iterations": 20,
@@ -818,60 +818,60 @@
     },
     "forever-dw-fury": {
       "iterations": 20,
-      "totaldmg": 219830.20045929463,
+      "totaldmg": 227603.62817994153,
       "totalduration": 405.07,
-      "mindps": 318.4293540485481,
-      "maxdps": 931.5767037580263,
-      "sumdps": 10892.09687279198,
-      "sumdps2": 6329073.516018732,
+      "mindps": 413.3209053203186,
+      "maxdps": 754.6020724982658,
+      "sumdps": 11224.290595668455,
+      "sumdps2": 6502140.593552177,
       "spread": {
-        "318": 1,
-        "402": 1,
-        "405": 1,
-        "412": 1,
+        "413": 1,
+        "427": 1,
         "434": 1,
-        "461": 1,
-        "474": 1,
-        "476": 1,
-        "487": 1,
-        "500": 1,
-        "551": 1,
-        "564": 1,
-        "582": 1,
-        "588": 1,
-        "598": 1,
-        "601": 1,
-        "603": 1,
-        "696": 1,
-        "807": 1,
-        "932": 1
+        "444": 1,
+        "446": 1,
+        "493": 1,
+        "510": 1,
+        "513": 1,
+        "542": 1,
+        "554": 1,
+        "572": 1,
+        "579": 1,
+        "593": 1,
+        "594": 1,
+        "616": 1,
+        "651": 1,
+        "652": 1,
+        "686": 1,
+        "749": 1,
+        "755": 1
       },
       "player": {
         "auras": {
           "crusader1": {
             "name": "Crusader (MH)",
-            "uptime": 166354,
+            "uptime": 144341,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 0
           },
           "windfury": {
             "name": "Windfury",
-            "uptime": 105855,
+            "uptime": 76175,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 0
           },
           "crusader2": {
             "name": "Crusader (OH)",
-            "uptime": 86273,
+            "uptime": 81500,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 0
           },
           "deathwish": {
             "name": "Death Wish",
-            "uptime": 407522,
+            "uptime": 404821,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 10
@@ -892,7 +892,7 @@
           },
           "flurry": {
             "name": "Flurry",
-            "uptime": 297026,
+            "uptime": 320006,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 0
@@ -906,8 +906,8 @@
           },
           "deepwounds": {
             "name": "Deep Wounds",
-            "uptime": 375082,
-            "totaldmg": 28325.013812203553,
+            "uptime": 377131,
+            "totaldmg": 28859.914917637416,
             "totalusedrage": 0,
             "cost": 0
           },
@@ -944,14 +944,14 @@
           "heroicstrike": {
             "name": "Heroic Strike",
             "uptime": 0,
-            "totaldmg": 5743.295818614967,
+            "totaldmg": 12506.689599934281,
             "totalusedrage": 0,
             "cost": 13,
             "data": [
-              6,
+              11,
               0,
-              1,
               2,
+              6,
               0
             ]
           },
@@ -972,36 +972,36 @@
           "overpower": {
             "name": "Overpower",
             "uptime": 0,
-            "totaldmg": 11422.044689065966,
+            "totaldmg": 17882.432432432433,
             "totalusedrage": 0,
             "cost": 5,
             "data": [
-              8,
+              7,
               0,
               0,
-              11,
+              20,
               0
             ]
           },
           "hamstring": {
             "name": "Hamstring",
             "uptime": 0,
-            "totaldmg": 6105.664174813115,
+            "totaldmg": 5465.209890741808,
             "totalusedrage": 0,
             "cost": 10,
             "data": [
-              85,
+              68,
               0,
-              3,
-              29,
+              6,
+              30,
               0
             ]
           },
           "execute": {
             "name": "Execute",
             "uptime": 0,
-            "totaldmg": 22230.879815986198,
-            "totalusedrage": 331,
+            "totaldmg": 23227.142035652676,
+            "totalusedrage": 369,
             "cost": 10,
             "data": [
               18,
@@ -1014,28 +1014,28 @@
           "whirlwind": {
             "name": "Whirlwind",
             "uptime": 0,
-            "totaldmg": 10313.330218516388,
+            "totaldmg": 10422.143062515404,
             "totalusedrage": 0,
             "cost": 25,
             "data": [
-              9,
+              12,
               0,
-              0,
-              5,
+              1,
+              3,
               0
             ]
           },
           "bloodthirst": {
             "name": "Bloodthirst",
             "uptime": 0,
-            "totaldmg": 19108.404255319154,
+            "totaldmg": 21006.188901667636,
             "totalusedrage": 0,
             "cost": 30,
             "data": [
-              18,
+              19,
               0,
-              3,
-              13,
+              2,
+              15,
               0
             ]
           },
@@ -1056,26 +1056,26 @@
         },
         "mh": {
           "name": "Deathbringer",
-          "totaldmg": 73951.52754608731,
-          "totalprocdmg": 908.0400000000001,
+          "totaldmg": 68950.33772949674,
+          "totalprocdmg": 1167.48,
           "data": [
             25,
-            33,
-            15,
-            53,
-            89
+            27,
+            19,
+            55,
+            67
           ]
         },
         "oh": {
           "name": "Brutality Blade",
-          "totaldmg": 41722.00012868799,
+          "totaldmg": 38116.089609863135,
           "totalprocdmg": 0,
           "data": [
-            37,
-            13,
-            9,
-            60,
-            72
+            34,
+            10,
+            16,
+            53,
+            79
           ]
         }
       }

@@ -21,7 +21,7 @@ for (const tree of classicTalents)
         'fury:unbridled-wrath': linear('umbridledwrath', 12),
         'fury:improved-cleave': linear('cleavecost'),
         'fury:boundless-rage': linear('extraragecap', 10),
-        'fury:dual-wield-specialization': rank => ({offmod: rank * .05, offragebonus: rank * .20, offhit: rank * 2}),
+        'fury:dual-wield-specialization': rank => ({offmod: rank * .05, offragebonus: rank * .10, offhit: rank * 2}),
         'fury:raging-blows': linear('ragingblows'),
         'fury:enrage': linear('enrage', 2),
         'fury:improved-execute': rank => ({executecost: [0, 3, 5][rank]}),

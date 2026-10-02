@@ -171,7 +171,10 @@ test('two-handed Unbridled Wrath and off-hand swing rage do not multiply flat pr
     player.rage = 0;
     const swingRage = player.oh.speed * 3.46 * 0.5;
     run('p.addRage(100, RESULT.HIT, p.oh, null)');
-    close(player.rage, 1 + swingRage * 2);
+    close(player.rage, 1 + swingRage * 1.5);
+    player.rage = 0;
+    run('p.addRage(100, RESULT.CRIT, p.oh, null)');
+    close(player.rage, 1 + swingRage * 1.5 * 2);
 });
 
 test('Unbridled Wrath procs from queued strikes only in Classic', () => {
@@ -187,7 +190,7 @@ test('Unbridled Wrath procs from queued strikes only in Classic', () => {
     }
 });
 
-test('Forever white-hit rage uses base speed and weapon type regardless of damage, haste or hit quality', () => {
+test('Forever white-hit rage uses base speed and weapon type regardless of damage, haste or glancing; crits double it', () => {
     const {run, player} = setup();
     player.talents.umbridledwrath = 0;
     player.stats.haste = 2;
@@ -203,7 +206,7 @@ test('Forever white-hit rage uses base speed and weapon type regardless of damag
                     player.rage = 0;
                     run(`p.addRage(${damage}, RESULT.${result}, p.${hand}, null)`);
                     close(player.rage, ['MISS', 'DODGE'].includes(result) ? 0 :
-                        expected * (hand === 'oh' ? 1 + rank * 0.2 : 1));
+                        expected * (hand === 'oh' ? 1 + rank * 0.1 : 1) * (result === 'CRIT' ? 2 : 1));
                 }
             }
         }
@@ -211,6 +214,19 @@ test('Forever white-hit rage uses base speed and weapon type regardless of damag
     player.rage = 999;
     run('p.addRage(100, RESULT.HIT, p.mh, null)');
     assert.equal(player.rage, 1000);
+});
+
+test('Dual Wield Specialization raises off-hand rage by 10% per rank, and special-attack crits add no rage', () => {
+    const {run, player} = setup();
+    const dws = "talents[1].t.find(t => t.forever.key === 'fury:dual-wield-specialization')";
+    assert.deepEqual([0,1,2,3,4,5].map(rank => Math.round(run(`${dws}.aura(${rank}).offragebonus`) * 100)), [0,10,20,30,40,50]);
+    assert.match(run(`${dws}.d[4]`), /off-hand Rage generation by 50%/);
+    player.talents.umbridledwrath = 0;
+    for (const result of ['HIT', 'CRIT']) {
+        player.rage = 0;
+        run(`p.addRage(500, RESULT.${result}, p.mh, p.spells.bloodthirst || new Bloodthirst(p, 23894))`);
+        assert.equal(player.rage, 0, result);
+    }
 });
 
 test('off-hand hit applies to both swing tables without modifying the main hand', () => {
