@@ -39,6 +39,10 @@ the client text is not yet available. Talent keys and indices are unchanged, so 
 schema remains `forever-v2`. Loading a saved build refunds Bastion if fewer than 25
 points are spent in rows 1–5.
 
+The October 1 patch notes halve Dual Wield Specialization's off-hand rage bonus to
+10/20/30/40/50%. The extraction script applies this the same way and records the
+date in `forever.patch`. The tooltip is a local rewording, and the schema is unchanged.
+
 ## Combat rules
 
 See [ABILITY_MECHANICS.md](ABILITY_MECHANICS.md) for

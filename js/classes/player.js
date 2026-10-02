@@ -873,9 +873,9 @@ class Player {
         }
         else if (this.mode === 'forever') {
             if (result != RESULT.MISS && result != RESULT.DODGE) {
-                // Base weapon speed in seconds; crits, glances and haste do not change rage per hit.
+                // Base weapon speed in seconds; crits double it, while glances and haste do not change it.
                 this.rage += weapon.speed * (weapon.twohand ? 4.5 : 3.46) *
-                    (weapon.offhand ? 0.5 * (1 + this.talents.offragebonus) : 1);
+                    (weapon.offhand ? 0.5 * (1 + this.talents.offragebonus) : 1) * (result == RESULT.CRIT ? 2 : 1);
             }
         }
         else {

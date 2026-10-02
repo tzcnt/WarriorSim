@@ -70,23 +70,34 @@ for (const mode of ['classic', 'forever']) {
 for (const fixture of berserkerRageFixtures()) {
     test(`${fixture.name}: rotation uses Berserker Rage during the GCD and honors Bloodrage priority`, () => {
         const {engine, player} = setup(fixture);
-        const casts = [];
+        const fights = [];
+        const reset = player.reset;
+        player.reset = function(...args) {
+            fights.push([]);
+            return reset.apply(this, args);
+        };
         for (const key of ['berserkerrage', 'bloodrage']) {
             const spell = player.spells[key];
             const use = spell.use;
             spell.use = function(...args) {
-                casts.push({key, step: engine.evaluate('step'), gcd: player.timer});
+                fights[fights.length - 1].push({key, step: engine.evaluate('step'), gcd: player.timer});
                 return use.apply(this, args);
             };
         }
-        engine.createSimulation(player, {...fixture.sim, iterations: 1}).startSync();
+        engine.createSimulation(player, fixture.sim).startSync();
+        assert.equal(fights.length, fixture.sim.iterations);
         const priority = fixture.rotation[18499].zerkerpriority;
-        assert.deepEqual(casts.slice(0, 2).map(c => c.key), priority
-            ? ['berserkerrage', 'bloodrage'] : ['bloodrage', 'berserkerrage']);
-        const berserker = casts.filter(c => c.key === 'berserkerrage');
-        assert.equal(berserker.length, 3);
-        assert.ok(berserker.some(c => c.gcd > 0), 'must cast while another ability’s GCD is running');
-        for (let i = 1; i < berserker.length; ++i)
-            assert.ok(berserker[i].step - berserker[i - 1].step >= 30000);
+        // Whether a reuse lands inside another ability's GCD varies by fight, so check them all.
+        let duringGcd = 0;
+        for (const casts of fights) {
+            assert.deepEqual(casts.slice(0, 2).map(c => c.key), priority
+                ? ['berserkerrage', 'bloodrage'] : ['bloodrage', 'berserkerrage']);
+            const berserker = casts.filter(c => c.key === 'berserkerrage');
+            assert.equal(berserker.length, 3);
+            duringGcd += berserker.filter(c => c.gcd > 0).length;
+            for (let i = 1; i < berserker.length; ++i)
+                assert.ok(berserker[i].step - berserker[i - 1].step >= 30000);
+        }
+        assert.ok(duringGcd > 0, 'must cast while another ability’s GCD is running');
     });
 }

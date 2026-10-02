@@ -848,11 +848,11 @@ var talentsForever = [
                null
             ],
             "d": [
-               "Increases your off-hand weapon damage by 5%, off-hand Rage generation by 20%, and chance to hit with off-hand attacks by 2%.",
-               "Increases your off-hand weapon damage by 10%, off-hand Rage generation by 40%, and chance to hit with off-hand attacks by 4%.",
-               "Increases your off-hand weapon damage by 15%, off-hand Rage generation by 60%, and chance to hit with off-hand attacks by 6%.",
-               "Increases your off-hand weapon damage by 20%, off-hand Rage generation by 80%, and chance to hit with off-hand attacks by 8%.",
-               "Increases your off-hand weapon damage by 25%, off-hand Rage generation by 100%, and chance to hit with off-hand attacks by 10%."
+               "Increases your off-hand weapon damage by 5%, off-hand Rage generation by 10%, and chance to hit with off-hand attacks by 2%.",
+               "Increases your off-hand weapon damage by 10%, off-hand Rage generation by 20%, and chance to hit with off-hand attacks by 4%.",
+               "Increases your off-hand weapon damage by 15%, off-hand Rage generation by 30%, and chance to hit with off-hand attacks by 6%.",
+               "Increases your off-hand weapon damage by 20%, off-hand Rage generation by 40%, and chance to hit with off-hand attacks by 8%.",
+               "Increases your off-hand weapon damage by 25%, off-hand Rage generation by 50%, and chance to hit with off-hand attacks by 10%."
             ],
             "x": 0,
             "y": 3,
@@ -869,7 +869,8 @@ var talentsForever = [
                   "spellId": 23584,
                   "notes": []
                },
-               "implementationStatus": "unimplemented"
+               "implementationStatus": "unimplemented",
+               "patch": "2026-10-01"
             }
          },
          {

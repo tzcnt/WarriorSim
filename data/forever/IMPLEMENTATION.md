@@ -1,5 +1,11 @@
 # WoW Forever implementation decisions
 
+**2026-10-01 update:** Patch notes double the rage from critical white hits,
+including off-hand swings and extra attacks. Queued Heroic Strike/Cleave and
+special attacks still generate no rage. Dual Wield Specialization's off-hand rage
+bonus is halved to 10% per rank, multiplying the off-hand's 50% rage rate by 1.5 at
+5/5. See [the rage notes](RAGE_GAIN.md).
+
 **2026-09-24 update:** Patch notes supersede the Slam and Bloodthrill decisions
 below. Slam's cooldown is 18 seconds, reduced by 1.5 seconds per Improved Slam
 rank; Improved Slam keeps its cast time, GCD and swing-timer effects. Bloodthrill
