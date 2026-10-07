@@ -824,10 +824,9 @@ class DeepWounds extends Aura {
         this.nexttick = 0;
     }
     procDamage(offhand) {
+        // Forever uses the weapon's raw average damage, without attack power or flat damage bonuses.
         const weapon = offhand ? this.player.oh : this.player.mh;
-        const min = weapon.mindmg + weapon.bonusdmg + this.player.stats.moddmgdone + (this.player.stats.ap / 14) * weapon.speed;
-        const max = weapon.maxdmg + weapon.bonusdmg + this.player.stats.moddmgdone + (this.player.stats.ap / 14) * weapon.speed;
-        return (min + max) / 2 * weapon.modifier * this.player.stats.dmgmod * this.player.talents.deepwounds * this.player.bleedmod;
+        return (weapon.basemindmg + weapon.basemaxdmg) / 2 * weapon.modifier * this.player.stats.dmgmod * this.player.talents.deepwounds * this.player.bleedmod;
     }
     use(offhand) {
         if (this.timer) this.uptime += (step - this.starttimer);

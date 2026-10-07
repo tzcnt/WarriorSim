@@ -229,11 +229,8 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         accountRefresh(player, aura);
         // procCrit passes the triggering hand through auraUse's boolean argument.
         const auto& weapon = prepull && player.oh ? *player.oh : player.mh;
-        const double min = weapon.mindmg + weapon.bonusdmg +
-            player.stats.number("moddmgdone"_prop) + player.stats.number("ap"_prop) / 14.0 * weapon.speed;
-        const double max = weapon.maxdmg + weapon.bonusdmg +
-            player.stats.number("moddmgdone"_prop) + player.stats.number("ap"_prop) / 14.0 * weapon.speed;
-        aura.savedDamage += (min + max) / 2.0 * weapon.modifier *
+        // Forever uses the weapon's raw average damage, without attack power or flat damage bonuses.
+        aura.savedDamage += (weapon.baseMindmg + weapon.baseMaxdmg) / 2.0 * weapon.modifier *
             player.stats.number("dmgmod"_prop, 1) * player.talents.number("deepwounds"_prop) *
             player.prop("bleedmod"_prop, 1);
         aura.ticksleft = 4;

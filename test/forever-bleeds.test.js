@@ -20,7 +20,8 @@ function setup(fixture, key) {
     const tickDamage = key === 'rend' ? (fixture.mode === 'forever' ?
         (aura.value1 / aura.value2 + .02 * player.stats.ap) * player.stats.dmgmod *
             aura.dmgmod * player.bleedmod * (player.auras.eureka?.stacks ? 1.1 : 1) : aura.tickdmg) :
-        ((player.mh.mindmg + player.mh.maxdmg) / 2 + player.mh.bonusdmg +
+        (fixture.mode === 'forever' ? (player.mh.basemindmg + player.mh.basemaxdmg) / 2 :
+            (player.mh.mindmg + player.mh.maxdmg) / 2 + player.mh.bonusdmg +
             player.stats.moddmgdone + player.stats.ap / 14 * player.mh.speed) *
         player.mh.modifier * player.stats.dmgmod * player.talents.deepwounds * player.bleedmod / 4;
     player.proccrit = () => assert.fail('bleed ticks must not trigger crit procs');
@@ -130,8 +131,9 @@ function stackingSetup() {
     player.stats.ap = player.stats.moddmgdone = player.crit = 0;
     player.stats.dmgmod = player.base.dmgmod = player.bleedmod = 1;
     player.talents.deepwounds = .6;
-    Object.assign(player.mh, {mindmg: 100, maxdmg: 100, bonusdmg: 0, modifier: 1, crit: 0, racialcrit: 0});
-    Object.assign(player.oh, {mindmg: 40, maxdmg: 40, bonusdmg: 0, modifier: .5});
+    Object.assign(player.mh, {mindmg: 100, maxdmg: 100, basemindmg: 100, basemaxdmg: 100, bonusdmg: 0,
+        modifier: 1, crit: 0, racialcrit: 0});
+    Object.assign(player.oh, {mindmg: 40, maxdmg: 40, basemindmg: 40, basemaxdmg: 40, bonusdmg: 0, modifier: .5});
     return {engine, player, aura: player.auras.deepwounds,
         at: time => engine.evaluate('step = time', {time})};
 }
@@ -188,29 +190,48 @@ test('Forever restores the SoD damage pool and preserves the pending tick across
     assert.equal(aura.timer, 33000);
 });
 
+test('Forever Deep Wounds uses raw weapon damage without attack power or flat bonuses', () => {
+    const {player, aura} = stackingSetup();
+    Object.assign(player.stats, {ap: 1400, moddmgdone: 5});
+    Object.assign(player.mh, {speed: 2, bonusdmg: 5, mindmg: 90, maxdmg: 90});
+    Object.assign(player.oh, {speed: 1.5, bonusdmg: 5, mindmg: 36, maxdmg: 36});
+    player.proccrit(false);
+    close(aura.saveddmg, 60);
+    player.proccrit(true);
+    close(aura.saveddmg, 72, 'off-hand damage keeps only its damage penalty');
+});
+
+test('Forever Deep Wounds applies percent damage modifiers once, not again on each tick', () => {
+    const {player, aura, at} = stackingSetup();
+    player.base.dmgmod = 1.2; // e.g. Death Wish, still active for every tick.
+    player.updateDmgMod();
+    player.proccrit(false);
+    close(aura.saveddmg, 72); // 100 * 1.2 * .6.
+    for (const time of [3000, 6000, 9000, 12000]) {
+        at(time);
+        aura.step();
+    }
+    close(aura.totaldmg, 72);
+});
+
 test('Forever Deep Wounds snapshots each contribution and keeps separate pools per target', () => {
     const {player, aura, at} = stackingSetup();
-    player.stats.ap = 140;
-    player.mh.speed = 2;
-    player.mh.bonusdmg = 5;
-    player.stats.moddmgdone = 5;
     player.stats.dmgmod = 1.5;
     player.bleedmod = .8;
-    player.proccrit(false); // (100 + 5 + 5 + 20) * 1.5 * .6 * .8 = 93.6.
-    close(aura.saveddmg, 93.6);
-    player.stats.ap = player.stats.moddmgdone = player.mh.bonusdmg = 0;
+    player.proccrit(false); // 100 * 1.5 * .6 * .8 = 72.
+    close(aura.saveddmg, 72);
     player.bleedmod = 1;
     at(1000);
     player.proccrit(true, 1);
     close(player.auras.deepwounds2.saveddmg, 12);
-    close(aura.saveddmg, 93.6);
+    close(aura.saveddmg, 72);
     assert.equal(aura.nexttick, 3000);
     assert.equal(player.auras.deepwounds2.nexttick, 4000);
     at(3000);
     aura.step();
-    close(aura.idmg, 23.4, 'later stat changes do not recalculate existing damage');
+    close(aura.idmg, 18, 'later stat changes do not recalculate existing damage');
     player.proccrit(false);
-    close(aura.saveddmg, 70.2 + 60);
+    close(aura.saveddmg, 54 + 60);
     close(player.auras.deepwounds2.saveddmg, 12);
 });
 
@@ -232,6 +253,17 @@ test('Forever Deep Wounds cannot crit and pays only the saved damage across refr
     }
     close(aura.idmg, 120);
     assert.equal(aura.saveddmg, 0);
+});
+
+test('Forever fixed-damage main-hand special crits contribute main-hand Deep Wounds damage', () => {
+    const {engine, player, aura} = stackingSetup();
+    const hamstring = player.spells.hamstring;
+    hamstring.use = () => {};
+    player.rollmeleespell = () => engine.evaluate('RESULT.CRIT');
+    player.procattack = () => 0;
+    player.dealdamage = damage => damage;
+    player.cast(hamstring);
+    close(aura.saveddmg, 60);
 });
 
 test('Forever off-hand special crits contribute off-hand Deep Wounds damage', () => {
