@@ -20,8 +20,10 @@ fixtures cover both modes and all Impale ranks through JS/native partition check
 Forever Deep Wounds restores the rolling pool from the SoD implementation in
 `ad5ac8b5dd76db3f0fa7c41de52c0b0b60a5a4d8`: each proc snapshots damage from the
 triggering weapon, adds it to the unpaid damage, and spreads that pool over four
-ticks while preserving the next scheduled tick. Tests also cover refresh timing, separate target pools,
-off-hand contributions, expiration, and clearing unpaid damage between fights.
+ticks while preserving the next scheduled tick. Forever contributions use the weapon's
+raw average damage (with the off-hand damage penalty for off-hand procs) and ignore
+attack power and flat damage bonuses. Tests also cover refresh timing, separate target pools,
+fixed-damage main-hand and off-hand contributions, expiration, and clearing unpaid damage between fights.
 
 `test/sweeping-strikes.test.js` checks Classic talent/rotation gating, activation during an existing GCD, charge consumption, exact 20-second expiry, 30-second cooldown and fight reset. `sweeping-fixtures.js` adds JS/native partition coverage for Cleave, expiry without intervening attacks, and zero adjacent targets. Forever retains its separate timing rules.
 
