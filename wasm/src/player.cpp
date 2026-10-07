@@ -726,7 +726,8 @@ double PlayerState::procAttack(SpellState* ability, WeaponState& weapon, Result 
     if (ability && ability->kind == SpellKind::ThunderClap) return 0;
     if (ability && ability->kind == SpellKind::ShieldSlam) {
         if (result != Result::Miss && result != Result::Dodge) {
-            if (weapon.windfuryAura != kNoRef && !auras[weapon.windfuryAura].timer && !damageSoFar && rng.tenK() < 2000)
+            if (weapon.windfuryAura != kNoRef && windfuryCanProc(*this, auras[weapon.windfuryAura]) && !damageSoFar &&
+                rng.tenK() < 2000)
                 auraUse(*this, auras[weapon.windfuryAura]);
         }
         return 0;
@@ -815,7 +816,7 @@ double PlayerState::procAttack(SpellState* ability, WeaponState& weapon, Result 
                 break;
             case ProcStage::Windfury: {
                 auto& windfury = auras[static_cast<std::size_t>(entry.action)];
-                if (!windfury.timer && !damageSoFar && rng.tenK() < 2000) {
+                if (windfuryCanProc(*this, windfury) && !damageSoFar && rng.tenK() < 2000) {
                     if (!ability) extras = 0;
                     auraUse(*this, windfury);
                 }

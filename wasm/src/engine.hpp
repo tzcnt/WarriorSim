@@ -547,6 +547,7 @@ void auraEnd(PlayerState&, AuraState&);
 void auraRemove(PlayerState&, AuraState&);
 int auraPrep(PlayerState&, AuraState&, double duration, double itemdelay);
 void auraProc(PlayerState&, AuraState&);
+[[nodiscard]] bool windfuryCanProc(const PlayerState&, const AuraState&);
 
 class Engine {
 public:

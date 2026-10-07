@@ -325,7 +325,7 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         break;
     case AuraKind::Windfury:
         begin(player, aura);
-        aura.timer = player.step + 1500;
+        aura.cooldownTimer = player.step + cooldownMs(aura);
         aura.mintime = detail::jsRemainder(player.step, player.prop("batching"_prop, 1));
         aura.stacks = 2;
         player.updateAP();
@@ -630,6 +630,11 @@ void auraProc(PlayerState& player, AuraState& aura) {
     default:
         break;
     }
+}
+
+// Mirrors Windfury.canProc: the buff must be gone and its internal cooldown (Forever only) elapsed.
+bool windfuryCanProc(const PlayerState& player, const AuraState& aura) {
+    return !aura.timer && player.step >= aura.cooldownTimer;
 }
 
 } // namespace warriorsim

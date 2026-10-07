@@ -1290,7 +1290,7 @@ class Player {
         if (spell instanceof ShieldSlam) {
             if (result != RESULT.MISS && result != RESULT.DODGE) {
                 // procs at least windfury - more info needed
-                if (weapon.windfury && !this.auras.windfury.timer && !damageSoFar && rng10k() < 2000) {
+                if (weapon.windfury && weapon.windfury.canProc() && !damageSoFar && rng10k() < 2000) {
                     weapon.windfury.use();
                 }
             }
@@ -1369,7 +1369,7 @@ class Player {
                 else extras++;
                 /* start-log */ if (this.logging) this.log(`Sword talent proc`); /* end-log */
             }
-            if (weapon.windfury && !this.auras.windfury.timer && !damageSoFar && rng10k() < 2000) {
+            if (weapon.windfury && weapon.windfury.canProc() && !damageSoFar && rng10k() < 2000) {
                 if (!spell) extras = 0;
                 weapon.windfury.use();
             }

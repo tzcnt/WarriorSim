@@ -1,6 +1,6 @@
 {
   "oracle": "destination JavaScript; no native execution",
-  "revision": "259c59e1f2cdc7c31a8c6e38a33ef335a0c47249",
+  "revision": "0caac44df1df1caaa2d32b7b10ec5490d142ea94",
   "reports": {
     "classic-dw-fury": {
       "iterations": 20,
@@ -818,31 +818,29 @@
     },
     "forever-dw-fury": {
       "iterations": 20,
-      "totaldmg": 227603.62817994153,
+      "totaldmg": 227437.64233405277,
       "totalduration": 405.07,
       "mindps": 413.3209053203186,
       "maxdps": 754.6020724982658,
-      "sumdps": 11224.290595668455,
-      "sumdps2": 6502140.593552177,
+      "sumdps": 11215.847642638415,
+      "sumdps2": 6491879.3115623435,
       "spread": {
         "413": 1,
-        "427": 1,
+        "426": 1,
         "434": 1,
         "444": 1,
         "446": 1,
-        "493": 1,
+        "492": 1,
         "510": 1,
         "513": 1,
         "542": 1,
         "554": 1,
         "572": 1,
         "579": 1,
-        "593": 1,
-        "594": 1,
+        "593": 2,
         "616": 1,
-        "651": 1,
-        "652": 1,
-        "686": 1,
+        "651": 2,
+        "682": 1,
         "749": 1,
         "755": 1
       },
@@ -857,7 +855,7 @@
           },
           "windfury": {
             "name": "Windfury",
-            "uptime": 76175,
+            "uptime": 51175,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 0
@@ -907,7 +905,7 @@
           "deepwounds": {
             "name": "Deep Wounds",
             "uptime": 377131,
-            "totaldmg": 28859.914917637416,
+            "totaldmg": 28844.838065656386,
             "totalusedrage": 0,
             "cost": 0
           },
@@ -1068,7 +1066,7 @@
         },
         "oh": {
           "name": "Brutality Blade",
-          "totaldmg": 38116.089609863135,
+          "totaldmg": 37965.18061595534,
           "totalprocdmg": 0,
           "data": [
             34,

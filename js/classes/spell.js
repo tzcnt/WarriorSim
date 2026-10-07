@@ -1438,11 +1438,19 @@ class Windfury extends Aura {
     constructor(player, id) {
         super(player, id);
         if (this.wfap) this.stats = { ap: this.wfap };
+        // Forever caps the buff at 1 second and adds a 100ms internal cooldown.
+        this.duration = player.mode === 'forever' ? 1 : 1.5;
+        this.cooldown = player.mode === 'forever' ? 0.1 : 0;
+        this.cooldowntimer = 0;
+    }
+    canProc() {
+        return !this.timer && step >= this.cooldowntimer;
     }
     use() {
         if (this.timer) this.uptime += (step - this.starttimer);
-        this.timer = step + 1500;
+        this.timer = step + this.duration * 1000;
         this.starttimer = step;
+        this.cooldowntimer = step + this.cooldown * 1000;
         this.mintime = step % batching;
         this.stacks = 2;
         this.player.updateAP();

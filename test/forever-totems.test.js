@@ -37,9 +37,9 @@ test('Forever Windfury rolls 20% on mainhand autoattacks and melee abilities, ex
     const result = engine.evaluate(`
         const p = Object.create(Player.prototype);
         p.talents = {};
-        p.mh = {windfury: {use() { p.extraattacks++; }}};
+        p.mh = {windfury: {canProc: () => true, use() { p.extraattacks++; }}};
         p.oh = {};
-        p.auras = {windfury: {timer: 0}};
+        p.auras = {};
         const cases = [];
         for (const spell of [null, new Bloodthirst(p), new Whirlwind(p), new ShieldSlam(p)]) {
             for (const weapon of [p.mh, p.oh]) {
@@ -57,4 +57,47 @@ test('Forever Windfury rolls 20% on mainhand autoattacks and melee abilities, ex
         cases;
     `);
     for (const {actual, expected} of result) assert.equal(actual, expected);
+});
+
+for (const mode of ['classic', 'forever']) test(`${mode}: Windfury buff charges, duration and proc cooldown`, () => {
+    const engine = createReferenceEngine(mode);
+    const fixture = structuredClone(loadFixtures().find(f => f.mode === mode));
+    const player = createConfiguredPlayer(engine, fixture);
+    engine.evaluate('step = 0; setSimulationSeed(123)');
+    player.reset(100);
+    const wf = player.mh.windfury;
+    const at = ms => engine.evaluate('step = ms', {ms});
+    const base = player.stats.ap;
+    const buffed = () => player.stats.ap - base === wf.stats.ap;
+    const duration = mode === 'forever' ? 1000 : 1500;
+    const cooldown = mode === 'forever' ? 100 : 0;
+
+    // A white-swing proc spends one charge and its extra attack the other.
+    at(1000);
+    assert.ok(wf.canProc());
+    wf.use();
+    assert.equal(player.extraattacks, 1);
+    assert.ok(buffed());
+    assert.ok(!wf.canProc());
+    wf.proc();
+    assert.ok(buffed());
+    wf.proc();
+    wf.step();
+    assert.ok(!buffed());
+    assert.equal(wf.canProc(), !cooldown);
+    at(1000 + cooldown);
+    assert.ok(wf.canProc());
+
+    // After an ability proc, the extra attack leaves one charge until the buff expires.
+    at(5000);
+    wf.use();
+    wf.proc();
+    at(5000 + duration - 1);
+    wf.step();
+    assert.ok(buffed());
+    assert.ok(!wf.canProc());
+    at(5000 + duration);
+    wf.step();
+    assert.ok(!buffed());
+    assert.ok(wf.canProc());
 });
