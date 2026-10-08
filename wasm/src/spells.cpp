@@ -112,6 +112,10 @@ bool spellCanUse(PlayerState& player, SpellState& spell) {
 
     switch (spell.kind) {
     case SpellKind::SpearingStrike:
+        return standardMeleeCanUse(player, spell) &&
+            (player.isValidStance("battle") || player.talents.number("rageretained"_prop) >= cost) &&
+            (!maxrage || player.isValidStance("battle") || player.rage <= maxrage);
+
     case SpellKind::Bloodthirst:
     case SpellKind::MortalStrike:
         return standardMeleeCanUse(player, spell);
@@ -336,8 +340,13 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
         return;
     }
 
-    case SpellKind::Spell:
     case SpellKind::SpearingStrike:
+        if (!player.isValidStance("battle"))
+            player.switchStance("battle");
+        useBase(player, spell);
+        return;
+
+    case SpellKind::Spell:
     case SpellKind::Bloodthirst:
     case SpellKind::MortalStrike:
         useBase(player, spell);
@@ -353,7 +362,8 @@ double spellDamage(PlayerState& player, SpellState& spell, WeaponState* weapon) 
         return damage * dmgmod;
     }
     case SpellKind::Whirlwind:
-        if (player.talents.number("ragingblows"_prop)) spell.offhandhit = true;
+        // Forever's Whirlwind strikes with both weapons.
+        if (player.foreverMode) spell.offhandhit = true;
         return normalizedWeaponDamage(player, player.foreverMode && weapon ? *weapon : player.mh) * dmgmod;
     case SpellKind::SpearingStrike: {
         const auto type = player.target.props.string("creaturetype"_prop);

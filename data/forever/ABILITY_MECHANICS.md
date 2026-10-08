@@ -4,7 +4,7 @@ This document tracks the current implementation per ability, distinguishing
 confirmed game behavior from assumptions. Implementation and tests establish what
 the simulator does; they do not independently establish live-server behavior.
 Coverage currently includes Rend, Bloodthirst, Slam, Heroic Strike, Overpower,
-Mortal Strike, and Execute. Last reviewed: 2026-09-18.
+Mortal Strike, and Execute. Last reviewed: 2026-10-07.
 
 ## Rend
 
@@ -58,9 +58,10 @@ ticks to crit.
 
 ### Confirmed behavior
 
-**At level 60, Bloodthirst's flat damage bonus is 48, in addition to its 35% attack
+**At level 60, Bloodthirst's flat damage bonus is 48, in addition to its 45% attack
 power scaling.** The 48 flat damage bonus is confirmed in-game, as reported by the
-user on 2026-09-18.
+user on 2026-09-18. The 1-2 Oct 2026 server hotfixes raise the scaling from 35% to
+45% AP, and the flat bonuses are unchanged.
 
 ## Slam
 
@@ -69,11 +70,10 @@ user on 2026-09-18.
 **At level 60, Slam's flat damage bonus is 87.** This value is confirmed in-game,
 as reported by the user on 2026-09-18.
 
-**Slam's cooldown is 18 seconds, reduced by 1.5 / 3 seconds with one / two ranks
-of Improved Slam.** Source: the 2026-09-24 patch notes (previously 15 seconds at
-every rank). Improved Slam's cast time, GCD and swing-timer effects are unchanged.
-The notes do not state this; we assume it because they describe the cooldown
-reduction as an addition.
+**Slam's cooldown is 18 seconds, reduced by 3 seconds with either rank of
+Improved Slam.** Source: the 1-2 Oct 2026 server hotfix tooltips, which give a 3.0
+second reduction at both ranks. The 2026-09-24 patch notes gave 1.5 / 3 seconds. Improved Slam's cast time,
+GCD and swing-timer effects are unchanged.
 
 ## Heroic Strike
 

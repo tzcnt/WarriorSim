@@ -92,7 +92,7 @@ class Bloodthirst extends Spell {
         this.cost = 30 - player.ragecostbonus;
         this.cooldown = 6;
         this.weaponspell = false;
-        this.apcoefficient = player.mode === 'forever' ? .35 : .45;
+        this.apcoefficient = .45;
         this.flatbonus = player.mode === 'forever' ? (player.level >= 60 ? 48 : player.level >= 54 ? 43 : player.level >= 48 ? 37 : 30) : 0;
     }
     dmg() {
@@ -109,11 +109,13 @@ class Whirlwind extends Spell {
     constructor(player, id) {
         super(player, id);
         this.cost = 25 - player.ragecostbonus - (player.whirlwindcost || 0);
+        if (player.mode === 'forever') this.cost -= 3 * player.talents.ragingblows;
         this.cooldown = 10;
         this.refund = false;
     }
     dmg(weapon) {
-        if (this.player.talents.ragingblows) this.offhandhit = true;
+        // Forever's Whirlwind strikes with both weapons.
+        if (this.player.mode === 'forever') this.offhandhit = true;
         if (!weapon || this.player.mode !== 'forever') weapon = this.player.mh;
         let dmg;
         dmg = rng(weapon.mindmg + weapon.bonusdmg, weapon.maxdmg + weapon.bonusdmg);
@@ -286,7 +288,7 @@ class Cleave extends Spell {
     constructor(player, id) {
         super(player, id);
         this.cost = 20 - player.ragecostbonus;
-        if (player.mode === 'forever') this.cost -= player.talents.cleavecost + 2 * player.talents.ragingblows;
+        if (player.mode === 'forever') this.cost -= 3 * player.talents.ragingblows;
         this.bonus = this.value1 * (1 + this.player.talents.cleavebonus / 100);
         this.useonly = true;
         this.unqueuetimer = 300 + rng(this.player.reactionmin, this.player.reactionmax);
@@ -322,6 +324,14 @@ class SpearingStrike extends Spell {
         super(player, id, 'Spearing Strike');
         this.cost = 15 - player.ragecostbonus;
         this.cooldown = 20;
+    }
+    use() {
+        if (!this.player.isValidStance('battle')) this.player.switch('battle');
+        super.use();
+    }
+    canUse() {
+        return super.canUse() && (this.player.isValidStance('battle') || this.player.talents.rageretained >= this.cost) &&
+            (!this.maxrage || this.player.isValidStance('battle') || this.player.rage <= this.maxrage);
     }
     dmg() {
         const weapon = this.player.mh;
@@ -488,7 +498,7 @@ class Slam extends Spell {
         this.gcd = 1500;
         if (player.mode === 'forever') {
             this.casttime = this.gcd = 1500 - player.talents.impslam * 250;
-            this.cooldown = 18 - player.talents.impslam * 1.5;
+            this.cooldown = player.talents.impslam ? 15 : 18;
             this.swingmode = player.talents.impslam ? 1 : 0;
         }
         this.mhthreshold = 0;
@@ -1756,7 +1766,8 @@ class BattleShout extends Aura {
     constructor(player, id) {
         super(player, id);
         this.duration = player.mode === 'forever' ? 180 : 120 + (this.player.talents.boomingvoice * 36);
-        this.cost = 10 - (this.player.talents.boomingvoice * 2);
+        this.cost = player.mode === 'forever' ? 10 * (1 - this.player.talents.shoutcost / 100) :
+            10 - (this.player.talents.boomingvoice * 2);
         this.name = 'Battle Shout';
         let lvlbonus = ~~((this.player.level - this.minlevel) * this.value2);
         this.stats.ap = player.mode === 'forever' ? 111 :

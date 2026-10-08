@@ -1,5 +1,9 @@
 # Two-handed Fury preset
 
+> **Superseded talents (2026-10-07):** the 1-2 Oct 2026 Fury/Protection rework removed
+> talents this allocation used. The preset now uses a revised 20/31/0; see
+> [the October 2026 presets](README.md#october-2026-presets). The search below is historical.
+
 `Two-Handed Fury (20/31/0)` is a separate permanent snapshot in
 `js/data/presets_forever.js`. It clones the Night Elf dual-wield preset, replaces
 both weapons with **Bonereaver's Edge (17076)** in the two-hand slot, and transfers

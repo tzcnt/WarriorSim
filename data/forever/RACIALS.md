@@ -29,7 +29,7 @@ assumptions are documented below.
 | Human | Swords grant +2 percentage points of autoattack, ability and spell crit; no racial weapon skill. |
 | Dwarf | Maces grant +1 point of autoattack, ability and spell crit; +5% physical and magic damage against Beasts. |
 | Night Elf | Elune’s Light grants +10 points of melee and spell crit for 15 seconds; 3-minute cooldown. |
-| Gnome | Maximum rage multiplied by 1.05 after Boundless Rage; Eureka! makes the next three Warrior abilities cost 10% less rage and deal 10% more damage; 2-minute cooldown. |
+| Gnome | Maximum rage multiplied by 1.05; Eureka! makes the next three Warrior abilities cost 10% less rage and deal 10% more damage; 2-minute cooldown. |
 | Orc | Axes grant +1 point of autoattack, ability and spell crit; Blood Fury multiplies total AP and spell-power contributions by 1.10 for 15 seconds, with no GCD or rage cost. No racial weapon skill. |
 | Undead | Touch of the Grave: 5% chance per landed damaging main-hand, off-hand, or special ability hit to deal 5% of maximum HP as magic damage, with a shared 1 second internal cooldown and a separate damage report. |
 | Tauren | +1 point of hit for autoattacks, abilities and spells, retaining the spell miss floor; +5% maximum health. |

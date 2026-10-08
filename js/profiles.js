@@ -348,8 +348,9 @@ SIM.PROFILES = {
     },
 
     validationContext(base, baseLabel, format = 'export') {
-        return {mode, base, baseLabel, format, gear, enchant, buffs, spells, talents, classicTalents,
-            talentSchema: FOREVER_TALENT_SCHEMA, normalizeTalents: normalizeForeverTalents, racialSpellAvailable, currentId};
+        return {mode, base, baseLabel, format, gear, enchant, buffs, spells, talents, talentSchema: FOREVER_TALENT_SCHEMA,
+            talentSchemas: FOREVER_TALENT_SCHEMAS, talentKey: foreverSavedTalentKey, normalizeTalents: normalizeForeverTalents,
+            racialSpellAvailable, currentId};
     },
 
     showIssues(issues) {

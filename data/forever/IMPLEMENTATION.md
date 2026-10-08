@@ -1,5 +1,18 @@
 # WoW Forever implementation decisions
 
+**2026-10-07 update:** The 1-2 Oct server hotfixes rework Fury and Protection;
+see [the catalog notes](README.md). Improved Cleave, Boundless Rage, Precision and
+Toughness are removed, with their effects. Lingering Rage, Furious Precision and
+Gore Drinker are added; Iron Will moves to Protection. Whirlwind always strikes
+with both weapons, and Raging Blows instead reduces the cost of Cleave and
+Whirlwind by 3. Furious Precision takes over off-hand hit from Dual Wield
+Specialization. Booming Voice reduces Battle Shout's cost by 5% per rank.
+Unbridled Wrath grants 1 rage for two-handed weapons as well. Bloodthirst scales
+with 45% AP. Either rank of Improved Slam reduces Slam's cooldown by 3 seconds.
+Spearing Strike accepts any melee weapon but requires Battle Stance. Its client text
+no longer dismounts a mounted target, so we keep the 120% damage against mounted
+targets for every hit. That is our interpretation; the text is the only evidence.
+
 **2026-10-01 update:** Patch notes double the rage from critical white hits,
 including off-hand swings and extra attacks. Queued Heroic Strike/Cleave and
 special attacks still generate no rage. Dual Wield Specialization's off-hand rage
@@ -58,9 +71,9 @@ Forever uses explicit talent properties and action state: Bloodthrill has its
 own Overpower timer; Enrage listens to incoming damage; Bastion modifies damage
 with a shield; Bloodrage scales its initial gain and ticks; and Slam resolves its
 cast time, GCD, cooldown and swing behavior when constructed. Weaponmaster's
-percentage bypass applies per hand after armor debuffs. Raging Blows enables
-Whirlwind's off-hand attack, and Boundless Rage sets the cap for every supported
-rage source. None depends on retired player switches or item effects.
+percentage bypass applies per hand after armor debuffs. Whirlwind's off-hand
+attack is part of Forever's Whirlwind; Raging Blows and Booming Voice reduce
+ability costs. None depends on retired player switches or item effects.
 
 The combat tests cover these rules in JavaScript and WASM. Baseline hit,
 glancing and rage formulas remain those of Classic except for the explicit

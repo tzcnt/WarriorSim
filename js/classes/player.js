@@ -243,13 +243,7 @@ class Player {
             }
         }
         if (this.talents.defense) this.base.defense += this.talents.defense;
-        if (this.mode === 'forever') {
-            this.ragecap += this.talents.extraragecap;
-            this.ragecostbonus = this.talents.focusedrage;
-            this.base.hit += this.talents.precision;
-            this.target.misschance = Math.max(100, this.target.misschance - this.talents.precision * 100);
-            this.target.binaryresist = this.getTargetSpellBinaryResist();
-        }
+        if (this.mode === 'forever') this.ragecostbonus = this.talents.focusedrage;
     }
     addGear() {
         for (let type in gear) {
@@ -534,7 +528,6 @@ class Player {
                 if (this.level < (spell.minlevel || 0) || this.level > (spell.maxlevel || 60)) continue;
                 const talent = talentsForever.flatMap(tree => tree.t).find(t => t.n === spell.name);
                 if (talent?.enable && !talent.c) continue;
-                if (spell.classname === 'SpearingStrike' && !this.mh.twohand) continue;
             }
             if (spell.item && this.items.includes(spell.id) && spell.id == testItem && spell.id == testItem && !spell.timetoendactive && !spell.timetostartactive) {
                 spell.timetoendactive = true;
@@ -862,7 +855,7 @@ class Player {
         // Forever: only true white swings roll; queued Heroic Strike/Cleave do not.
         if (!spell || (this.mode !== 'forever' && (spell instanceof HeroicStrike || spell instanceof Cleave))) {
             if (result != RESULT.MISS && result != RESULT.DODGE && this.talents.umbridledwrath && rng10k() < this.talents.umbridledwrath * 100) {
-                this.rage += this.mode === 'forever' && weapon.twohand ? 2 : 1;
+                this.rage += 1;
             }
         }
         if (spell) {
@@ -1261,7 +1254,6 @@ class Player {
                 const sweeping = this.auras.sweepingstrikes;
                 if (this.adjacent && sweeping?.timer && sweeping.stacks) sweeping.copy(dmg);
             }
-            if (spell instanceof SpearingStrike) this.mounted = false;
             return dmg;
         }
         else {

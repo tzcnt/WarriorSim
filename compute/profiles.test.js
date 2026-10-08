@@ -12,6 +12,9 @@ const root = path.resolve(__dirname, '..');
 const presetContext = {};
 vm.runInNewContext(fs.readFileSync(path.join(root, 'js/data/presets_forever.js'), 'utf8'), presetContext);
 const expected = JSON.parse(JSON.stringify(presetContext.profilePresets[0].profile));
+const expectedSunder = expected.rotation.find(spell => String(spell.id) === '11597');
+const sunderSettings = spell => ({active: spell.active !== false, priority: String(spell.priority),
+    globalsactive: spell.globalsactive, globals: String(spell.globals)});
 
 test('Forever default matches its preset, preserves saved profiles, and stays out of Classic', async t => {
     const types = {'.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json',
@@ -53,10 +56,8 @@ test('Forever default matches its preset, preserves saved profiles, and stays ou
     });
     assert.equal(firstVisit.saved.profilename, 'Default');
     assert.equal(firstVisit.saved.race, expected.race);
-    assert.deepEqual(await page.evaluate(() => {
-        const spell = JSON.parse(localStorage.forever0).rotation.find(s => s.id == 11597);
-        return {active: spell.active, priority: spell.priority, globalsactive: spell.globalsactive, globals: spell.globals};
-    }), {active: false, priority: 10, globalsactive: true, globals: '1'});
+    assert.deepEqual(sunderSettings(await page.evaluate(() => JSON.parse(localStorage.forever0).rotation.find(s => s.id == 11597))),
+        sunderSettings(expectedSunder), 'the default uses the preset Sunder Armor settings');
     const preset = page.locator('.presets [data-preset="forever-dual-wield-fury"]');
     assert.equal(await preset.count(), 1);
 
@@ -101,7 +102,7 @@ test('Forever default matches its preset, preserves saved profiles, and stays ou
     assert.deepEqual(firstVisit.spec, presetSpec,
         'a first visit and loading the preset must produce identical simulation inputs');
     assert.equal(loaded.personal, personal, 'using a preset does not overwrite the personal profile');
-    assert.equal(loaded.saved.profilename, 'Dual Wield Fury (13/38/0)');
+    assert.equal(loaded.saved.profilename, expected.profilename);
     assert.deepEqual(loaded.ranks, expected.talents.map(tree => tree.t));
     assert.equal(loaded.config.race, expected.race);
     assert.equal(loaded.config.level, expected.level);
@@ -131,22 +132,18 @@ test('Forever default matches its preset, preserves saved profiles, and stays ou
     assert.deepEqual(scheduled, [19000, 29000, 0], 'Death Wish follows fight end and clamps short fights to the pull');
     assert.equal(loaded.saved.rotation.find(s => s.name === 'Mighty Rage Potion').timetostartactive, false);
     assert.equal(loaded.saved.rotation.find(s => s.name === 'Spearing Strike').active, false);
-    const sunder = loaded.saved.rotation.find(s => s.name === 'Sunder Armor');
-    assert.equal(sunder.active, false);
-    assert.equal(sunder.priority, 10);
-    assert.equal(sunder.globalsactive, true);
-    assert.equal(String(sunder.globals), '1');
+    assert.deepEqual(sunderSettings(loaded.saved.rotation.find(s => s.name === 'Sunder Armor')), sunderSettings(expectedSunder));
+    // Whether or not the preset enables it, Sunder Armor is configured for the first global only.
     const enabledSunder = await page.evaluate(() => {
         const spell = spells.find(s => s.id == 11597);
-        const before = new Player(undefined, undefined, undefined, Player.getConfig());
+        const active = spell.active;
         spell.active = true;
         try {
-            const after = new Player(undefined, undefined, undefined, Player.getConfig());
-            return {disabled: !before.spells.sunderarmor, first: after.normalspells[0].name,
-                globals: after.spells.sunderarmor.globals};
-        } finally { spell.active = false; }
+            const player = new Player(undefined, undefined, undefined, Player.getConfig());
+            return {first: player.normalspells[0].name, globals: player.spells.sunderarmor.globals};
+        } finally { spell.active = active; }
     });
-    assert.deepEqual(enabledSunder, {disabled: true, first: 'Sunder Armor', globals: '1'});
+    assert.deepEqual(enabledSunder, {first: 'Sunder Armor', globals: '1'});
     for (const [slot, id] of Object.entries(expected.gear)) {
         assert.deepEqual(loaded.saved.gear[slot].filter(item => item.selected).map(item => item.id), [id]);
     }
@@ -180,7 +177,11 @@ test('Forever default matches its preset, preserves saved profiles, and stays ou
 
     await page.evaluate(() => {
         const saved = JSON.parse(localStorage.forever1);
-        saved.profilename = 'Edited copy'; saved.talents[0].t[0] = 0;
+        // Drop a rank from a passive talent whose removal keeps the build legal, so loading raises no notes.
+        const ranks = saved.talents.map(tree => tree.t);
+        const [i, j] = talents.flatMap((tree, i) => tree.t.map((t, j) => [i, j])).find(([i, j]) => ranks[i][j] &&
+            !talents[i].t[j].enable && validTalentBuild(talents, ranks.map((tree, k) => k === i ? tree.with(j, tree[j] - 1) : tree)));
+        saved.profilename = 'Edited copy'; saved.talents[i].t[j]--;
         localStorage.forever1 = JSON.stringify(saved);
         SIM.PROFILES.loadProfile(SIM.PROFILES.container.find('[data-index="1"]'));
     });

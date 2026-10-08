@@ -1,11 +1,32 @@
 // Runtime integration for the captured Forever catalog;
 // local keys identify talents/actions and are also used in saved builds.
 var classicTalents = talents;
-var FOREVER_TALENT_SCHEMA = 'forever-v2';
+var FOREVER_TALENT_SCHEMA = 'forever-v3';
 var foreverTalentDefaults = {};
 for (const tree of classicTalents)
     for (const talent of tree.t)
         for (const key of Object.keys(talent.aura(0))) foreverTalentDefaults[key] = 0;
+
+// Talent order of positional saves from earlier schemas. forever-v2 predates the
+// 1-2 Oct 2026 Fury/Protection rework; forever-v1 also had Vitality at Protection 16.
+var FOREVER_LEGACY_TALENT_KEYS = (() => {
+    const v2 = [
+        'improved-heroic-strike deflection improved-rend improved-charge improved-tactical-mastery improved-overpower ' +
+        'anger-management deep-wounds spearing-strike two-handed-weapon-specialization impale bloodthrill ' +
+        'sweeping-strikes weaponmaster improved-slam improved-hamstring mortal-strike',
+        'booming-voice cruelty iron-will unbridled-wrath improved-cleave piercing-howl blood-craze boundless-rage ' +
+        'dual-wield-specialization raging-blows enrage improved-execute precision death-wish improved-intercept ' +
+        'improved-berserker-rage flurry bloodthirst',
+        'shield-specialization anticipation improved-bloodrage toughness improved-thunder-clap last-stand ' +
+        'master-of-defense improved-revenge defiance improved-sunder-armor improved-disarm vanguard ' +
+        'improved-shield-wall concussion-blow improved-shield-bash focused-rage bastion shield-slam',
+    ].map((names, i) => names.split(' ').map(name => `${['arms', 'fury', 'protection'][i]}:${name}`));
+    return {
+        'forever-v1': v2.map((keys, i) => i === 2 ? keys.toSpliced(15, 0, 'protection:vitality') : keys),
+        'forever-v2': v2,
+    };
+})();
+var FOREVER_TALENT_SCHEMAS = [FOREVER_TALENT_SCHEMA, ...Object.keys(FOREVER_LEGACY_TALENT_KEYS)];
 
 (function () {
     const linear = (key, multiplier = 1) => rank => ({[key]: rank * multiplier});
@@ -16,41 +37,40 @@ for (const tree of classicTalents)
         'arms:bloodthrill': linear('bloodthrill', 4),
         'arms:weaponmaster': rank => ({axecrit: rank, polearmcrit: rank, swordproc: rank, weaponmasterarp: rank * .03}),
         'arms:improved-slam': linear('impslam'),
-        'fury:booming-voice': linear('shoutradius', 10),
-        'fury:iron-will': linear('stunfearduration', 3),
+        'fury:booming-voice': rank => ({shoutradius: rank * 10, shoutcost: rank * 5}),
+        'fury:lingering-rage': linear('ragedecaydelay', 2),
         'fury:unbridled-wrath': linear('umbridledwrath', 12),
-        'fury:improved-cleave': linear('cleavecost'),
-        'fury:boundless-rage': linear('extraragecap', 10),
-        'fury:dual-wield-specialization': rank => ({offmod: rank * .05, offragebonus: rank * .10, offhit: rank * 2}),
+        'fury:furious-precision': rank => ({offhit: [0, 4, 7, 10][rank]}),
+        'fury:dual-wield-specialization': rank => ({offmod: rank * .05, offragebonus: rank * .10}),
         'fury:raging-blows': linear('ragingblows'),
         'fury:enrage': linear('enrage', 2),
         'fury:improved-execute': rank => ({executecost: [0, 3, 5][rank]}),
-        'fury:precision': linear('precision'),
         'fury:improved-berserker-rage': rank => ({berserkerbonus: rank * 5, snareremoval: rank * 50}),
         'fury:flurry': linear('flurry', 5),
-        'protection:shield-specialization': rank => ({block: rank, blockragechance: rank * 20, blockrage: 5}),
-        'protection:anticipation': linear('defense', 4),
+        'fury:gore-drinker': linear('goredrinker', .5),
         'protection:improved-bloodrage': linear('bloodragemod', .25),
+        'protection:shield-specialization': rank => ({block: rank, blockragechance: rank * 20, blockrage: 5}),
+        'protection:iron-will': linear('stunfearduration', 3),
+        'protection:anticipation': linear('defense', 4),
+        'protection:improved-revenge': linear('revengedmg', 20),
         'protection:improved-thunder-clap': linear('impthunderclap', 2),
         'protection:master-of-defense': linear('avoidragechance', 50),
-        'protection:improved-revenge': linear('revengedmg', 20),
-        'protection:defiance': linear('shieldthreat', 5),
         'protection:improved-disarm': rank => ({disarmcd: [0, 7, 13, 20][rank]}),
+        'protection:defiance': linear('shieldthreat', 5),
         'protection:vanguard': linear('vanguard'),
         'protection:improved-shield-wall': linear('shieldwallcd', 330),
         'protection:focused-rage': linear('focusedrage'),
         'protection:bastion': linear('bastion', .02),
     };
-    const unsupported = new Set(['Deflection', 'Improved Charge', 'Booming Voice',
-        'Iron Will', 'Piercing Howl', 'Blood Craze', 'Improved Intercept',
-        'Improved Hamstring', 'Shield Specialization', 'Anticipation', 'Toughness',
+    const unsupported = new Set(['Deflection', 'Improved Charge', 'Lingering Rage',
+        'Piercing Howl', 'Blood Craze', 'Improved Intercept', 'Gore Drinker',
+        'Improved Hamstring', 'Shield Specialization', 'Iron Will', 'Anticipation',
         'Last Stand', 'Master of Defense', 'Improved Revenge', 'Defiance',
         'Improved Disarm', 'Vanguard', 'Improved Shield Wall', 'Concussion Blow',
         'Improved Shield Bash']);
     const classicByName = new Map(classicTalents.flatMap(tree => tree.t.map(t => [t.n, t])));
     for (const tree of talentsForever) {
         for (const talent of tree.t) {
-            if (talent.n === 'Improved Tactical Mastery') talent.forever.classic = {renamed: 'Tactical Mastery'};
             const original = classicByName.get(talent.forever.classic?.renamed || talent.n);
             talent.aura = effects[talent.forever.key] || original?.aura;
             if (!talent.aura) throw new Error(`Missing Forever talent handler: ${talent.n}`);
@@ -62,8 +82,8 @@ for (const tree of classicTalents)
     }
     spells.push({id: 'forever:spearing-strike', name: 'Spearing Strike', classname: 'SpearingStrike',
         iconname: 'ability_warrior_savageblow', minlevel: 25, mode: 'forever',
-        active: false, priority: 6, expriority: 4, minrage: 15, minrageactive: false,
-        localDescription: 'Deals 40% normalized weapon damage, or 120% against Giants, Dragonkin and mounted targets. 15 Rage. 20 sec cooldown. Requires a two-handed melee weapon.'});
+        active: false, priority: 6, expriority: 4, minrage: 15, minrageactive: false, maxrage: 25, maxrageactive: false,
+        localDescription: 'Deals 40% normalized weapon damage, or 120% against Giants, Dragonkin and mounted targets. 15 Rage. 20 sec cooldown. Requires Battle Stance.'});
     spells.push({id: 'forever:sweeping-strikes', name: 'Sweeping Strikes', classname: 'SweepingStrikes',
         iconname: 'ability_rogue_slicedice', minlevel: 30, mode: 'forever', aura: true,
         active: false, priority: 9, expriority: 9,
@@ -97,17 +117,21 @@ function validTalentBuild(treeData, ranks, level = 60) {
     return total <= Math.max(0, Number(level) - 9);
 }
 
+// The key of a saved rank: its own key, else its position in the saved schema.
+// Saves without a Forever schema are Classic positional builds, matched by name.
+function foreverSavedTalentKey(tree, i, j, schema) {
+    if (tree.keys?.[j]) return tree.keys[j];
+    if (schema === FOREVER_TALENT_SCHEMA) return talentsForever[i]?.t[j]?.forever.key;
+    if (Object.hasOwn(FOREVER_LEGACY_TALENT_KEYS, schema)) return FOREVER_LEGACY_TALENT_KEYS[schema][i]?.[j];
+    return classicTalents[i]?.t[j]?.n;
+}
+
 function normalizeForeverTalents(saved, schema, level = 60) {
     const counts = new Map();
-    const current = schema === FOREVER_TALENT_SCHEMA;
     for (let i = 0; i < (saved || []).length; i++) {
         const tree = saved[i];
         for (let j = 0; j < (tree.t || []).length; j++) {
-            // v1 Protection included Vitality at index 15. Preserve positional saves too.
-            const legacyIndex = i === 2 && j > 15 ? j - 1 : j;
-            const legacyKey = i === 2 && j === 15 ? 'protection:vitality' : talentsForever[i]?.t[legacyIndex]?.forever.key;
-            const key = tree.keys?.[j] || (schema === 'forever-v1' ? legacyKey :
-                current ? talentsForever[i]?.t[j]?.forever.key : classicTalents[i]?.t[j]?.n);
+            const key = foreverSavedTalentKey(tree, i, j, schema);
             if (key) counts.set(key, Math.max(0, Math.floor(Number(tree.t[j]) || 0)));
         }
     }

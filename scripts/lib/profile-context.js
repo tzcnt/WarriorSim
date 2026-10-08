@@ -15,8 +15,9 @@ function profileContext(mode = 'forever') {
     }
     return {mode, base: context.session, baseLabel: 'preset defaults', gear: context.gear,
         enchant: context.enchant, buffs: context.buffs, spells: context.spells,
-        talents: context.talents, classicTalents: context.classicTalents,
-        talentSchema: context.FOREVER_TALENT_SCHEMA, normalizeTalents: context.normalizeForeverTalents,
+        talents: context.talents, classicTalents: context.classicTalents, talentSchema: context.FOREVER_TALENT_SCHEMA,
+        talentSchemas: context.FOREVER_TALENT_SCHEMAS, talentKey: context.foreverSavedTalentKey,
+        normalizeTalents: context.normalizeForeverTalents,
         racialSpellAvailable: context.racialSpellAvailable, currentId: context.currentId};
 }
 

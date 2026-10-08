@@ -3,7 +3,7 @@ var session = {
     "level": "60",
     "race": "Night Elf",
     "maxhealth": "",
-    "simulations": "50000",
+    "simulations": "100000",
     "timesecsmin": "50",
     "timesecsmax": "60",
     "executeperc": "20",
@@ -18,16 +18,20 @@ var session = {
     "batching": "10",
     "buffs": [
         null,
+        "17007",
         "9885",
         "20217",
         "19838",
         "10614",
-        "13452",
+        "10442",
+        "250351",
         "12451",
         "12460",
-        "2458",
+        "13928",
+        "11371",
         "11597",
-        "9907"
+        "9907",
+        "2458"
     ],
     "rotation": [
         {
@@ -117,8 +121,12 @@ var session = {
             "value1": 147,
             "duration": 16,
             "durationactive": true,
-            "active": false,
-            "aura": true
+            "active": true,
+            "aura": true,
+            "maxrage": "45",
+            "maxrageactive": true,
+            "priority": "5",
+            "expriority": "0"
         },
         {
             "id": 78,
@@ -244,7 +252,7 @@ var session = {
             "name": "Heroic Strike",
             "classname": "HeroicStrike",
             "iconname": "ability_rogue_ambush",
-            "minrage": "40",
+            "minrage": "45",
             "minrageactive": true,
             "unqueue": 15,
             "unqueueactive": false,
@@ -277,7 +285,7 @@ var session = {
             "globalsactive": true,
             "priority": 10,
             "expriority": 0,
-            "active": false,
+            "active": true,
             "minrage": 50,
             "minrageactive": false,
             "duration": 15,
@@ -330,15 +338,15 @@ var session = {
             "name": "Overpower",
             "classname": "Overpower",
             "iconname": "ability_meleedamage",
-            "maxrage": "52",
+            "maxrage": "55",
             "maxrageactive": true,
             "maincd": 2,
             "maincdactive": false,
             "value1": 35,
             "minlevel": 60,
             "active": true,
-            "priority": 6,
-            "expriority": 1
+            "priority": "5",
+            "expriority": "1"
         },
         {
             "id": 1715,
@@ -373,14 +381,14 @@ var session = {
             "name": "Hamstring",
             "classname": "Hamstring",
             "iconname": "ability_shockwave",
-            "minrage": 10,
+            "minrage": "10",
             "minrageactive": true,
             "duration": 15,
             "durationactive": false,
             "minlevel": 54,
             "value1": 45,
             "active": true,
-            "priority": 2,
+            "priority": "2",
             "expriority": 0
         },
         {
@@ -538,8 +546,11 @@ var session = {
             "name": "Berserker Rage",
             "classname": "BerserkerRage",
             "iconname": "spell_nature_ancestralguardian",
-            "active": false,
-            "buff": true
+            "active": true,
+            "buff": true,
+            "maxrage": "25",
+            "maxrageactive": true,
+            "zerkerpriority": false
         },
         {
             "id": "1680",
@@ -549,10 +560,10 @@ var session = {
             "minrage": "50",
             "minrageactive": false,
             "maincd": "2",
-            "maincdactive": true,
+            "maincdactive": false,
             "minlevel": 36,
             "active": true,
-            "maxrage": 25,
+            "maxrage": "30",
             "maxrageactive": false,
             "priority": 7,
             "expriority": 0
@@ -566,7 +577,7 @@ var session = {
             "minrageactive": false,
             "active": true,
             "priority": 9,
-            "expriority": 0
+            "expriority": "0"
         },
         {
             "id": "27580",
@@ -585,9 +596,12 @@ var session = {
             "timetoend": 16,
             "minlevel": 50,
             "aura": true,
-            "active": false,
+            "active": true,
             "buff": true,
-            "time": "44"
+            "time": "44",
+            "timetoendactive": true,
+            "timetostart": 0,
+            "timetostartactive": false
         },
         {
             "id": "12328",
@@ -632,7 +646,7 @@ var session = {
             "name": "Mighty Rage Potion",
             "classname": "MightyRagePotion",
             "iconname": "inv_potion_41",
-            "timetoend": 21,
+            "timetoend": "21",
             "aura": true,
             "minlevel": 46,
             "value1": 45,
@@ -640,7 +654,7 @@ var session = {
             "active": true,
             "buff": true,
             "time": "39",
-            "timetoendactive": false,
+            "timetoendactive": true,
             "timetostart": 0,
             "timetostartactive": false
         },
@@ -844,7 +858,7 @@ var session = {
             "aq": false,
             "buff": true,
             "aura": true,
-            "active": false
+            "active": true
         },
         {
             "id": 25289,
@@ -1183,7 +1197,7 @@ var session = {
             "classname": "JujuFlurry",
             "iconname": "inv_misc_monsterscales_17",
             "minlevel": 55,
-            "timetoend": 11,
+            "timetoend": "16",
             "timetoendactive": false,
             "timetostart": 0,
             "timetostartactive": false,
@@ -1260,6 +1274,21 @@ var session = {
             "timetoend": 10,
             "timetoendactive": true,
             "localDescription": "Your next three abilities deal 10% more damage and cost 10% less rage. 2-minute cooldown."
+        },
+        {
+            "id": 1251940,
+            "name": "Major Frenzy Potion",
+            "mode": "forever",
+            "description": "Increases Attack Power by 80 for 30 seconds. 2-minute cooldown.",
+            "classname": "MajorFrenzyPotion",
+            "iconname": "inv_potione_6",
+            "timetoend": 31,
+            "timetoendactive": false,
+            "timetostart": 0,
+            "timetostartactive": false,
+            "aura": true,
+            "active": false,
+            "buff": true
         }
     ],
     "sources": [
@@ -1285,23 +1314,23 @@ var session = {
         "5",
         "6"
     ],
-    "talentSchema": "forever-v2",
+    "talentSchema": "forever-v3",
     "targetcreaturetype": "Other",
     "talents": [
         {
             "n": "Arms",
             "t": [
+                3,
+                0,
+                3,
+                0,
+                5,
                 2,
-                0,
+                1,
                 3,
                 0,
-                3,
+                0,
                 2,
-                0,
-                3,
-                0,
-                0,
-                0,
                 0,
                 0,
                 0,
@@ -1334,41 +1363,39 @@ var session = {
             "t": [
                 0,
                 5,
-                0,
-                5,
-                3,
-                0,
-                0,
-                2,
-                5,
                 1,
                 5,
-                2,
                 3,
                 1,
                 0,
+                5,
+                1,
+                0,
+                2,
+                2,
+                1,
                 0,
                 5,
+                0,
                 1
             ],
             "keys": [
                 "fury:booming-voice",
                 "fury:cruelty",
-                "fury:iron-will",
+                "fury:lingering-rage",
                 "fury:unbridled-wrath",
-                "fury:improved-cleave",
+                "fury:furious-precision",
                 "fury:piercing-howl",
                 "fury:blood-craze",
-                "fury:boundless-rage",
                 "fury:dual-wield-specialization",
                 "fury:raging-blows",
                 "fury:enrage",
                 "fury:improved-execute",
-                "fury:precision",
+                "fury:improved-berserker-rage",
                 "fury:death-wish",
                 "fury:improved-intercept",
-                "fury:improved-berserker-rage",
                 "fury:flurry",
+                "fury:gore-drinker",
                 "fury:bloodthirst"
             ]
         },
@@ -1395,21 +1422,21 @@ var session = {
                 0
             ],
             "keys": [
-                "protection:shield-specialization",
-                "protection:anticipation",
                 "protection:improved-bloodrage",
-                "protection:toughness",
+                "protection:shield-specialization",
+                "protection:iron-will",
+                "protection:anticipation",
+                "protection:improved-revenge",
                 "protection:improved-thunder-clap",
                 "protection:last-stand",
                 "protection:master-of-defense",
-                "protection:improved-revenge",
+                "protection:improved-disarm",
                 "protection:defiance",
                 "protection:improved-sunder-armor",
-                "protection:improved-disarm",
                 "protection:vanguard",
+                "protection:improved-shield-bash",
                 "protection:improved-shield-wall",
                 "protection:concussion-blow",
-                "protection:improved-shield-bash",
                 "protection:focused-rage",
                 "protection:bastion",
                 "protection:shield-slam"
@@ -1477,21 +1504,45 @@ var session = {
                 "selected": true
             }
         ],
+        "finger1": [
+            {
+                "id": 17713,
+                "selected": true
+            }
+        ],
+        "finger2": [
+            {
+                "id": 12548,
+                "selected": true
+            }
+        ],
+        "trinket1": [
+            {
+                "id": 11815,
+                "selected": true
+            }
+        ],
+        "trinket2": [
+            {
+                "id": 13965,
+                "selected": true
+            }
+        ],
         "ranged": [
             {
-                "id": 17069,
+                "id": 18323,
                 "selected": true
             }
         ],
         "mainhand": [
             {
-                "id": 17068,
+                "id": 12940,
                 "selected": true
             }
         ],
         "offhand": [
             {
-                "id": 18832,
+                "id": 12939,
                 "selected": true
             }
         ]
@@ -1517,17 +1568,21 @@ var session = {
                 "selected": true
             }
         ],
-        "twohand": [],
         "head": [
             {
-                "id": 11645,
+                "id": 18329,
                 "selected": true
             }
         ],
-        "shoulder": [],
+        "neck": [
+            {
+                "id": "neck-strength",
+                "selected": true
+            }
+        ],
         "back": [
             {
-                "id": 13882,
+                "id": "back-agility",
                 "selected": true
             }
         ],
@@ -1545,13 +1600,13 @@ var session = {
         ],
         "hands": [
             {
-                "id": 20013,
+                "id": "hands-superior-strength",
                 "selected": true
             }
         ],
         "legs": [
             {
-                "id": 11645,
+                "id": 18329,
                 "selected": true
             }
         ],

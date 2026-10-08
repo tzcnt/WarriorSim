@@ -20,7 +20,8 @@ function fixture() {
 test('search constraints require all points, Bloodthirst, no Protection and legal lower rows', () => {
     const {trees, baseline} = fixture(), space = domain(trees);
     assert.ok(space.accepts(baseline));
-    for (const change of [r => r[1][17]--, r => r[1][10]--, r => {r[0][0]--; r[2][0]++;},
+    // Remove Bloodthirst, drop an Enrage point, spend in Protection, skip a row, break a prerequisite.
+    for (const change of [r => r[1][16]--, r => r[1][9]--, r => {r[0][0]--; r[2][0]++;},
         r => {r[0][0]--; r[0][13]++;}, r => {r[0][2]--; r[0][0]++;}]) {
         const next = structuredClone(baseline); change(next);
         assert.equal(space.accepts(next), false);
@@ -47,12 +48,17 @@ test('neighbor search matches brute-force legal one-point transfers and can move
 
 test('bounded exhaustive enumeration matches brute force, validates bounds, and caps candidate count', () => {
     const {trees, baseline} = fixture();
+    // Free three Fury rows 1-3 talents; the rest of the default build stays fixed.
+    const fury = name => trees[1].t.findIndex(t => t.key === `fury:${name}`);
+    const [voice, lingering, howl] = ['booming-voice', 'lingering-rage', 'piercing-howl'].map(fury);
+    const free = baseline[1][voice] + baseline[1][lingering] + baseline[1][howl];
+    baseline[1][voice] = free; baseline[1][lingering] = baseline[1][howl] = 0;
     const bounds = Object.fromEntries(trees.flatMap((tree, i) => tree.t.map((t, j) => [t.key, baseline[i][j]])));
-    Object.assign(bounds, {'arms:improved-heroic-strike': [0, 3], 'arms:improved-tactical-mastery': [0, 5], 'arms:improved-overpower': [0, 2]});
+    Object.assign(bounds, {'fury:booming-voice': [0, 5], 'fury:lingering-rage': [0, 5], 'fury:piercing-howl': [0, 1]});
     const space = domain(trees, 51, bounds), expected = [];
-    for (let heroic = 0; heroic <= 3; heroic++) for (let tactical = 0; tactical <= 5; tactical++) for (let overpower = 0; overpower <= 2; overpower++) {
+    for (let a = 0; a <= 5; a++) for (let b = 0; b <= 5; b++) for (let c = 0; c <= 1; c++) {
         const ranks = structuredClone(baseline);
-        ranks[0][0] = heroic; ranks[0][4] = tactical; ranks[0][5] = overpower;
+        ranks[1][voice] = a; ranks[1][lingering] = b; ranks[1][howl] = c;
         if (space.accepts(ranks)) expected.push(key(ranks));
     }
     assert.deepEqual(enumerate(space).map(key).sort(), expected.sort());
@@ -86,7 +92,7 @@ test('Arms search retains Mortal Strike, enforces prerequisites, and explores le
         assert.ok(space.accepts(ranks));
         assert.ok(ranks[0].reduce((a, b) => a + b, 0) >= 31);
         assert.equal(ranks[0][16], 1);
-        assert.equal(ranks[1][17], 0);
+        assert.equal(ranks[1][16], 0);
         assert.equal(ranks[2].reduce((a, b) => a + b, 0), 0);
     }
     for (const index of [12, 16]) {

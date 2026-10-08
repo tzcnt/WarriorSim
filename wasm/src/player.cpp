@@ -433,7 +433,6 @@ void PlayerState::addRage(double dmg, Result result, WeaponState& weapon, const 
         if (result != Result::Miss && result != Result::Dodge && talents.number("umbridledwrath"_prop) &&
             rng.tenK() < talents.number("umbridledwrath"_prop) * 100) {
             rage += 1;
-            if (foreverMode && weapon.twohand) rage += 1;
         }
     }
     if (ability) {
@@ -665,7 +664,6 @@ double PlayerState::dealDamage(double dmg, Result result, WeaponState& weapon,
             if (!--sweeping->stacks) auraEnd(*this, *sweeping);
         }
     }
-    if (landed && ability && ability->kind == SpellKind::SpearingStrike) props.set("mounted"_prop, false);
     return landed ? dmg : 0;
 }
 

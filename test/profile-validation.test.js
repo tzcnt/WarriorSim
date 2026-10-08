@@ -35,8 +35,9 @@ test('Forever presets use known buff IDs and enable Battle Shout as an ability',
 test('Forever profiles that use the old name-style consumable IDs are still recognized', () => {
     const {context, profile} = fixture();
     profile.buffs = [...profile.buffs, 'elixir-of-the-grizzly', 'elixir-of-ferocity'];
-    profile.rotation = [...profile.rotation, {id: 'major-frenzy-potion', active: true},
-        {id: 1251940, active: true}];
+    // The legacy and current potion IDs duplicate each other, whatever the default rotation holds.
+    profile.rotation = [...profile.rotation.filter(spell => String(spell.id) !== '1251940'),
+        {id: 'major-frenzy-potion', active: true}, {id: 1251940, active: true}];
     const codes = report(profile, context).map(issue => issue.code);
     assert.ok(!codes.includes('unknown-buff'));
     assert.ok(!codes.includes('unknown-spell'));

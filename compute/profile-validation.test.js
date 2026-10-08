@@ -98,14 +98,28 @@ test('profile notes display after import, dismiss with OK, and use the shared fi
         await dialog.getByRole('button', {name: 'OK', exact: true}).click();
 
         if (mode === 'forever') {
-            // A preset uses defaults and loads immediately while its notice stays open.
+            // Shipped presets are current and load without a notice.
+            for (const id of await page.evaluate(() => profilePresets.map(preset => preset.id))) {
+                const loaded = await page.evaluate(id => {
+                    SIM.PROFILES.loadPreset(id);
+                    return JSON.parse(localStorage[mode + globalThis.profileid]).profilename;
+                }, id);
+                assert.equal(loaded, await page.evaluate(id => profilePresets.find(p => p.id === id).profile.profilename, id));
+                assert.equal(await page.locator('dialog[open]').count(), 0, `${id} needs no import notice`);
+            }
+            // A preset with findings uses defaults and loads immediately while its notice stays open.
             const preset = await page.evaluate(() => {
-                SIM.PROFILES.loadPreset(profilePresets[0].id);
-                return {index: globalThis.profileid, name: profilePresets[0].profile.profilename,
+                const profile = structuredClone(profilePresets[0].profile);
+                profile.profilename = 'Preset with notes';
+                profile.buffs.push('obsolete:buff');
+                profilePresets.push({id: 'test-preset-with-notes', description: profile.profilename, profile});
+                SIM.PROFILES.loadPreset('test-preset-with-notes');
+                return {index: globalThis.profileid, name: profile.profilename,
                     saved: JSON.parse(localStorage[mode + globalThis.profileid])};
             });
             assert.equal(preset.saved.profilename, preset.name);
             await dialog.waitFor({state: 'visible'});
+            assert.match(await dialog.innerText(), /Unknown buff ID "obsolete:buff"/);
             assert.equal(await page.evaluate(() => globalThis.profileid), preset.index);
             await dialog.getByRole('button', {name: 'OK', exact: true}).click();
         }
