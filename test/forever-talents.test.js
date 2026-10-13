@@ -66,9 +66,10 @@ test('unlearned active talents cannot be injected through saved rotation setting
 test('confirmed level-60 ability damage values match in both modes', () => {
     const {run, player} = setup();
     player.stats.ap = 1000; player.stats.block = 100; player.stats.dmgmod = 1;
-    for (const [level, bonus, shieldBase] of [[40,30,230],[48,37,270],[54,43,310],[60,48,430]]) {
+    for (const [level, bonus, msBonus, shieldBase] of [[40,30,85,430],[48,37,110,505],[54,43,135,580],[60,48,160,655]]) {
         player.level = level;
         close(run('new Bloodthirst(p, 23894).dmg()'), 450 + bonus);
+        assert.equal(run('new MortalStrike(p, 27580).value1'), msBonus);
         close(run(`rng = (min, max) => (min + max) / 2; new ShieldSlam(p, ${[40,48,54,60].indexOf(level) + 23922}).dmg()`), shieldBase + 100);
     }
     assert.equal(run('new Slam(p, 11605).value1'), 87);
@@ -86,6 +87,39 @@ test('confirmed level-60 ability damage values match in both modes', () => {
     assert.equal(classic.run('new MortalStrike(p, 27580).value1'), 160);
     close(classic.run('(() => { const spell = new Execute(p, 20662); spell.usedrage = 10; return spell.dmg(); })()'), 750);
     close(classic.run('rng = (a,b) => (a+b)/2; new ShieldSlam(p,23925).dmg()'), 350 + 200 + 150);
+});
+
+test('Forever rotation and talent tooltips show the damage for the selected level', () => {
+    const {engine} = setup();
+    engine.evaluate(fs.readFileSync(require.resolve('../js/settings.js'), 'utf8'));
+    const tooltips = {};
+    const element = {find() { return this; }, text() { return this; }, empty() { return this; }, append() { return this; },
+        removeClass() { return this; }, attr() { return this; }, css() { return this; }, 0: {outerHTML: ''}};
+    engine.evaluate(`$ = () => element; WEB_DB_URL = ''; SIM.SETTINGS.rotation = SIM.SETTINGS.fight = element;
+        SIM.TOOLTIP = {set(el, content) { tooltips[content.name] = content.description; }};
+        talents.flatMap(tree => tree.t).forEach(t => { if (t.n === 'Mortal Strike' || t.n === 'Shield Slam') t.c = 1; });`,
+        {element, tooltips});
+    const expected = (bt, ms, ss) => ({
+        'Bloodthirst': `Instantly attack the target causing damage equal to 45% of your Attack Power plus ${bt} ` +
+            'and increasing your movement speed by 10% for 10 sec.',
+        'Mortal Strike': `A vicious strike that deals weapon damage plus ${ms} and wounds the target, ` +
+            'reducing the effectiveness of any healing by 50% for 10 sec.',
+        'Shield Slam': `Slam the target with your shield, causing ${ss} damage, increased by your Block Value, ` +
+            'and has a 50% chance of dispelling 1 magic effect on the target. Causes a very high amount of threat.',
+    });
+    for (const [level, descriptions] of [[40, expected(30, 85, '421 to 439')], [48, expected(37, 110, '494 to 516')],
+        [54, expected(43, 135, '567 to 593')], [60, expected(48, 160, '640 to 670')]]) {
+        engine.evaluate(`localStorage = {forever0: JSON.stringify({level: '${level}', race: 'Human', aqbooks: 'No'})};
+            SIM.SETTINGS.buildSpells()`);
+        for (const [name, description] of Object.entries(descriptions)) {
+            assert.equal(tooltips[name], description, `${name} rotation tooltip at level ${level}`);
+            delete tooltips[name];
+            engine.evaluate('SIM.SETTINGS.updateTalentTooltip(element, talents.flatMap(tree => tree.t).find(t => t.n === name), level)',
+                {name, level});
+            assert.equal(tooltips[name], description, `${name} talent tooltip at level ${level}`);
+        }
+        assert.equal(tooltips['Battle Shout'], 'Increases Attack Power by 111.');
+    }
 });
 
 test('Raging Blows and Focused Rage stack on Cleave and Whirlwind without retaining Classic bonus damage', () => {

@@ -2,6 +2,15 @@ var SIM = SIM || {}
 
 SIM.SETTINGS = {
 
+    // Forever text for abilities whose Wowhead tooltips or source descriptions show other values,
+    // with damage for the rank learned at the given level.
+    foreverDescriptions: {
+        'Battle Shout': () => 'Increases Attack Power by 111.',
+        'Bloodthirst': level => `Instantly attack the target causing damage equal to 45% of your Attack Power plus ${Bloodthirst.flatBonus(level)} and increasing your movement speed by 10% for 10 sec.`,
+        'Mortal Strike': level => `A vicious strike that deals weapon damage plus ${MortalStrike.flatBonus(level)} and wounds the target, reducing the effectiveness of any healing by 50% for 10 sec.`,
+        'Shield Slam': level => `Slam the target with your shield, causing ${ShieldSlam.damageRange(level).join(' to ')} damage, increased by your Block Value, and has a 50% chance of dispelling 1 magic effect on the target. Causes a very high amount of threat.`,
+    },
+
     init: function () {
         var view = this;
         view.variables();
@@ -74,7 +83,7 @@ SIM.SETTINGS = {
                 $('.rotation [data-id="' + talent.enable + '"]').removeClass('hidden');
             if (talent.enablename)
                 $('.rotation [data-name="' + talent.enablename + '"]').removeClass('hidden');
-            view.updateTalentTooltip($(this), talent);
+            view.updateTalentTooltip($(this), talent, level);
             SIM.UI.updateSession();
             SIM.UI.updateSidebar();
             view.buildSpells();
@@ -109,7 +118,7 @@ SIM.SETTINGS = {
                     if (spell.name == talent.enablename)
                         spell.active = false;
             }
-            view.updateTalentTooltip($(this), talent);
+            view.updateTalentTooltip($(this), talent, parseInt(storage.level));
             SIM.UI.updateSession();
             SIM.UI.updateSidebar();
             view.buildSpells();
@@ -228,9 +237,9 @@ SIM.SETTINGS = {
             if (mode === 'forever' && Number(this.value) >= 1 && Number(this.value) <= 60) {
                 const selected = normalizeForeverTalents(talentSelection(), FOREVER_TALENT_SCHEMA, this.value);
                 talents.forEach((tree, i) => tree.t.forEach((t, j) => { t.c = selected[i].t[j]; }));
-                view.buildTalents();
                 SIM.UI.updateSession();
                 SIM.UI.updateSidebar();
+                view.buildTalents();
                 view.buildSpells();
             }
         });
@@ -449,8 +458,8 @@ SIM.SETTINGS = {
             <a href="${WEB_DB_URL}${spell.item ? 'item' : 'spell'}=${spell.id}" class="wh-tooltip"></a>
             </div></div>`);
 
-            const description = spell.description || (mode === 'forever' && spell.classname === 'BattleShout' ?
-                'Increases Attack Power by 111.' : racialSpellDescription(spell, mode));
+            const description = spell.description || (mode === 'forever' && view.foreverDescriptions[spell.name]?.(level)) ||
+                racialSpellDescription(spell, mode);
             if (description) {
                 div.find('a').removeClass('wh-tooltip').attr('href', '#');
                 SIM.TOOLTIP.set(div.find('.icon'), {name: spell.name, description});
@@ -712,6 +721,7 @@ SIM.SETTINGS = {
 
     buildTalents: function () {
         var view = this;
+        let level = parseInt(JSON.parse(localStorage[mode + (globalThis.profileid || 0)]).level);
         view.talents.find('table').remove();
         for (let tree of talents) {
             let table = $('<table><tr><th colspan="4">' + tree.n + '</th></tr></table>').attr('data-tree', talents.indexOf(tree));
@@ -721,17 +731,18 @@ SIM.SETTINGS = {
                 div.html('<img src="https://wow.zamimg.com/images/wow/icons/medium/' + talent.iconname.toLowerCase() + '.jpg" alt="' + talent.n + '" />');
                 if (talent.c >= talent.m) div.addClass('maxed');
                 div.append(`<a href="${WEB_DB_URL}spell=` + talent.s[talent.c == 0 ? 0 : talent.c - 1] + `" class="wh-tooltip"></a>`);
-                view.updateTalentTooltip(div, talent);
+                view.updateTalentTooltip(div, talent, level);
                 table.find('tr').eq(talent.y).children().eq(talent.x).append(div);
             }
             view.talents.append(table);
         }
     },
 
-    updateTalentTooltip: function (div, talent) {
+    updateTalentTooltip: function (div, talent, level) {
         if (talent.forever) {
+            const description = this.foreverDescriptions[talent.n]?.(level) || talent.d[Math.max(0, talent.c - 1)];
             SIM.TOOLTIP.set(div, {name: talent.n, rank: 'Rank ' + talent.c + '/' + talent.m,
-                cost: talent.forever.cost, requires: talent.forever.reqText, description: talent.d[Math.max(0, talent.c - 1)],
+                cost: talent.forever.cost, requires: talent.forever.reqText, description,
                 next: talent.c > 0 && talent.c < talent.m ? talent.d[talent.c] : ''});
             div.find('a').removeClass('wh-tooltip').attr('href', '#');
         } else {

@@ -69,7 +69,8 @@ per rank), and both Bloodrage's initial gain and fractional ticks. The rage cap 
 or 105 for Gnomes.
 
 - Bloodthirst: 45% AP + 30/37/43/48 at levels 40/48/54/60.
-- Shield Slam: 225–235 / 264–276 / 303–317 / 421–439 at those levels, plus block value once, with no AP coefficient.
+- Mortal Strike: weapon damage + 85/110/135/160 at those levels.
+- Shield Slam: 421–439 / 494–516 / 567–593 / 640–670 at those levels, plus block value once, with no AP coefficient.
 - Forever Slam has an 18-second cooldown, reduced by 3 seconds with either Improved Slam rank to 18/15/15 seconds at 0/1/2 ranks. It starts at cast completion. Without Improved Slam it pauses weapon timers during casting. Either talent rank lets them advance, deferring due swings until cast completion. Cast time and GCD are 1500/1250/1000 ms at 0/1/2 ranks. Classic has no cooldown and still resets timers at cast completion.
 - Bloodthrill: landed main-hand melee damage against the player's active Rend rolls 4% per rank for one six-second Overpower opportunity, with no ICD. White swings, queued Heroic Strike/Cleave and main-hand special attacks roll; off-hand swings and Whirlwind's off-hand hit do not. It refreshes, does not stack, and is independent of the ordinary dodge window. Adjacent targets without Rend cannot trigger it.
 - Weaponmaster: crit/extra-attack effects use existing weapon specialization code; mace/staff bypass 3% armor per rank for that hand, after armor debuffs. The sword proc guard resets between fights in both Classic and Forever so batching does not change results.

@@ -87,13 +87,17 @@ class Spell {
 }
 
 class Bloodthirst extends Spell {
+    // Forever's flat damage bonus for the rank learned at this level.
+    static flatBonus(level) {
+        return level >= 60 ? 48 : level >= 54 ? 43 : level >= 48 ? 37 : 30;
+    }
     constructor(player, id) {
         super(player, id);
         this.cost = 30 - player.ragecostbonus;
         this.cooldown = 6;
         this.weaponspell = false;
         this.apcoefficient = .45;
-        this.flatbonus = player.mode === 'forever' ? (player.level >= 60 ? 48 : player.level >= 54 ? 43 : player.level >= 48 ? 37 : 30) : 0;
+        this.flatbonus = player.mode === 'forever' ? Bloodthirst.flatBonus(player.level) : 0;
     }
     dmg() {
         let dmg;
@@ -343,10 +347,15 @@ class SpearingStrike extends Spell {
 }
 
 class MortalStrike extends Spell {
+    // Forever's flat damage bonus for the rank learned at this level.
+    static flatBonus(level) {
+        return level >= 60 ? 160 : level >= 54 ? 135 : level >= 48 ? 110 : 85;
+    }
     constructor(player, id) {
         super(player, id, 'Mortal Strike');
         this.cost = 30 - player.ragecostbonus;
         this.cooldown = 6;
+        if (player.mode === 'forever') this.value1 = MortalStrike.flatBonus(player.level);
     }
     dmg() {
         let dmg;
@@ -559,6 +568,10 @@ class Fireball extends Spell {
 }
 
 class ShieldSlam extends Spell {
+    // Forever's damage range for the rank learned at this level.
+    static damageRange(level) {
+        return level >= 60 ? [640, 670] : level >= 54 ? [567, 593] : level >= 48 ? [494, 516] : [421, 439];
+    }
     constructor(player, id) {
         super(player, id, 'Shield Slam');
         this.cost = 20 - player.ragecostbonus;
@@ -567,10 +580,7 @@ class ShieldSlam extends Spell {
         if (this.duration) this.cooldown = Math.max(this.cooldown, this.duration);
         this.blockcoefficient = player.mode === 'forever' ? 1 : 2;
         this.apcoefficient = player.mode === 'forever' ? 0 : .15;
-        if (player.mode === 'forever' && player.level >= 60) {
-            this.value1 = 421;
-            this.value2 = 439;
-        }
+        if (player.mode === 'forever') [this.value1, this.value2] = ShieldSlam.damageRange(player.level);
     }
     dmg() {
         let dmg;
