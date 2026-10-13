@@ -2,7 +2,7 @@
 (function(root) {
     'use strict';
     const protocol = {
-        version: 3,
+        version: 4,
         maxChunks: 8192,
         maxChunkSize: 2000,
         leaseMs: 15000,
@@ -51,14 +51,21 @@
         report(report, job, index) {
             if (!report || !protocol.safeTree(report) || report.iterations !== protocol.range(job, index).count ||
                 report.seed !== job.seed || !protocol.uint(report.engineVersion, 1)) return false;
-            for (const key of ['totaldmg', 'totalduration', 'mindps', 'maxdps', 'sumdps', 'sumdps2', 'starttime', 'endtime']) {
+            for (const key of ['totaldmg', 'totalduration', 'mindps', 'maxdps', 'sumdps', 'sumdps2', 'starttime', 'endtime',
+                'ragegained']) {
                 if (typeof report[key] !== 'number' || !Number.isFinite(report[key]) || report[key] < 0) return false;
             }
             if (report.totalduration <= 0 || report.mindps > report.maxdps) return false;
-            if (!job.fullReport) return report.player === undefined && report.spread === undefined;
-            if (!report.spread || !report.player || !report.player.mh) return false;
-            if (!Object.entries(report.spread).every(([key, value]) => /^\d{1,7}$/.test(key) && protocol.uint(value))) return false;
-            if (Object.values(report.spread).reduce((a, b) => a + b, 0) !== report.iterations) return false;
+            if (!job.fullReport) {
+                return report.player === undefined && report.spread === undefined && report.ragespread === undefined;
+            }
+            // Iteration counts by whole DPS, or by thousandths of rage per second.
+            const histogram = value => value && typeof value === 'object' &&
+                Object.entries(value).every(([key, count]) => /^\d{1,7}$/.test(key) && protocol.uint(count)) &&
+                Object.values(value).reduce((a, b) => a + b, 0) === report.iterations;
+            if (!histogram(report.spread) || !histogram(report.ragespread) || !report.player || !report.player.mh) return false;
+            const rageWaits = value => protocol.uint(value.ragedelays) &&
+                Number.isFinite(value.ragewait) && value.ragewait >= 0;
             const counter = (value, weapon) => value && typeof value.name === 'string' &&
                 Array.isArray(value.data) && value.data.length <= 16 &&
                 value.data.every(number => protocol.uint(number)) &&
@@ -75,14 +82,14 @@
                 const spell = job.spec.player.spells.find(spell => spell.key === key);
                 if (!spell || !counter(value, false) || value.data.length !== 5 ||
                     value.name !== (spell.props.name || key) || !Number.isFinite(value.totalusedrage) ||
-                    !Number.isFinite(value.cost)) return false;
+                    !Number.isFinite(value.cost) || !rageWaits(value)) return false;
             }
             for (const [key, value] of Object.entries(report.player.auras)) {
                 const aura = job.spec.player.auras.find(aura => aura.key === key);
                 if (!aura || value.name !== (aura.props.name || key) || !Number.isFinite(value.uptime) ||
                     !Number.isFinite(value.totaldmg) || value.totaldmg < 0 || value.uptime < 0 ||
                     !Array.isArray(value.data) || value.data.length !== (aura.props.dataLength || 0) ||
-                    !value.data.every(number => protocol.uint(number))) return false;
+                    !value.data.every(number => protocol.uint(number)) || !rageWaits(value)) return false;
             }
             return true;
         },

@@ -245,7 +245,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
 
     case SpellKind::Bloodrage: {
         spell.timer = cooldownTimer(player, spell, cooldown);
-        player.rage = std::min(player.rage + value(spell, "rage"_prop), player.prop("ragecap"_prop, 100));
+        player.gainRage(value(spell, "rage"_prop));
         useAura(player, "bloodrage"_action);
         spell.maxdelay = reactionDelay(player);
         return;
@@ -290,7 +290,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
     case SpellKind::BerserkerRage: {
         spell.timer = cooldown * 1000;
         if (!player.isValidStance("zerk")) player.switchStance("zerk");
-        player.rage = std::min(player.rage + value(spell, "rage"_prop), player.prop("ragecap"_prop, 100));
+        player.gainRage(value(spell, "rage"_prop));
         useAura(player, "berserkerrage"_action);
         spell.maxdelay = reactionDelay(player);
         return;
@@ -298,8 +298,8 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
 
     case SpellKind::RagePotion: {
         spell.timer = cooldownTimer(player, spell, cooldown);
-        player.rage = std::min(player.rage + static_cast<double>(player.rng.integer(
-            value(spell, "value1"_prop), value(spell, "value2"_prop))), player.prop("ragecap"_prop, 100));
+        player.gainRage(static_cast<double>(player.rng.integer(
+            value(spell, "value1"_prop), value(spell, "value2"_prop))));
         spell.maxdelay = reactionDelay(player);
         return;
     }
@@ -336,7 +336,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
         player.itemtimer = cooldown * 1000;
         spell.timer = cooldownTimer(player, spell, cooldown);
         spell.maxdelay = reactionDelay(player);
-        player.rage = std::min(player.rage + value(spell, "rage"_prop), player.prop("ragecap"_prop, 100));
+        player.gainRage(value(spell, "rage"_prop));
         return;
     }
 

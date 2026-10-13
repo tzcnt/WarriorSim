@@ -267,8 +267,8 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         break;
     case AuraKind::MightyRagePotion: {
         accountRefresh(player, aura);
-        player.rage = std::min(player.rage + static_cast<double>(player.rng.integer(
-            aura.props.number("value1"_prop), aura.props.number("value2"_prop))), player.prop("ragecap"_prop, 100));
+        player.gainRage(static_cast<double>(player.rng.integer(
+            aura.props.number("value1"_prop), aura.props.number("value2"_prop))));
         aura.timer = player.step + durationMs(aura) - precounter;
         aura.starttimer = player.step - precounter;
         player.updateStrength();
@@ -503,7 +503,7 @@ bool auraStep(PlayerState& player, AuraState& aura) {
         return stepWithUpdate(player, aura, &PlayerState::updateAP, false, true);
     case AuraKind::BloodrageAura:
         if (detail::jsRemainder(player.step - aura.starttimer, 1000.0) == 0) {
-            player.rage = std::min(player.rage + aura.props.number("tickrage"_prop, 1), player.prop("ragecap"_prop, 100));
+            player.gainRage(aura.props.number("tickrage"_prop, 1));
         }
         if (player.step >= aura.timer) {
             expire(player, aura);

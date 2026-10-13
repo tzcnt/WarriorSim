@@ -99,6 +99,7 @@ void PlayerState::reset(double startingRage) {
     updateEurekaCosts(false);
     swordspecstep = -1;
     rage = foreverMode ? std::min(startingRage, prop("ragecap"_prop, 100)) : startingRage;
+    ragegained = 0;
     bloodthrilltimer = 0;
     props.set("mounted"_prop, target.props.string("creaturetype"_prop) == "Mounted");
     timer = itemtimer = stancetimer = dodgetimer = 0;
@@ -428,6 +429,8 @@ Result PlayerState::rollMagicSpell(SpellState& value) {
 }
 
 void PlayerState::addRage(double dmg, Result result, WeaponState& weapon, const SpellState* ability) {
+    const double before = rage;
+    double refund = 0;
     // Forever: only true white swings roll; queued Heroic Strike/Cleave do not.
     if (!ability || (!foreverMode && isQueuedStrike(ability))) {
         if (result != Result::Miss && result != Result::Dodge && talents.number("umbridledwrath"_prop) &&
@@ -439,7 +442,8 @@ void PlayerState::addRage(double dmg, Result result, WeaponState& weapon, const 
         if (ability->kind == SpellKind::Execute)
             const_cast<SpellState*>(ability)->lastResult = result;
         if (result == Result::Miss || result == Result::Dodge) {
-            rage += ability->props.boolean("refund"_prop, true) ? ability->props.number("cost"_prop) * .8 : 0;
+            refund = ability->props.boolean("refund"_prop, true) ? ability->props.number("cost"_prop) * .8 : 0;
+            rage += refund;
         }
     } else if (foreverMode) {
         // Base weapon speed in seconds; crits double it, while glances and haste do not change it.
@@ -453,7 +457,19 @@ void PlayerState::addRage(double dmg, Result result, WeaponState& weapon, const 
             rage += (dmg / props.number("rageconversion"_prop)) * 7.5;
     }
     rage = std::min(rage, props.number("ragecap"_prop, 100));
+    // A refund is not generated rage. If the cap trims a gain, it trims the generated part first.
+    countRageGain(before + refund);
+}
 
+void PlayerState::gainRage(double amount) {
+    const double before = rage;
+    rage = std::min(rage + amount, props.number("ragecap"_prop, 100));
+    countRageGain(before);
+}
+
+// Call after capping rage: counts what the bar now holds above base as generated rage.
+void PlayerState::countRageGain(double base) {
+    if (rage > base) ragegained += rage - base;
 }
 
 namespace {

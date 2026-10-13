@@ -297,6 +297,10 @@ struct SpellState {
     double idmg = 0;
     double usedrage = 0;
     double totalusedrage = 0;
+    // Batch counters: times this was the next GCD action but could not pay its cost, and the ms
+    // spent waiting. AuraState has the same pair.
+    std::uint64_t ragedelays = 0;
+    double ragewait = 0;
     Result lastResult = Result::Hit;
     std::unique_ptr<SpellState> backupHeroic;
     std::array<std::uint64_t, 5> data{};
@@ -323,6 +327,8 @@ struct AuraState {
     double uptime = 0;
     double totaldmg = 0;
     double idmg = 0;
+    std::uint64_t ragedelays = 0;
+    double ragewait = 0;
     std::vector<double> data;
 };
 
@@ -350,6 +356,9 @@ struct BatchReport {
     double starttime = 0;
     double endtime = 0;
     std::unordered_map<std::int32_t, std::uint32_t> spread;
+    double ragegained = 0;
+    // Iterations per rage-per-second bucket, keyed in thousandths of rage per second.
+    std::unordered_map<std::int32_t, std::uint32_t> ragespread;
 };
 
 struct CachedAuraAction {
@@ -425,6 +434,9 @@ struct PlayerState {
     Rng rng;
     double step = 0;
     double rage = 0;
+    // Per-fight report counter: generated rage that reached the bar (refunds and rage over
+    // the cap are excluded).
+    double ragegained = 0;
     double timer = 0;
     double itemtimer = 0;
     double stancetimer = 0;
@@ -507,6 +519,8 @@ struct PlayerState {
     [[nodiscard]] double dodgeChance(const WeaponState& weapon) const;
     [[nodiscard]] double getArmorReduction() const;
     void addRage(double dmg, Result result, WeaponState& weapon, const SpellState* spell);
+    void gainRage(double amount);
+    void countRageGain(double base);
     bool stepTimer(double amount);
     bool stepItemTimer(double amount);
     bool stepStanceTimer(double amount);
@@ -549,6 +563,13 @@ int auraPrep(PlayerState&, AuraState&, double duration, double itemdelay);
 void auraProc(PlayerState&, AuraState&);
 [[nodiscard]] bool windfuryCanProc(const PlayerState&, const AuraState&);
 
+// The rage wait open in runOne: the action waiting, and the step it began.
+struct RageWaitState {
+    SpellState* spell = nullptr;
+    AuraState* aura = nullptr;
+    double start = 0;
+};
+
 class Engine {
 public:
     Engine(PlayerState player, SimConfig sim, std::uint32_t seed);
@@ -562,6 +583,9 @@ private:
     PlayerState player_;
     SimConfig sim_;
     std::uint32_t baseSeed_;
+    // Only full reports include rage waits, so other batches skip finding them.
+    bool trackRageWaits_ = false;
+    RageWaitState rageWait_;
 };
 
 [[nodiscard]] SpellKind parseSpellKind(std::string_view value);

@@ -29,7 +29,7 @@
     "wasm": "powershell -NoProfile -ExecutionPolicy Bypass -File wasm/build.ps1",
     "build:css": "gulp sass",
     "dist:full": "npm run build:css && npm run dist",
-    "test:wasm": "node --test test/wasm/native.test.js test/wasm/extra-native.test.js test/wasm/native-api.test.js",
+    "test:wasm": "node --test test/wasm/native.test.js test/wasm/extra-native.test.js test/wasm/native-api.test.js test/wasm/rage-report.test.js",
     "benchmark": "node test/wasm/benchmark.js",
     "test:regressions": "node test/simulation-regressions.test.js"
   },
