@@ -27,6 +27,15 @@ The ES-module default factory exposes `createEngine(JSON.stringify(spec), seed)`
 
 Each iteration uses Mulberry32 seeded by `seed + imul(globalIteration, 0x9e3779b9)`. Report counters reset at batch boundaries; combat reset follows the JavaScript implementation. Sword-proc timestamps reset at the start of every fight in both modes.
 
+Several rage counters are native-only; the JavaScript reference engine does not produce them, and they do not affect combat:
+
+- Every report has `ragegained`: generated rage that reached the bar. It excludes refunds from missed or dodged abilities and anything over the rage cap. Full reports add `ragespread`, which counts fights by rage per second in thousandths.
+- Full reports also give each spell and aura `ragedelays` and `ragewait` (ms). At each GCD decision, the engine notes the first action, in decision order, that only lacks rage. The action is otherwise usable and comes ahead of whatever was chosen. A minimum-rage setting above the cost counts as a rotation condition, so it does not create a wait. A wait starts at the first decision where an action is in that position, and ends at the first later decision where it no longer is: it was chosen, or something else came first. Each wait counts once in `ragedelays`, and the time adds to `ragewait`. Death Wish and Classic Berserking also hold the rest of the GCD queue, so their waits are reported this way too. Heroic Strike and Cleave are queued on the next swing and never wait. Batches without a full report skip this scan.
+- Full reports give each spell and aura the parts of its rage cost, which the Stats table adds up for damage per rage:
+  - `ragespent` is the rage paid, less refunds from misses and dodges. Execute's extra rage counts when Execute lands.
+  - `stancerage` is rage over the retained amount that was lost to a stance swap the action needed. The later return to the base stance counts toward the action that left it.
+  - `whiterage` (spells only) is, for Heroic Strike and Cleave, the rage the replaced white swing would have generated. The strike's attack-table roll is read on the white table, with the dual-wield miss penalty and glancing blows. Classic uses the same damage roll without the strike's bonus damage, and the average glancing reduction. Forever adds Unbridled Wrath's expected rage. Neither goes above the rage cap.
+
 ## Shared execution
 
 The optional [compute coordinator](../server/README.md) distributes resolved

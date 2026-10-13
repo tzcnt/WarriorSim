@@ -189,8 +189,9 @@ void auraEnd(PlayerState& player, AuraState& aura) {
 
 void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter) {
     if (aura.kind == AuraKind::SweepingStrikes) {
-        if (!player.isValidStance("battle")) player.switchStance("battle");
+        if (!player.isValidStance("battle")) player.switchStance("battle", &aura.stancerage);
         player.rage -= aura.props.number("cost"_prop);
+        aura.ragespent += aura.props.number("cost"_prop);
         if (const double gcd = aura.props.number("gcd"_prop)) player.timer = gcd;
         aura.timer = durationMs(aura) ? player.step + durationMs(aura) : 1;
         aura.stacks = 5;
@@ -213,7 +214,7 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
     case AuraKind::Recklessness:
         begin(player, aura);
         player.timer = 1500;
-        if (!player.isValidStance("zerk")) player.switchStance("zerk");
+        if (!player.isValidStance("zerk")) player.switchStance("zerk", &aura.stancerage);
         player.updateAuras();
         setDelay(player, aura);
         break;
@@ -258,6 +259,7 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
     case AuraKind::DeathWish:
         begin(player, aura, precounter);
         player.rage -= aura.props.number("cost"_prop, 10);
+        aura.ragespent += aura.props.number("cost"_prop, 10);
         player.timer = 1500;
         player.updateDmgMod();
         setDelay(player, aura);
@@ -267,8 +269,8 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         break;
     case AuraKind::MightyRagePotion: {
         accountRefresh(player, aura);
-        player.rage = std::min(player.rage + static_cast<double>(player.rng.integer(
-            aura.props.number("value1"_prop), aura.props.number("value2"_prop))), player.prop("ragecap"_prop, 100));
+        player.gainRage(static_cast<double>(player.rng.integer(
+            aura.props.number("value1"_prop), aura.props.number("value2"_prop))));
         aura.timer = player.step + durationMs(aura) - precounter;
         aura.starttimer = player.step - precounter;
         player.updateStrength();
@@ -299,6 +301,7 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
     case AuraKind::Berserking:
         begin(player, aura, precounter);
         player.rage -= aura.props.number("cost"_prop);
+        aura.ragespent += aura.props.number("cost"_prop);
         player.updateHaste();
         setDelay(player, aura);
         break;
@@ -369,6 +372,7 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         begin(player, aura);
         if (!prepull) {
             player.rage -= aura.props.number("cost"_prop);
+            aura.ragespent += aura.props.number("cost"_prop);
             player.timer = 1500;
         }
         player.updateAP();
@@ -390,9 +394,10 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         aura.starttimer = player.step;
         aura.stacks = aura.props.integer("value2"_prop);
         if (!player.isValidStance("def") && !player.isValidStance("battle")) {
-            player.switchStance("battle");
+            player.switchStance("battle", &aura.stancerage);
         }
         player.rage -= aura.props.number("cost"_prop);
+        aura.ragespent += aura.props.number("cost"_prop);
         if (!player.foreverMode) {
             const double baseDamage = aura.props.number("value1"_prop);
             const double value2 = aura.props.number("value2"_prop);
@@ -503,7 +508,7 @@ bool auraStep(PlayerState& player, AuraState& aura) {
         return stepWithUpdate(player, aura, &PlayerState::updateAP, false, true);
     case AuraKind::BloodrageAura:
         if (detail::jsRemainder(player.step - aura.starttimer, 1000.0) == 0) {
-            player.rage = std::min(player.rage + aura.props.number("tickrage"_prop, 1), player.prop("ragecap"_prop, 100));
+            player.gainRage(aura.props.number("tickrage"_prop, 1));
         }
         if (player.step >= aura.timer) {
             expire(player, aura);

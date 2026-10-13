@@ -253,16 +253,6 @@ var profilePresets = [
                     "expriority": "1"
                 },
                 {
-                    "id": "7373",
-                    "active": true,
-                    "duration": 15,
-                    "durationactive": false,
-                    "minrage": "10",
-                    "minrageactive": true,
-                    "priority": "2",
-                    "expriority": 0
-                },
-                {
                     "id": "20662",
                     "active": true,
                     "minrage": 50,

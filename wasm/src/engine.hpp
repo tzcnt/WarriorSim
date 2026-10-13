@@ -297,6 +297,16 @@ struct SpellState {
     double idmg = 0;
     double usedrage = 0;
     double totalusedrage = 0;
+    // Batch counters: times this was the next GCD action but could not pay its cost, and the ms
+    // spent waiting. AuraState has the same pair.
+    std::uint64_t ragedelays = 0;
+    double ragewait = 0;
+    // Batch counters for damage per rage: rage paid after refunds (Execute's extra rage
+    // included), rage lost to the stance swaps this ability needed, and for a queued strike, the
+    // rage its replaced white swing would have generated. AuraState has the first two.
+    double ragespent = 0;
+    double stancerage = 0;
+    double whiterage = 0;
     Result lastResult = Result::Hit;
     std::unique_ptr<SpellState> backupHeroic;
     std::array<std::uint64_t, 5> data{};
@@ -323,6 +333,10 @@ struct AuraState {
     double uptime = 0;
     double totaldmg = 0;
     double idmg = 0;
+    std::uint64_t ragedelays = 0;
+    double ragewait = 0;
+    double ragespent = 0;
+    double stancerage = 0;
     std::vector<double> data;
 };
 
@@ -350,6 +364,9 @@ struct BatchReport {
     double starttime = 0;
     double endtime = 0;
     std::unordered_map<std::int32_t, std::uint32_t> spread;
+    double ragegained = 0;
+    // Iterations per rage-per-second bucket, keyed in thousandths of rage per second.
+    std::unordered_map<std::int32_t, std::uint32_t> ragespread;
 };
 
 struct CachedAuraAction {
@@ -425,6 +442,9 @@ struct PlayerState {
     Rng rng;
     double step = 0;
     double rage = 0;
+    // Per-fight report counter: generated rage that reached the bar (refunds and rage over
+    // the cap are excluded).
+    double ragegained = 0;
     double timer = 0;
     double itemtimer = 0;
     double stancetimer = 0;
@@ -442,6 +462,8 @@ struct PlayerState {
     double bloodthrilltimer = 0;
     double weaponArmorReduction(const WeaponState& weapon) const;
     std::string stance;
+    // The stancerage counter of the action that left the base stance; the switch back adds to it.
+    double* stanceCost = nullptr;
     // String properties have no dense slot: props.string() hashes the name and copies
     // the value on every call. basestance is fixed per spec, so it is read once.
     std::string baseStance;
@@ -499,6 +521,7 @@ struct PlayerState {
     void updateArmorReduction();
     void updateDmgMod();
     [[nodiscard]] double glanceReduction(const WeaponState& weapon);
+    [[nodiscard]] double glanceReduction(const WeaponState& weapon, double fraction) const;
     [[nodiscard]] double glanceChance(const WeaponState& weapon) const;
     [[nodiscard]] double missChance(const WeaponState& weapon) const;
     [[nodiscard]] double dwMissChance(const WeaponState& weapon) const;
@@ -507,6 +530,11 @@ struct PlayerState {
     [[nodiscard]] double dodgeChance(const WeaponState& weapon) const;
     [[nodiscard]] double getArmorReduction() const;
     void addRage(double dmg, Result result, WeaponState& weapon, const SpellState* spell);
+    [[nodiscard]] double swingRage(const WeaponState& weapon, Result result, double dmg) const;
+    [[nodiscard]] double replacedSwingRage(const SpellState& strike, const WeaponState& weapon, Result result,
+                                           double dmg, double before) const;
+    void gainRage(double amount);
+    void countRageGain(double base);
     bool stepTimer(double amount);
     bool stepItemTimer(double amount);
     bool stepStanceTimer(double amount);
@@ -514,7 +542,8 @@ struct PlayerState {
     void stepAuras(bool noBleeds = false);
     void endAuras();
     [[nodiscard]] Result rollWeapon(WeaponState& weapon);
-    [[nodiscard]] Result rollMeleeSpell(SpellState& spell, WeaponState& weapon);
+    [[nodiscard]] Result whiteTable(const WeaponState& weapon, int roll, double miss) const;
+    [[nodiscard]] Result rollMeleeSpell(SpellState& spell, WeaponState& weapon, int* tableRoll = nullptr);
     [[nodiscard]] Result rollMeleeAura(AuraState& aura, WeaponState& weapon);
     [[nodiscard]] Result rollMagicSpell(SpellState& spell);
     double attackMh(WeaponState& weapon, int adjacent = 0, double damageSoFar = 0);
@@ -527,7 +556,7 @@ struct PlayerState {
     double phantomProc(WeaponState& weapon);
     double magicProc(const ProcState& proc);
     double physProc(double dmg);
-    void switchStance(std::string_view value);
+    void switchStance(std::string_view value, double* cost = nullptr);
     [[nodiscard]] bool isValidStance(std::string_view value) const;
 };
 
@@ -549,6 +578,13 @@ int auraPrep(PlayerState&, AuraState&, double duration, double itemdelay);
 void auraProc(PlayerState&, AuraState&);
 [[nodiscard]] bool windfuryCanProc(const PlayerState&, const AuraState&);
 
+// The rage wait open in runOne: the action waiting, and the step it began.
+struct RageWaitState {
+    SpellState* spell = nullptr;
+    AuraState* aura = nullptr;
+    double start = 0;
+};
+
 class Engine {
 public:
     Engine(PlayerState player, SimConfig sim, std::uint32_t seed);
@@ -562,6 +598,9 @@ private:
     PlayerState player_;
     SimConfig sim_;
     std::uint32_t baseSeed_;
+    // Only full reports include rage waits, so other batches skip finding them.
+    bool trackRageWaits_ = false;
+    RageWaitState rageWait_;
 };
 
 [[nodiscard]] SpellKind parseSpellKind(std::string_view value);

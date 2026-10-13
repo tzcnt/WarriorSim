@@ -274,6 +274,8 @@ test('bounded work and malformed numeric results are rejected before forwarding'
     assert.equal(P.job(unsafe), false);
     assert.equal(P.safeTree(JSON.parse('{"__proto__":{"polluted":true}}')), false);
     assert.equal(P.report({...report(job(), 0), player: {mh: {data: 'invalid'}}}, job(), 0), false);
+    assert.equal(P.report({...report(job(), 0), ragegained: undefined}, job(), 0), false);
+    assert.equal(P.report({...report(job(), 0), ragespread: {}}, job(), 0), false);
     submit(owner);
     const work = helper.messages.find(message => message.type === 'work');
     assert.throws(() => receive(server, helper.client, {type: 'result', leaseId: work.leaseId,

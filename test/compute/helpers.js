@@ -13,7 +13,7 @@ function report(job, index) {
     const {count} = P.range(job, index);
     return {iterations: count, totaldmg: count * 100, totalduration: count * 10,
         sumdps: count * 10, sumdps2: count * 100, mindps: 10, maxdps: 10,
-        seed: job.seed, engineVersion: 1, starttime: 0, endtime: 0};
+        ragegained: count * 120, seed: job.seed, engineVersion: 1, starttime: 0, endtime: 0};
 }
 function harness(overrides = {}) {
     class FakeWorker {

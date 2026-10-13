@@ -78,6 +78,86 @@ bool leavesReserve(const PlayerState& player, double cost, double reserve) {
     return !reserve || player.rage - cost >= reserve;
 }
 
+double rageCost(const Action& action) {
+    if (action.spell) return action.spell->props.number("cost"_prop);
+    // Death Wish's cost defaults to 10, as in auraCanUse and reservedRage.
+    return action.aura->props.number("cost"_prop, action.aura->kind == AuraKind::DeathWish ? 10 : 0);
+}
+
+// A shortcut for rageBlocked, not a rule of its own: these canUse checks all fail while the
+// action's own timer runs, whatever the rage.
+bool coolingDown(const Action& action) {
+    if (action.aura) return action.aura->timer != 0;
+    switch (action.spell->kind) {
+    case SpellKind::Execute:
+    case SpellKind::HeroicStrike:
+    case SpellKind::Cleave:
+    case SpellKind::StanceSwitch:
+        return false;
+    default:
+        return action.spell->timer != 0;
+    }
+}
+
+// True when only rage stops the action: it fails now but succeeds once rage reaches its cost.
+// A minimum-rage setting above the cost is a rotation condition, so it still blocks here.
+bool rageBlocked(PlayerState& player, const Action& action) {
+    const double cost = rageCost(action);
+    if (player.rage >= cost || coolingDown(action)) return false;
+    const double rage = player.rage;
+    player.rage = cost;
+    const bool usable = canUse(player, action);
+    player.rage = rage;
+    return usable;
+}
+
+// Walks the GCD half of the decision in runOne in the same order and returns the first action
+// that only lacks rage, unless the action actually chosen comes before it.
+Action rageStarved(PlayerState& player, const Action& chosen, double reserve,
+                   const std::vector<std::pair<bool, int>>& priority) {
+    Action starved;
+    const auto stopsAt = [&](const Action& candidate) {
+        if (!candidate) return false;
+        if (candidate.spell == chosen.spell && candidate.aura == chosen.aura) return true;
+        if (!rageBlocked(player, candidate)) return false;
+        starved = candidate;
+        return true;
+    };
+    for (const auto key : {"flask"_action, "recklessness"_action, "deathwish"_action})
+        if (stopsAt(findAction(player, key, true))) return starved;
+    if (!player.foreverMode) {
+        for (const auto key : {"bloodfury"_action, "berserking"_action})
+            if (stopsAt(findAction(player, key, true))) return starved;
+    }
+    if (reserve || stopsAt(findAction(player, "battleshout"_action, true))) return starved;
+    for (const auto [isAura, index] : priority)
+        if (stopsAt(findAction(player, index, isAura))) break;
+    return starved;
+}
+
+void endRageWait(RageWaitState& wait, double end) {
+    if (wait.spell) {
+        ++wait.spell->ragedelays;
+        wait.spell->ragewait += end - wait.start;
+    } else if (wait.aura) {
+        ++wait.aura->ragedelays;
+        wait.aura->ragewait += end - wait.start;
+    }
+    wait = {};
+}
+
+// After each GCD decision in a full report: a wait opens when an action becomes the next GCD
+// choice except for rage, and closes at the first later decision where that no longer holds.
+// Kept out of line so this report-only scan stays out of runOne's loop.
+[[gnu::noinline]] void trackRageWait(PlayerState& player, RageWaitState& wait, const Action& chosen,
+                                     double reserve, bool executePhase) {
+    const Action starved = rageStarved(player, chosen, reserve,
+                                       executePhase ? player.executeSpells : player.normalSpells);
+    if (starved.spell == wait.spell && starved.aura == wait.aura) return;
+    endRageWait(wait, player.step);
+    if (starved) wait = {starved.spell, starved.aura, player.step};
+}
+
 double positiveModulo(double value, double divisor) {
     if (!divisor) return 0;
     double result = detail::jsRemainder(value, divisor);
@@ -151,17 +231,23 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
     double next = 0;
     double slamStep = 0;
     bool preemptible = false;
+    rageWait_ = {};
     std::uint64_t loopGuard = 0;
 
     while (player_.step < maxSteps) {
         if (++loopGuard > 10000000) throw std::runtime_error("simulation event loop made no progress");
         if (next != 0 && player_.talents.number("angermanagement"_prop) &&
             positiveModulo(player_.step, 3000) == 0) {
-            player_.rage = std::min(player_.rage + 1, player_.prop("ragecap"_prop, 100));
+            player_.gainRage(1);
             spellcheck = true;
         }
         if (player_.flag("vaelbuff"_prop) && next != 0 && positiveModulo(player_.step, 1000) == 0) {
-            player_.rage = player_.foreverMode ? std::min(player_.rage + 20, player_.prop("ragecap"_prop, 100)) : player_.rage >= 60 ? 100 : player_.rage + 20;
+            if (player_.foreverMode) player_.gainRage(20);
+            else {
+                const double before = player_.rage;
+                player_.rage = player_.rage >= 60 ? 100 : player_.rage + 20;
+                player_.countRageGain(before);
+            }
             spellcheck = true;
         }
 
@@ -170,7 +256,7 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
             double incoming = player_.rng.integer(player_.target.props.number("mindmg"_prop),
                                                         player_.target.props.number("maxdmg"_prop));
             if (const auto* wish = player_.aura("deathwish"_action); player_.foreverMode && wish && wish->timer > player_.step) incoming *= 1.05;
-            player_.rage = std::min(player_.rage + incoming / player_.prop("rageconversion"_prop) * 2.5, player_.prop("ragecap"_prop, 100));
+            player_.gainRage(incoming / player_.prop("rageconversion"_prop) * 2.5);
             if (auto* enrage = player_.aura("enrage"_action); incoming > 0 && enrage && player_.rng.tenK() < 3000) auraUse(player_, *enrage);
             spellcheck = true;
         }
@@ -225,6 +311,7 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
                 }
                 if (!delayedSpell && player_.configured.stanceSwitchSelection != kNoRef)
                     choose(player_, delayedSpell, player_.configured.stanceSwitchSelection, false);
+                const bool rageWaitCheck = trackRageWaits_ && !delayedSpell && !player_.timer;
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "flask"_action, true);
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "recklessness"_action, true);
                 if (!delayedSpell && !player_.timer) choose(player_, delayedSpell, "deathwish"_action, true);
@@ -247,6 +334,8 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
                     }
                     if (delayedSpell) preemptible = true;
                 }
+                if (rageWaitCheck)
+                    trackRageWait(player_, rageWait_, delayedSpell, reserve, player_.step >= executeStep);
                 if (delayedSpell) { player_.spelldelay = 1; }
                 if (player_.heroicdelay) spellcheck = false;
             }
@@ -455,6 +544,7 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
         }
     }
 
+    endRageWait(rageWait_, maxSteps);
     player_.endAuras();
     for (const int index : player_.configured.finalAuras)
         damage += player_.auras[static_cast<std::size_t>(index)].idmg;

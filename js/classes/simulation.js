@@ -145,6 +145,7 @@ function mergeSimulationReports(destination, source) {
     destination.sumdps2 += source.sumdps2 || 0;
     destination.starttime = Math.min(destination.starttime, source.starttime);
     destination.endtime = Math.max(destination.endtime, source.endtime);
+    if (source.ragegained !== undefined) destination.ragegained = (destination.ragegained || 0) + source.ragegained;
     if (source.seed !== undefined) destination.seed = source.seed;
     if (source.engineVersion !== undefined) destination.engineVersion = source.engineVersion;
 
@@ -163,6 +164,7 @@ function mergeSimulationReports(destination, source) {
                         for (let i = 0; i < src.data.length; ++i) dst.data[i] += src.data[i];
                     }
                     if (src.totaldmg) dst.totaldmg = (dst.totaldmg || 0) + src.totaldmg;
+                    mergeRageCounters(dst, src);
                 }
             }
             for (const id in source.player.spells) {
@@ -175,6 +177,7 @@ function mergeSimulationReports(destination, source) {
                     if (src.totalusedrage !== undefined) {
                         dst.totalusedrage = (dst.totalusedrage || 0) + src.totalusedrage;
                     }
+                    mergeRageCounters(dst, src);
                     for (let i = 0; i < src.data.length; ++i) dst.data[i] += src.data[i];
                 }
             }
@@ -190,7 +193,22 @@ function mergeSimulationReports(destination, source) {
             destination.spread[dps] = (destination.spread[dps] || 0) + source.spread[dps];
         }
     }
+    if (source.ragespread) {
+        if (!destination.ragespread) destination.ragespread = {};
+        for (const rps in source.ragespread) {
+            destination.ragespread[rps] = (destination.ragespread[rps] || 0) + source.ragespread[rps];
+        }
+    }
     return destination;
+}
+
+// Native-only per-action counters; reports from the JavaScript reference engine lack them.
+const rageCounters = ['ragedelays', 'ragewait', 'ragespent', 'stancerage', 'whiterage'];
+
+function mergeRageCounters(destination, source) {
+    for (const key of rageCounters) {
+        if (source[key] !== undefined) destination[key] = (destination[key] || 0) + source[key];
+    }
 }
 
 class SimulationWorkerParallel {

@@ -16,6 +16,7 @@ SIM.STATS = {
         view.dmglegend = view.stats.find('.container-dmg').siblings('.legend');
         view.aura = view.stats.find('.container-aura canvas');
         view.spread = view.stats.find('.container-spread canvas');
+        view.ragespread = view.stats.find('.container-ragespread canvas');
         view.colors = ['#003f5c', '#2f4b7c', '#665191', '#a05195', '#d45087', '#f95d6a', '#ff7c43', '#ffa600'];
         view.close = view.stats.find('.btn-close');
         view.table = view.stats.find('.container-table');
@@ -154,24 +155,62 @@ SIM.STATS = {
             backgroundColor: colors,
         });
 
-        data = [];
-        view.spreaddata = {
-            labels: [],
-            datasets: []
+        view.buildSpreadData(sim);
+    },
+
+    // Fights per bin of DPS and of rage per second, as step areas. A rage bin covers the same
+    // share of average rage per second as a 1-DPS bin does of average DPS, so both charts
+    // have the same resolution.
+    buildSpreadData: function (sim) {
+        var view = this;
+        // Engine keys: whole DPS, and thousandths of rage per second.
+        const keyed = spread => Object.keys(spread || {}).filter(key => spread[key])
+            .map(key => [Number(key), spread[key]]);
+        const dpsKeys = keyed(sim.spread);
+        const rageKeys = keyed(sim.ragespread);
+        const fights = keys => keys.reduce((sum, [, count]) => sum + count, 0);
+        const averageDps = sim.sumdps / sim.iterations;
+        const averageRage = rageKeys.reduce((sum, [key, count]) => sum + key * count, 0) / fights(rageKeys) / 1000;
+        const ratio = averageRage / averageDps;
+        const showRage = rageKeys.length && ratio > 0 && Number.isFinite(ratio);
+        const rageBin = showRage ? Math.max(1, Math.round(1000 * ratio)) : 1;
+
+        // Zero-filled bins, with an empty bin at each end so the area closes on the baseline.
+        const steps = (keys, width, toPoint) => {
+            const bins = new Map();
+            for (const [key, count] of keys) {
+                const bin = Math.floor(key / width);
+                bins.set(bin, (bins.get(bin) || 0) + count);
+            }
+            const first = keys.reduce((min, [key]) => Math.min(min, Math.floor(key / width)), Infinity);
+            const last = keys.reduce((max, [key]) => Math.max(max, Math.floor(key / width)), -Infinity);
+            const points = [];
+            for (let bin = first - 1; bin <= last + 1; ++bin) points.push(toPoint(bin, bins.get(bin) || 0));
+            return points;
         };
-
-        for(let i in sim.spread) {
-            view.spreaddata.labels.push(i);
-            data.push(sim.spread[i]);
-        }
-
-        view.spreaddata.datasets.push({
-            data: data,
-            backgroundColor: 'rgba(255, 99, 132, 0.5)',
-            borderColor: 'rgb(255, 99, 132)',
-            fill: 'origin'
+        // range spans the outer bins' edges.
+        const series = (label, points, width, color, fill) => ({
+            label, range: {min: points[0].x - width / 2, max: points[points.length - 1].x + width / 2},
+            datasets: [{
+                data: points, borderColor: color, backgroundColor: fill, borderWidth: 2,
+                fill: 'origin', steppedLine: 'middle', pointRadius: 0, pointHoverRadius: 3,
+            }],
         });
-
+        view.spreaddata = series(`DPS (average ${(sim.totaldmg / sim.totalduration).toFixed(2)})`,
+            steps(dpsKeys, 1, (bin, count) => ({x: bin, y: count, label: `${bin} DPS`})),
+            1, '#e66767', 'rgba(230, 103, 103, 0.3)');
+        view.ragespreaddata = null;
+        if (showRage) {
+            const width = rageBin / 1000;
+            const digits = width >= .1 ? 1 : width >= .01 ? 2 : 3;
+            view.ragespreaddata = series(`Rage per second (average ${(sim.ragegained / sim.totalduration).toFixed(2)})`,
+                steps(rageKeys, rageBin, (bin, count) => ({
+                    x: (bin + .5) * width,
+                    y: count,
+                    label: rageBin === 1 ? `${(bin * width).toFixed(3)} rage/s` :
+                        `${(bin * width).toFixed(digits)}–${((bin + 1) * width).toFixed(digits)} rage/s`,
+                })), width, '#3987e5', 'rgba(57, 135, 229, 0.3)');
+        }
     },
 
     buildAuras: function () {
@@ -291,48 +330,76 @@ SIM.STATS = {
     buildTable: function (sim) {
         var view = this;
         view.table.empty();
-        let html = '<table><thead><tr><th>Action</th><th>Hit %</th><th>Crit %</th><th>Miss %</th><th>Dodge %</th><th>Glance %</th><th>Uses</th><th>DPR</th><th>DPS</th></tr></thead><tbody>';
+        let html = '<table><thead><tr><th>Action</th><th>Hit %</th><th>Crit %</th><th>Miss %</th><th>Dodge %</th><th>Glance %</th><th>Uses</th>' +
+            '<th title="Times per fight this was the next ability to use, but there was not enough rage to pay for it">Rage Delays</th>' +
+            '<th title="Seconds per fight spent waiting for that rage, until it could be used or something else came first">Rage Wait (s)</th>' +
+            '<th title="Damage per rage. Rage is what was paid after refunds, plus rage lost to the stance swaps the ability needed (there and back), plus for Heroic Strike and Cleave the rage the white swing they replaced would have generated">DPR</th>' +
+            '<th>DPS</th></tr></thead><tbody>';
 
         let i = sim.iterations;
+        // Rage waits are counted for abilities that take a GCD; other rows leave these cells empty.
+        const rage = action => action && action.ragedelays !== undefined ?
+            `<td>${(action.ragedelays / i).toFixed(2)}</td><td>${(action.ragewait / 1000 / i).toFixed(2)}</td>` : '<td></td><td></td>';
+        // Damage per rage, with the rage per use broken down in the cell's tooltip when uses are counted.
+        const dpr = (action, uses) => {
+            const cost = (action.ragespent || 0) + (action.stancerage || 0) + (action.whiterage || 0);
+            if (!action.totaldmg || !(cost > 0)) return '<td></td>';
+            const parts = [`${((action.ragespent || 0) / uses).toFixed(2)} paid after refunds`,
+                `${((action.stancerage || 0) / uses).toFixed(2)} lost to stance swaps`];
+            if (action.whiterage !== undefined) parts.push(`${(action.whiterage / uses).toFixed(2)} white swing rage given up`);
+            const title = uses ? ` title="Rage per use: ${parts.join(', ')}"` : '';
+            return `<td${title}>${(action.totaldmg / cost).toFixed(2)}</td>`;
+        };
         let data = sim.player.mh.data;
         let total = data.reduce((a, b) => a + b, 0);
         let dps = (sim.player.mh.totaldmg / sim.totalduration).toFixed(2);
-        html += `<tr><td>Main Hand</td><td>${(data[0] / total * 100).toFixed(2)}</td><td>${(data[3] / total * 100).toFixed(2)}</td><td>${(data[1] / total * 100).toFixed(2)}</td><td>${(data[2] / total * 100).toFixed(2)}</td><td>${(data[4] / total * 100).toFixed(2)}</td><td>${(total / i).toFixed(2)}</td><td></td><td>${dps}</td></tr>`;
+        html += `<tr><td>Main Hand</td><td>${(data[0] / total * 100).toFixed(2)}</td><td>${(data[3] / total * 100).toFixed(2)}</td><td>${(data[1] / total * 100).toFixed(2)}</td><td>${(data[2] / total * 100).toFixed(2)}</td><td>${(data[4] / total * 100).toFixed(2)}</td><td>${(total / i).toFixed(2)}</td>${rage()}<td></td><td>${dps}</td></tr>`;
 
         if (sim.player.oh) {
             data = sim.player.oh.data;
             total = data.reduce((a, b) => a + b, 0);
             dps = (sim.player.oh.totaldmg / sim.totalduration).toFixed(2);
-            html += `<tr><td>Off Hand</td><td>${(data[0] / total * 100).toFixed(2)}</td><td>${(data[3] / total * 100).toFixed(2)}</td><td>${(data[1] / total * 100).toFixed(2)}</td><td>${(data[2] / total * 100).toFixed(2)}</td><td>${(data[4] / total * 100).toFixed(2)}</td><td>${(total / i).toFixed(2)}</td><td></td><td>${dps}</td></tr>`;
+            html += `<tr><td>Off Hand</td><td>${(data[0] / total * 100).toFixed(2)}</td><td>${(data[3] / total * 100).toFixed(2)}</td><td>${(data[1] / total * 100).toFixed(2)}</td><td>${(data[2] / total * 100).toFixed(2)}</td><td>${(data[4] / total * 100).toFixed(2)}</td><td>${(total / i).toFixed(2)}</td>${rage()}<td></td><td>${dps}</td></tr>`;
         }
 
         for (let name in sim.player.spells) {
-            let n = sim.player.spells[name].name;
-            let data = sim.player.spells[name].data;
+            const spell = sim.player.spells[name];
+            let n = spell.name;
+            let data = spell.data;
             let total = data.reduce((a, b) => a + b, 0);
-            if (!total) continue;
-            let dps = (sim.player.spells[name].totaldmg / sim.totalduration).toFixed(2);
-            let dpr = ((sim.player.spells[name].totaldmg / i) / (sim.player.spells[name].cost * (total / i))).toFixed(2);
-            if (name == "execute")
-                dpr = ((sim.player.spells[name].totaldmg / i) / ((sim.player.spells[name].cost * (total / i)) + (sim.player.spells[name].totalusedrage / i))).toFixed(2);
-            html += `<tr><td>${n}</td><td>${(data[0] / total * 100).toFixed(2)}</td><td>${(data[3] / total * 100).toFixed(2)}</td><td>${(data[1] / total * 100).toFixed(2)}</td><td>${(data[2] / total * 100).toFixed(2)}</td><td>${(data[4] / total * 100).toFixed(2)}</td><td>${(total / i).toFixed(2)}</td><td>${dpr}</td><td>${dps}</td></tr>`;
+            // An ability that only ever waited for rage still gets a row.
+            if (!total && !spell.ragedelays) continue;
+            const percent = index => total ? (data[index] / total * 100).toFixed(2) : '';
+            let dps = (spell.totaldmg / sim.totalduration).toFixed(2);
+            // Heroic Strike and Cleave are queued on the next swing and never take a GCD.
+            const queued = name == "heroicstrike" || name == "cleave";
+            html += `<tr><td>${n}</td><td>${percent(0)}</td><td>${percent(3)}</td><td>${percent(1)}</td><td>${percent(2)}</td><td>${percent(4)}</td><td>${(total / i).toFixed(2)}</td>${rage(queued ? null : spell)}${dpr(spell, total)}<td>${dps}</td></tr>`;
         }
 
+        const shown = new Set();
         if (sim.player.auras.rend) {
+            shown.add('rend');
             let data = sim.player.auras.rend.data;
             let total = data.reduce((a, b) => a + b, 0);
             let totaldmg = sim.player.auras.rend.totaldmg;
             let dps = (totaldmg / sim.totalduration).toFixed(2);
-            let dpr = ((totaldmg / i) / (sim.player.auras.rend.cost * (total / i))).toFixed(2);
-            html += `<tr><td>${sim.player.auras.rend.name}</td><td></td><td></td><td>${(data[1] / total * 100).toFixed(2)}</td><td>${(data[2] / total * 100).toFixed(2)}</td><td></td><td>${(total / i).toFixed(2)}</td><td>${dpr}</td><td>${dps}</td></tr>`;
+            // Damage is every tick that landed; rage is what its applications paid.
+            html += `<tr><td>${sim.player.auras.rend.name}</td><td></td><td></td><td>${(data[1] / total * 100).toFixed(2)}</td><td>${(data[2] / total * 100).toFixed(2)}</td><td></td><td>${(total / i).toFixed(2)}</td>${rage(sim.player.auras.rend)}${dpr(sim.player.auras.rend, total)}<td>${dps}</td></tr>`;
         }
 
         for (const key of ['sweepingstrikes', 'touchofthegrave', 'deepwounds', 'deepwounds2', 'deepwounds3', 'deepwounds4']) {
             const aura = sim.player.auras[key];
             if (!aura?.totaldmg) continue;
+            shown.add(key);
             const dps = (aura.totaldmg / sim.totalduration).toFixed(2);
-            // These effects have no separate recorded attack table.
-            html += `<tr><td>${aura.name}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>${dps}</td></tr>`;
+            // These effects have no separate recorded attack table. Only Sweeping Strikes costs rage.
+            html += `<tr><td>${aura.name}</td><td></td><td></td><td></td><td></td><td></td><td></td>${rage(key == 'sweepingstrikes' ? aura : null)}${dpr(aura, 0)}<td>${dps}</td></tr>`;
+        }
+
+        // Rage waits only: Death Wish, and any other aura that waited for rage without a row above.
+        for (const [key, aura] of Object.entries(sim.player.auras)) {
+            if (shown.has(key) || (key != 'deathwish' && !aura.ragedelays)) continue;
+            html += `<tr><td>${aura.name}</td><td></td><td></td><td></td><td></td><td></td><td></td>${rage(aura)}<td></td><td></td></tr>`;
         }
 
         html += '</tbody></table>';
@@ -345,26 +412,24 @@ SIM.STATS = {
 
     buildSpread: function () {
         var view = this;
-
         if (view.spreadchart) view.spreadchart.destroy();
-        view.spreadchart = new Chart(view.spread, {
-            type: 'bar',
-            data: view.spreaddata,
+        view.spreadchart = view.spreadChart(view.spread, view.spreaddata);
+        if (view.ragespreadchart) view.ragespreadchart.destroy();
+        view.ragespreadchart = null;
+        view.ragespread.closest('article').toggle(!!view.ragespreaddata);
+        if (view.ragespreaddata) view.ragespreadchart = view.spreadChart(view.ragespread, view.ragespreaddata);
+    },
+
+    spreadChart: function (canvas, spread) {
+        // The range ends are exact, not round, so they are left unlabeled.
+        const innerTicks = (scale, ticks) => ticks.length > 2 ? ticks.slice(1, -1) : ticks;
+        return new Chart(canvas, {
+            type: 'line',
+            data: {datasets: spread.datasets},
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                spanGaps: false,
-                legend: {
-                    display: false,
-                },
-                elements: {
-                    line: {
-                        tension: 0.4
-                    },
-                    point:{
-                        radius: 0
-                    }
-                },
+                legend: {display: false},
                 plugins: {
                     filler: {
                         propagate: false
@@ -372,16 +437,28 @@ SIM.STATS = {
                 },
                 scales: {
                     xAxes: [{
-                        ticks: {
-                            beginAtZero:true,
-                            autoSkip: true,
-                            maxRotation: 0
-                        }
+                        type: 'linear', afterBuildTicks: innerTicks,
+                        ticks: {fontColor: '#aaa', maxRotation: 0, ...spread.range},
+                        gridLines: {display: false},
+                        scaleLabel: {display: true, labelString: spread.label, fontColor: '#ccc'},
+                    }],
+                    yAxes: [{
+                        ticks: {beginAtZero: true, precision: 0, fontColor: '#aaa'},
+                        gridLines: {color: 'rgba(255, 255, 255, 0.08)', zeroLineColor: 'rgba(255, 255, 255, 0.2)'},
+                        scaleLabel: {display: true, labelString: 'Fights', fontColor: '#ccc'},
                     }],
                 },
+                hover: {mode: 'nearest', intersect: false, axis: 'x'},
                 tooltips: {
+                    mode: 'nearest',
+                    intersect: false,
+                    axis: 'x',
                     callbacks: {
-                        label: (item, obj) => ` ${obj.labels[item.index]} DPS: ${obj.datasets[0].data[item.index]}`,
+                        title: () => '',
+                        label: (item, data) => {
+                            const point = data.datasets[item.datasetIndex].data[item.index];
+                            return ` ${point.label}: ${point.y} ${point.y === 1 ? 'fight' : 'fights'}`;
+                        },
                     }
                 },
             }

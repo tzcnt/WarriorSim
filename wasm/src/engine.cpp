@@ -774,7 +774,7 @@ Engine::Engine(PlayerState player, SimConfig sim, std::uint32_t seed)
 }
 
 BatchReport Engine::runBatch(std::uint32_t count, std::uint32_t globalIterationOffset,
-                             bool /*fullReport*/) {
+                             bool fullReport) {
     // These fields are observational counters only. Resetting them at the batch
     // boundary makes every returned player report a mergeable delta without
     // changing persistent combat configuration or per-fight reset semantics.
@@ -787,12 +787,16 @@ BatchReport Engine::runBatch(std::uint32_t count, std::uint32_t globalIterationO
     for (auto& spell : player_.spells) {
         spell.totaldmg = 0;
         spell.totalusedrage = 0;
+        spell.ragedelays = 0;
+        spell.ragewait = spell.ragespent = spell.stancerage = spell.whiterage = 0;
         spell.data.fill(0);
     }
     for (auto& aura : player_.auras) {
-        aura.uptime = aura.totaldmg = 0;
+        aura.uptime = aura.totaldmg = aura.ragewait = aura.ragespent = aura.stancerage = 0;
+        aura.ragedelays = 0;
         std::fill(aura.data.begin(), aura.data.end(), 0);
     }
+    trackRageWaits_ = fullReport;
     BatchReport report;
     report.iterations = count;
     const auto started = std::chrono::system_clock::now();
@@ -808,6 +812,11 @@ BatchReport Engine::runBatch(std::uint32_t count, std::uint32_t globalIterationO
         report.sumdps += dps;
         report.sumdps2 += dps * dps;
         ++report.spread[static_cast<std::int32_t>(std::floor(dps + 0.5))];
+        report.ragegained += player_.ragegained;
+        if (fullReport) {
+            const double rps = duration > 0 ? player_.ragegained / duration : 0;
+            ++report.ragespread[static_cast<std::int32_t>(std::floor(rps * 1000 + 0.5))];
+        }
     }
     if (!count) report.mindps = 99999;
     const auto ended = std::chrono::system_clock::now();
@@ -826,6 +835,7 @@ std::string Engine::reportJson(const BatchReport& report, bool fullReport) const
     out << ",\"sumdps2\":"; jsonNumber(out, report.sumdps2);
     out << ",\"starttime\":"; jsonNumber(out, report.starttime);
     out << ",\"endtime\":"; jsonNumber(out, report.endtime);
+    out << ",\"ragegained\":"; jsonNumber(out, report.ragegained);
     out << ",\"engineVersion\":" << kEngineVersion << ",\"seed\":" << baseSeed_;
     if (fullReport) {
         out << ",\"spread\":{";
@@ -834,6 +844,13 @@ std::string Engine::reportJson(const BatchReport& report, bool fullReport) const
             if (!first) out << ',';
             first = false;
             out << '\"' << dps << "\":" << count;
+        }
+        out << "},\"ragespread\":{";
+        first = true;
+        for (const auto& [rps, count] : report.ragespread) {
+            if (!first) out << ',';
+            first = false;
+            out << '\"' << rps << "\":" << count;
         }
         out << "},\"player\":{\"auras\":{";
         first = true;
@@ -844,6 +861,10 @@ std::string Engine::reportJson(const BatchReport& report, bool fullReport) const
                 << jsonEscape(aura.props.string("name"_prop, aura.key)) << "\",\"uptime\":";
             jsonNumber(out, aura.uptime);
             out << ",\"totaldmg\":"; jsonNumber(out, aura.totaldmg);
+            out << ",\"ragedelays\":" << aura.ragedelays;
+            out << ",\"ragewait\":"; jsonNumber(out, aura.ragewait);
+            out << ",\"ragespent\":"; jsonNumber(out, aura.ragespent);
+            out << ",\"stancerage\":"; jsonNumber(out, aura.stancerage);
             out << ",\"data\":[";
             for (std::size_t i = 0; i < aura.data.size(); ++i) {
                 if (i) out << ',';
@@ -860,6 +881,11 @@ std::string Engine::reportJson(const BatchReport& report, bool fullReport) const
                 << jsonEscape(spell.props.string("name"_prop, spell.key)) << "\",\"cost\":";
             jsonNumber(out, spell.props.number("cost"_prop));
             out << ",\"totalusedrage\":"; jsonNumber(out, spell.totalusedrage);
+            out << ",\"ragedelays\":" << spell.ragedelays;
+            out << ",\"ragewait\":"; jsonNumber(out, spell.ragewait);
+            out << ",\"ragespent\":"; jsonNumber(out, spell.ragespent);
+            out << ",\"stancerage\":"; jsonNumber(out, spell.stancerage);
+            out << ",\"whiterage\":"; jsonNumber(out, spell.whiterage);
             out << ",\"totaldmg\":";
             jsonNumber(out, spell.totaldmg);
             out << ",\"data\":[";

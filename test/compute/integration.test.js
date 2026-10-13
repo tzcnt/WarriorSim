@@ -25,7 +25,7 @@ async function until(check, timeout = 10000) {
 }
 
 function comparePlayer(actual, expected, key = '') {
-    if (typeof expected === 'number' && ['totaldmg', 'totalprocdmg', 'uptime'].includes(key)) {
+    if (typeof expected === 'number' && ['totaldmg', 'totalprocdmg', 'uptime', 'ragewait', 'ragespent', 'stancerage', 'whiterage'].includes(key)) {
         // Per-event floating point accumulation changes grouping at batch boundaries.
         assert.ok(Math.abs(actual - expected) <= Math.max(1e-8, Math.abs(expected) * 1e-9), key);
     } else if (expected && typeof expected === 'object') {
@@ -74,15 +74,33 @@ test('real WASM reports validate and mixed chunks preserve all aggregate/player 
             }
         } finally { module.destroyEngine(handle); }
         const expected = runNative(module, fixture, sim);
-        for (const key of ['iterations', 'totaldmg', 'totalduration', 'sumdps', 'sumdps2', 'mindps', 'maxdps']) {
+        for (const key of ['iterations', 'totaldmg', 'totalduration', 'sumdps', 'sumdps2', 'mindps', 'maxdps', 'ragegained']) {
             assert.ok(Math.abs(merged[key] - expected[key]) <= Math.max(1e-8, Math.abs(expected[key]) * 1e-12), `${fixture.name}: ${key}`);
         }
         comparePlayer(merged.player, expected.player);
         assert.deepEqual(Object.fromEntries(Object.entries(merged.spread)), expected.spread);
+        assert.deepEqual(Object.fromEntries(Object.entries(merged.ragespread)), expected.ragespread);
         const corrupt = structuredClone(expected);
         const first = Object.keys(corrupt.player.auras)[0];
         corrupt.player.auras[first].name = '<img src=x onerror=alert(1)>';
         assert.equal(P.report(corrupt, {...value, chunkSize: 321}, 0), false);
+        assert.ok(P.report(expected, {...value, chunkSize: 321}, 0), `${fixture.name}: whole report`);
+        const spell = Object.keys(expected.player.spells)[0];
+        for (const change of [
+            report => { delete report.ragegained; },
+            report => { delete report.ragespread; },
+            report => { report.ragespread[Object.keys(report.ragespread)[0]] += 1; },
+            report => { report.player.spells[spell].ragedelays = 0.5; },
+            report => { report.player.auras[first].ragewait = -1; },
+            report => { report.player.spells[spell].ragespent = '1'; },
+            report => { delete report.player.auras[first].ragespent; },
+            report => { report.player.auras[first].stancerage = -1; },
+            report => { report.player.spells[spell].whiterage = -1; },
+        ]) {
+            const changed = structuredClone(expected);
+            change(changed);
+            assert.equal(P.report(changed, {...value, chunkSize: 321}, 0), false, `${fixture.name}: ${change}`);
+        }
     }
 });
 
