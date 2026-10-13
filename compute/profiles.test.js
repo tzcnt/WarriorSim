@@ -16,7 +16,7 @@ const expectedSunder = expected.rotation.find(spell => String(spell.id) === '115
 const sunderSettings = spell => ({active: spell.active !== false, priority: String(spell.priority),
     globalsactive: spell.globalsactive, globals: String(spell.globals)});
 
-test('Forever default matches its preset, preserves saved profiles, and stays out of Classic', async t => {
+test('Forever default is its first preset, preserves saved profiles, and stays out of Classic', async t => {
     const types = {'.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json',
         '.css': 'text/css', '.wasm': 'application/wasm'};
     const server = http.createServer((req, res) => {
@@ -54,7 +54,7 @@ test('Forever default matches its preset, preserves saved profiles, and stays ou
             spec: new Player(undefined, undefined, undefined, Player.getConfig())
                 .serializeSimulationSpec(Simulation.getConfig())};
     });
-    assert.equal(firstVisit.saved.profilename, 'Default');
+    assert.equal(firstVisit.saved.profilename, expected.profilename);
     assert.equal(firstVisit.saved.race, expected.race);
     assert.deepEqual(sunderSettings(await page.evaluate(() => JSON.parse(localStorage.forever0).rotation.find(s => s.id == 11597))),
         sunderSettings(expectedSunder), 'the default uses the preset Sunder Armor settings');
@@ -213,6 +213,8 @@ test('Forever default matches its preset, preserves saved profiles, and stays ou
 
     await ready('classic');
     assert.equal(await page.locator('[data-preset]').count(), 0);
+    assert.equal(await page.evaluate(() => JSON.parse(localStorage.classic0).profilename),
+        await page.evaluate(() => profilePresets[0].profile.profilename), 'the Classic default is its first preset');
     assert.equal(await page.locator('.profile').count(), 1);
     assert.deepEqual(errors, []);
 });

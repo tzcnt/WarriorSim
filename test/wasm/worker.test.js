@@ -149,7 +149,7 @@ function createMinifiedContext(fixture, FakeWorker, includeSession) {
         'talent-rules.min.js',
         'racial-rules.min.js',
         'data/buffs.min.js',
-        ...(includeSession ? [fixture.mode === 'classic' ? 'data/session.min.js' : 'data/session_forever.min.js'] : []),
+        ...(includeSession ? [fixture.mode === 'classic' ? 'data/presets_classic.min.js' : 'data/presets_forever.min.js', 'session.min.js'] : []),
         'data/levelstats.min.js',
         'classes/player.min.js',
         'classes/simulation.min.js',

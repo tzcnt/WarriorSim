@@ -44,7 +44,12 @@
     },
     "buffsAdd": [
       10614
-    ]
+    ],
+    "rotation": {
+      "25286": {
+        "active": true
+      }
+    }
   },
   {
     "name": "classic-adjacent-cleave",
@@ -150,6 +155,9 @@
       },
       "23894": {
         "active": false
+      },
+      "25286": {
+        "active": true
       }
     },
     "expect": {
@@ -207,6 +215,13 @@
     },
     "buffsAdd": [
       10614
-    ]
+    ],
+    "rotation": {
+      "7373": {
+        "active": true,
+        "minrage": "10",
+        "priority": "2"
+      }
+    }
   }
 ]

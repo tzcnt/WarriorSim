@@ -115,5 +115,5 @@ git diff -- js/data/presets_forever.js
 ```
 
 Rebuild the browser assets using the [build instructions](../CONTRIBUTING.md#build-the-browser-assets)
-to make the updated preset available on your served site. The first-visit defaults
-in `js/data/session_forever.js` are maintained separately.
+to make the updated preset available on your served site. The first preset is also
+the first-visit default, so updating it changes what new visitors see.

@@ -34,7 +34,7 @@ function loadSimulation(full = false) {
     if (full) sources.push(
         'js/data/gear.js', 'js/data/enchants.js', 'js/data/talents.js',
         'js/data/spells.js', 'js/racial-rules.js', 'js/data/buffs.js', 'js/data/levelstats.js',
-        'js/data/session.js', 'js/classes/spell.js', 'js/classes/weapon.js', 'js/globals.js',
+        'js/data/presets_classic.js', 'js/session.js', 'js/classes/spell.js', 'js/classes/weapon.js', 'js/globals.js',
     );
     for (const relativePath of sources) {
         vm.runInContext(readSource(relativePath), context, {filename: relativePath});

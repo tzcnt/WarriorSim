@@ -9,7 +9,7 @@ function profileContext(mode = 'forever') {
     const context = vm.createContext({mode});
     for (const file of [`data/${mode === 'forever' ? 'gear_forever' : 'gear'}`, 'data/enchants',
         'data/buffs', 'data/spells', 'data/talents', 'data/talents_forever', 'talent-rules',
-        'racial-rules', `data/${mode === 'forever' ? 'session_forever' : 'session'}`]) {
+        'racial-rules', `data/presets_${mode}`, 'session']) {
         const filename = path.resolve(__dirname, '../../js', file + '.js');
         vm.runInContext(fs.readFileSync(filename, 'utf8'), context, {filename});
     }

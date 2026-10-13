@@ -146,7 +146,7 @@ for Forever while preserving Classic combat behavior.
 
 Every permanent preset spent points in removed talents, so each was rebuilt on
 2026-10-07 and then tuned in the app. Gear, buffs and rotations were also revised.
-The first-visit default (`session_forever.js`) is the Dual Wield Fury preset.
+The first-visit default is the first preset, Dual Wield Fury.
 The DPS below is from this checkout's native engine, including the Deep Wounds change.
 It uses 100,000 fights per preset with a common seed and each preset's own settings
 (single-target, 50–60 s). This is a measurement, not a rerun of

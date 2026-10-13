@@ -122,8 +122,9 @@ for (const mode of ['classic', 'forever']) {
     });
 }
 
-function stackingSetup() {
+function stackingSetup(rotation = {}) {
     const fixture = bleedFixtures().find(f => f.name === 'forever-bleeds-impale-2');
+    Object.assign(fixture.rotation, rotation);
     const engine = createReferenceEngine('forever');
     const player = createConfiguredPlayer(engine, fixture);
     engine.evaluate('step = 0; setSimulationSeed(123); rng10k = () => 9999');
@@ -256,7 +257,7 @@ test('Forever Deep Wounds cannot crit and pays only the saved damage across refr
 });
 
 test('Forever fixed-damage main-hand special crits contribute main-hand Deep Wounds damage', () => {
-    const {engine, player, aura} = stackingSetup();
+    const {engine, player, aura} = stackingSetup({7373: {active: true}});
     const hamstring = player.spells.hamstring;
     hamstring.use = () => {};
     player.rollmeleespell = () => engine.evaluate('RESULT.CRIT');

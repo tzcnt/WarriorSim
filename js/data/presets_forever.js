@@ -1,4 +1,5 @@
-// Permanent profile snapshots, independent of saved profiles and future default changes.
+// Permanent profile snapshots, independent of saved profiles.
+// The first preset is also the first-visit default (js/session.js).
 // Talents since the October 2026 rework: data/forever/README.md#october-2026-presets.
 // Earlier talents: data/forever/dual-wield-talents-result.json. Abilities: data/forever/DUAL_WIELD_ABILITIES.md.
 // Two-handed Fury: data/forever/TWO_HANDED_FURY.md.

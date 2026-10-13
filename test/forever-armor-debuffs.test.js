@@ -121,15 +121,12 @@ test('Forever Sunder Armor and Faerie Fire icons and tooltips include the debuff
     assert.equal(engine.evaluate('getBuffForMode(buffs.find(b => b.id === 9907), "forever").name'), 'Faerie Fire');
 });
 
-test('Forever presets and defaults do not enable Curse of Recklessness', () => {
-    for (const file of ['js/data/presets_forever.js', 'js/data/session_forever.js']) {
-        const sandbox = {};
-        vm.runInNewContext(fs.readFileSync(require.resolve(`../${file}`), 'utf8'), sandbox);
-        const profiles = sandbox.profilePresets ? sandbox.profilePresets.map(p => p.profile) : [sandbox.session];
-        assert.ok(profiles.length > 0, file);
-        for (const profile of profiles) {
-            assert.ok(profile.buffs.includes('9907'), `${file} keeps Faerie Fire`);
-            for (const id of CURSE_IDS) assert.ok(!profile.buffs.includes(String(id)), `${file} enables ${id}`);
-        }
+test('Forever presets, including the first-visit default, do not enable Curse of Recklessness', () => {
+    const sandbox = {};
+    vm.runInNewContext(fs.readFileSync(require.resolve('../js/data/presets_forever.js'), 'utf8'), sandbox);
+    assert.ok(sandbox.profilePresets.length > 0);
+    for (const {id, profile} of sandbox.profilePresets) {
+        assert.ok(profile.buffs.includes('9907'), `${id} keeps Faerie Fire`);
+        for (const curse of CURSE_IDS) assert.ok(!profile.buffs.includes(String(curse)), `${id} enables ${curse}`);
     }
 });

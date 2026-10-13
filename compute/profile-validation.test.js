@@ -97,16 +97,16 @@ test('profile notes display after import, dismiss with OK, and use the shared fi
         if (mode === 'forever') assert.match(await dialog.innerText(), /999 ranks become 3/);
         await dialog.getByRole('button', {name: 'OK', exact: true}).click();
 
+        // Shipped presets are current and load without a notice.
+        for (const id of await page.evaluate(() => profilePresets.map(preset => preset.id))) {
+            const loaded = await page.evaluate(id => {
+                SIM.PROFILES.loadPreset(id);
+                return JSON.parse(localStorage[mode + globalThis.profileid]).profilename;
+            }, id);
+            assert.equal(loaded, await page.evaluate(id => profilePresets.find(p => p.id === id).profile.profilename, id));
+            assert.equal(await page.locator('dialog[open]').count(), 0, `${id} needs no import notice`);
+        }
         if (mode === 'forever') {
-            // Shipped presets are current and load without a notice.
-            for (const id of await page.evaluate(() => profilePresets.map(preset => preset.id))) {
-                const loaded = await page.evaluate(id => {
-                    SIM.PROFILES.loadPreset(id);
-                    return JSON.parse(localStorage[mode + globalThis.profileid]).profilename;
-                }, id);
-                assert.equal(loaded, await page.evaluate(id => profilePresets.find(p => p.id === id).profile.profilename, id));
-                assert.equal(await page.locator('dialog[open]').count(), 0, `${id} needs no import notice`);
-            }
             // A preset with findings uses defaults and loads immediately while its notice stays open.
             const preset = await page.evaluate(() => {
                 const profile = structuredClone(profilePresets[0].profile);

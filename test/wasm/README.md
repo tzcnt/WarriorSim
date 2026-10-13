@@ -1,6 +1,6 @@
 # Classic Era and WoW Forever WASM validation
 
-The reference engine loads this repository's `session.js` or `session_forever.js` and the matching gear catalog. It executes the production JavaScript combat engine unchanged. No native-generated reference results are used.
+The reference engine loads this repository's first Classic or Forever preset as the default session, and the matching gear catalog. It executes the production JavaScript combat engine unchanged. No native-generated reference results are used.
 
 - `npm test`: existing combat regressions, deterministic JavaScript full-report goldens, serializer checks, and source/minified worker control tests.
 - `npm run test:wasm`: full native counter parity at fixed/zero/max seeds, every fixture's uneven persistent and fresh partitions, ABI validation, optimized edge cases, and the deployed worker with the actual distribution WASM module.

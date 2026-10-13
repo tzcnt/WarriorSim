@@ -25,7 +25,7 @@ options are ignored, and those options are hidden in rotation details. Classic
 retains both mechanics and options. The fixtures also run through native parity
 and partition checks in `npm run test:wasm`.
 
-The integration tests construct real Classic players from `js/data/session.js`
+The integration tests construct real Classic players from `js/data/presets_classic.js`
 and the Classic catalogs. Fury and Cleave fixtures check repeatability and
 compare the entire combat report after uneven partitions with fresh players.
 They require actual Execute, glancing blows, and Flurry activity. Synchronous,

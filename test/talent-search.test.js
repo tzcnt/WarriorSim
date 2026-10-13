@@ -10,10 +10,10 @@ const {searchSeeds} = require('../scripts/lib/search-seeds');
 function fixture() {
     const context = vm.createContext({});
     vm.runInContext(fs.readFileSync('js/data/talents_forever.js', 'utf8'), context);
-    vm.runInContext(fs.readFileSync('js/data/session_forever.js', 'utf8'), context);
+    vm.runInContext(fs.readFileSync('js/data/presets_forever.js', 'utf8'), context);
     const trees = JSON.parse(JSON.stringify(context.talentsForever)).map(tree => ({...tree,
         t: tree.t.map(t => ({...t, key: t.forever.key}))}));
-    const baseline = JSON.parse(JSON.stringify(context.session.talents)).map(tree => tree.t);
+    const baseline = JSON.parse(JSON.stringify(context.profilePresets[0].profile.talents)).map(tree => tree.t);
     return {trees, baseline};
 }
 

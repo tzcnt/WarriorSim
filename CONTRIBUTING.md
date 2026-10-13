@@ -104,7 +104,7 @@ settings. See the standalone guide for details.
 Use `--dry-run` to print the proposed file without saving, or `--presets FILE` to
 edit a separate copy of the catalog. Review `git diff -- js/data/presets_forever.js`
 and rebuild the browser assets as described above to use the updated presets.
-The first-visit defaults in `js/data/session_forever.js` are maintained separately.
+The first preset is also the first-visit default, so updating it changes what new visitors see.
 
 ## Optional shared compute
 

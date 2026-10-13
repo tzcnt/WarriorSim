@@ -25,7 +25,7 @@ function browserExport(mode = 'forever') {
         navigator: {clipboard: {writeText: text => { exported = text; }}}});
     for (const file of [`js/data/${mode === 'forever' ? 'gear_forever' : 'gear'}.js`, 'js/data/enchants.js', 'js/data/buffs.js',
         'js/data/spells.js', 'js/data/talents.js', 'js/data/talents_forever.js',
-        'js/talent-rules.js', 'js/racial-rules.js', `js/data/${mode === 'forever' ? 'session_forever' : 'session'}.js`, 'js/profile-validation.js', 'js/profiles.js']) {
+        'js/talent-rules.js', 'js/racial-rules.js', `js/data/presets_${mode}.js`, 'js/session.js', 'js/profile-validation.js', 'js/profiles.js']) {
         vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context);
     }
     vm.runInContext(`
