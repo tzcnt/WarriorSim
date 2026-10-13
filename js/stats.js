@@ -16,6 +16,7 @@ SIM.STATS = {
         view.dmglegend = view.stats.find('.container-dmg').siblings('.legend');
         view.aura = view.stats.find('.container-aura canvas');
         view.spread = view.stats.find('.container-spread canvas');
+        view.ragespread = view.stats.find('.container-ragespread canvas');
         view.colors = ['#003f5c', '#2f4b7c', '#665191', '#a05195', '#d45087', '#f95d6a', '#ff7c43', '#ffa600'];
         view.close = view.stats.find('.btn-close');
         view.table = view.stats.find('.container-table');
@@ -157,10 +158,9 @@ SIM.STATS = {
         view.buildSpreadData(sim);
     },
 
-    // Fights per bin of DPS and of rage per second, as step areas over their own x-axes.
-    // Each axis is scaled by its series' average, so a position on the chart is the same share
-    // of average DPS and of average rage per second. Rage bins match the 1-DPS bins on that
-    // shared scale, so both series' heights read off the one Fights axis.
+    // Fights per bin of DPS and of rage per second, as step areas. A rage bin covers the same
+    // share of average rage per second as a 1-DPS bin does of average DPS, so both charts
+    // have the same resolution.
     buildSpreadData: function (sim) {
         var view = this;
         // Engine keys: whole DPS, and thousandths of rage per second.
@@ -188,44 +188,29 @@ SIM.STATS = {
             for (let bin = first - 1; bin <= last + 1; ++bin) points.push(toPoint(bin, bins.get(bin) || 0));
             return points;
         };
-        const dpsPoints = steps(dpsKeys, 1, (bin, count) => ({x: bin, y: count, label: `${bin} DPS`}));
-        const width = rageBin / 1000;
-        const digits = width >= .1 ? 1 : width >= .01 ? 2 : 3;
-        const ragePoints = showRage ? steps(rageKeys, rageBin, (bin, count) => ({
-            x: (bin + .5) * width,
-            y: count,
-            label: rageBin === 1 ? `${(bin * width).toFixed(3)} rage/s` :
-                `${(bin * width).toFixed(digits)}–${((bin + 1) * width).toFixed(digits)} rage/s`,
-        })) : [];
-
-        // Extents in DPS units; spreadRanges turns them into axis ranges.
-        view.spreadRatio = ratio;
-        view.spreadExtents = [[dpsPoints[0].x - .5, dpsPoints[dpsPoints.length - 1].x + .5]];
-        const series = (label, xAxisID, points, color, fill) => ({
-            label, xAxisID, data: points,
-            borderColor: color, backgroundColor: fill, borderWidth: 2,
-            fill: 'origin', steppedLine: 'middle', pointRadius: 0, pointHoverRadius: 3,
+        // range spans the outer bins' edges.
+        const series = (label, points, width, color, fill) => ({
+            label, range: {min: points[0].x - width / 2, max: points[points.length - 1].x + width / 2},
+            datasets: [{
+                data: points, borderColor: color, backgroundColor: fill, borderWidth: 2,
+                fill: 'origin', steppedLine: 'middle', pointRadius: 0, pointHoverRadius: 3,
+            }],
         });
-        view.spreaddata = {datasets: [series(`DPS (average ${(sim.totaldmg / sim.totalduration).toFixed(2)})`,
-            'dps', dpsPoints, '#e66767', 'rgba(230, 103, 103, 0.3)')]};
+        view.spreaddata = series(`DPS (average ${(sim.totaldmg / sim.totalduration).toFixed(2)})`,
+            steps(dpsKeys, 1, (bin, count) => ({x: bin, y: count, label: `${bin} DPS`})),
+            1, '#e66767', 'rgba(230, 103, 103, 0.3)');
+        view.ragespreaddata = null;
         if (showRage) {
-            view.spreadExtents.push([(ragePoints[0].x - width / 2) / ratio,
-                (ragePoints[ragePoints.length - 1].x + width / 2) / ratio]);
-            view.spreaddata.datasets.push(series(
-                `Rage per second (average ${(sim.ragegained / sim.totalduration).toFixed(2)})`,
-                'rage', ragePoints, '#3987e5', 'rgba(57, 135, 229, 0.3)'));
+            const width = rageBin / 1000;
+            const digits = width >= .1 ? 1 : width >= .01 ? 2 : 3;
+            view.ragespreaddata = series(`Rage per second (average ${(sim.ragegained / sim.totalduration).toFixed(2)})`,
+                steps(rageKeys, rageBin, (bin, count) => ({
+                    x: (bin + .5) * width,
+                    y: count,
+                    label: rageBin === 1 ? `${(bin * width).toFixed(3)} rage/s` :
+                        `${(bin * width).toFixed(digits)}–${((bin + 1) * width).toFixed(digits)} rage/s`,
+                })), width, '#3987e5', 'rgba(57, 135, 229, 0.3)');
         }
-    },
-
-    // DPS and rage axis ranges that cover the series where visible(index), on the shared scale.
-    spreadRanges: function (visible) {
-        var view = this;
-        const extents = view.spreadExtents.filter((extent, i) => visible(i));
-        if (!extents.length) return null;
-        const min = Math.min(...extents.map(extent => extent[0]));
-        const max = Math.max(...extents.map(extent => extent[1]));
-        const rage = view.spreadExtents.length > 1 ? {min: min * view.spreadRatio, max: max * view.spreadRatio} : {};
-        return [{min, max}, rage];
     },
 
     buildAuras: function () {
@@ -427,43 +412,36 @@ SIM.STATS = {
 
     buildSpread: function () {
         var view = this;
+        if (view.spreadchart) view.spreadchart.destroy();
+        view.spreadchart = view.spreadChart(view.spread, view.spreaddata);
+        if (view.ragespreadchart) view.ragespreadchart.destroy();
+        view.ragespreadchart = null;
+        view.ragespread.closest('article').toggle(!!view.ragespreaddata);
+        if (view.ragespreaddata) view.ragespreadchart = view.spreadChart(view.ragespread, view.ragespreaddata);
+    },
+
+    spreadChart: function (canvas, spread) {
         // The range ends are exact, not round, so they are left unlabeled.
         const innerTicks = (scale, ticks) => ticks.length > 2 ? ticks.slice(1, -1) : ticks;
-        const ranges = view.spreadRanges(() => true);
-        const xAxis = (id, position, label, range) => ({
-            id, position, type: 'linear', display: 'auto', afterBuildTicks: innerTicks,
-            ticks: {fontColor: '#aaa', maxRotation: 0, ...range},
-            gridLines: {display: false},
-            scaleLabel: {display: true, labelString: label, fontColor: '#ccc'},
-        });
-
-        if (view.spreadchart) view.spreadchart.destroy();
-        view.spreadchart = new Chart(view.spread, {
+        return new Chart(canvas, {
             type: 'line',
-            data: view.spreaddata,
+            data: {datasets: spread.datasets},
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                legend: {
-                    display: true,
-                    position: 'top',
-                    labels: {fontColor: '#ccc', boxWidth: 12},
-                    onClick: function (event, item) {
-                        const chart = this.chart;
-                        const meta = chart.getDatasetMeta(item.datasetIndex);
-                        meta.hidden = meta.hidden === null ? !chart.data.datasets[item.datasetIndex].hidden : null;
-                        const ranges = view.spreadRanges(i => chart.isDatasetVisible(i));
-                        if (ranges) chart.options.scales.xAxes.forEach((axis, i) => Object.assign(axis.ticks, ranges[i]));
-                        chart.update();
-                    },
-                },
+                legend: {display: false},
                 plugins: {
                     filler: {
                         propagate: false
                     }
                 },
                 scales: {
-                    xAxes: [xAxis('dps', 'bottom', 'DPS', ranges[0]), xAxis('rage', 'top', 'Rage per second', ranges[1])],
+                    xAxes: [{
+                        type: 'linear', afterBuildTicks: innerTicks,
+                        ticks: {fontColor: '#aaa', maxRotation: 0, ...spread.range},
+                        gridLines: {display: false},
+                        scaleLabel: {display: true, labelString: spread.label, fontColor: '#ccc'},
+                    }],
                     yAxes: [{
                         ticks: {beginAtZero: true, precision: 0, fontColor: '#aaa'},
                         gridLines: {color: 'rgba(255, 255, 255, 0.08)', zeroLineColor: 'rgba(255, 255, 255, 0.2)'},
