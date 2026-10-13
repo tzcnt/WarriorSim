@@ -64,8 +64,10 @@
                 Object.entries(value).every(([key, count]) => /^\d{1,7}$/.test(key) && protocol.uint(count)) &&
                 Object.values(value).reduce((a, b) => a + b, 0) === report.iterations;
             if (!histogram(report.spread) || !histogram(report.ragespread) || !report.player || !report.player.mh) return false;
-            const rageWaits = value => protocol.uint(value.ragedelays) &&
-                Number.isFinite(value.ragewait) && value.ragewait >= 0;
+            const nonNegative = value => Number.isFinite(value) && value >= 0;
+            // Refunds can outweigh payments only when Cleave's refunded swing turns into Heroic Strike.
+            const rageCounters = value => protocol.uint(value.ragedelays) && nonNegative(value.ragewait) &&
+                Number.isFinite(value.ragespent) && nonNegative(value.stancerage);
             const counter = (value, weapon) => value && typeof value.name === 'string' &&
                 Array.isArray(value.data) && value.data.length <= 16 &&
                 value.data.every(number => protocol.uint(number)) &&
@@ -82,14 +84,14 @@
                 const spell = job.spec.player.spells.find(spell => spell.key === key);
                 if (!spell || !counter(value, false) || value.data.length !== 5 ||
                     value.name !== (spell.props.name || key) || !Number.isFinite(value.totalusedrage) ||
-                    !Number.isFinite(value.cost) || !rageWaits(value)) return false;
+                    !Number.isFinite(value.cost) || !rageCounters(value) || !nonNegative(value.whiterage)) return false;
             }
             for (const [key, value] of Object.entries(report.player.auras)) {
                 const aura = job.spec.player.auras.find(aura => aura.key === key);
                 if (!aura || value.name !== (aura.props.name || key) || !Number.isFinite(value.uptime) ||
                     !Number.isFinite(value.totaldmg) || value.totaldmg < 0 || value.uptime < 0 ||
                     !Array.isArray(value.data) || value.data.length !== (aura.props.dataLength || 0) ||
-                    !value.data.every(number => protocol.uint(number)) || !rageWaits(value)) return false;
+                    !value.data.every(number => protocol.uint(number)) || !rageCounters(value)) return false;
             }
             return true;
         },

@@ -164,7 +164,7 @@ function mergeSimulationReports(destination, source) {
                         for (let i = 0; i < src.data.length; ++i) dst.data[i] += src.data[i];
                     }
                     if (src.totaldmg) dst.totaldmg = (dst.totaldmg || 0) + src.totaldmg;
-                    mergeRageWaits(dst, src);
+                    mergeRageCounters(dst, src);
                 }
             }
             for (const id in source.player.spells) {
@@ -177,7 +177,7 @@ function mergeSimulationReports(destination, source) {
                     if (src.totalusedrage !== undefined) {
                         dst.totalusedrage = (dst.totalusedrage || 0) + src.totalusedrage;
                     }
-                    mergeRageWaits(dst, src);
+                    mergeRageCounters(dst, src);
                     for (let i = 0; i < src.data.length; ++i) dst.data[i] += src.data[i];
                 }
             }
@@ -202,10 +202,13 @@ function mergeSimulationReports(destination, source) {
     return destination;
 }
 
-function mergeRageWaits(destination, source) {
-    if (source.ragedelays === undefined) return;
-    destination.ragedelays = (destination.ragedelays || 0) + source.ragedelays;
-    destination.ragewait = (destination.ragewait || 0) + source.ragewait;
+// Native-only per-action counters; reports from the JavaScript reference engine lack them.
+const rageCounters = ['ragedelays', 'ragewait', 'ragespent', 'stancerage', 'whiterage'];
+
+function mergeRageCounters(destination, source) {
+    for (const key of rageCounters) {
+        if (source[key] !== undefined) destination[key] = (destination[key] || 0) + source[key];
+    }
 }
 
 class SimulationWorkerParallel {

@@ -348,12 +348,23 @@ SIM.STATS = {
         let html = '<table><thead><tr><th>Action</th><th>Hit %</th><th>Crit %</th><th>Miss %</th><th>Dodge %</th><th>Glance %</th><th>Uses</th>' +
             '<th title="Times per fight this was the next ability to use, but there was not enough rage to pay for it">Rage Delays</th>' +
             '<th title="Seconds per fight spent waiting for that rage, until it could be used or something else came first">Rage Wait (s)</th>' +
-            '<th>DPR</th><th>DPS</th></tr></thead><tbody>';
+            '<th title="Damage per rage. Rage is what was paid after refunds, plus rage lost to the stance swaps the ability needed (there and back), plus for Heroic Strike and Cleave the rage the white swing they replaced would have generated">DPR</th>' +
+            '<th>DPS</th></tr></thead><tbody>';
 
         let i = sim.iterations;
         // Rage waits are counted for abilities that take a GCD; other rows leave these cells empty.
         const rage = action => action && action.ragedelays !== undefined ?
             `<td>${(action.ragedelays / i).toFixed(2)}</td><td>${(action.ragewait / 1000 / i).toFixed(2)}</td>` : '<td></td><td></td>';
+        // Damage per rage, with the rage per use broken down in the cell's tooltip when uses are counted.
+        const dpr = (action, uses) => {
+            const cost = (action.ragespent || 0) + (action.stancerage || 0) + (action.whiterage || 0);
+            if (!action.totaldmg || !(cost > 0)) return '<td></td>';
+            const parts = [`${((action.ragespent || 0) / uses).toFixed(2)} paid after refunds`,
+                `${((action.stancerage || 0) / uses).toFixed(2)} lost to stance swaps`];
+            if (action.whiterage !== undefined) parts.push(`${(action.whiterage / uses).toFixed(2)} white swing rage given up`);
+            const title = uses ? ` title="Rage per use: ${parts.join(', ')}"` : '';
+            return `<td${title}>${(action.totaldmg / cost).toFixed(2)}</td>`;
+        };
         let data = sim.player.mh.data;
         let total = data.reduce((a, b) => a + b, 0);
         let dps = (sim.player.mh.totaldmg / sim.totalduration).toFixed(2);
@@ -375,12 +386,9 @@ SIM.STATS = {
             if (!total && !spell.ragedelays) continue;
             const percent = index => total ? (data[index] / total * 100).toFixed(2) : '';
             let dps = (spell.totaldmg / sim.totalduration).toFixed(2);
-            let dpr = total ? ((spell.totaldmg / i) / (spell.cost * (total / i))).toFixed(2) : '';
-            if (name == "execute" && total)
-                dpr = ((spell.totaldmg / i) / ((spell.cost * (total / i)) + (spell.totalusedrage / i))).toFixed(2);
             // Heroic Strike and Cleave are queued on the next swing and never take a GCD.
             const queued = name == "heroicstrike" || name == "cleave";
-            html += `<tr><td>${n}</td><td>${percent(0)}</td><td>${percent(3)}</td><td>${percent(1)}</td><td>${percent(2)}</td><td>${percent(4)}</td><td>${(total / i).toFixed(2)}</td>${rage(queued ? null : spell)}<td>${dpr}</td><td>${dps}</td></tr>`;
+            html += `<tr><td>${n}</td><td>${percent(0)}</td><td>${percent(3)}</td><td>${percent(1)}</td><td>${percent(2)}</td><td>${percent(4)}</td><td>${(total / i).toFixed(2)}</td>${rage(queued ? null : spell)}${dpr(spell, total)}<td>${dps}</td></tr>`;
         }
 
         const shown = new Set();
@@ -390,8 +398,8 @@ SIM.STATS = {
             let total = data.reduce((a, b) => a + b, 0);
             let totaldmg = sim.player.auras.rend.totaldmg;
             let dps = (totaldmg / sim.totalduration).toFixed(2);
-            let dpr = ((totaldmg / i) / (sim.player.auras.rend.cost * (total / i))).toFixed(2);
-            html += `<tr><td>${sim.player.auras.rend.name}</td><td></td><td></td><td>${(data[1] / total * 100).toFixed(2)}</td><td>${(data[2] / total * 100).toFixed(2)}</td><td></td><td>${(total / i).toFixed(2)}</td>${rage(sim.player.auras.rend)}<td>${dpr}</td><td>${dps}</td></tr>`;
+            // Damage is every tick that landed; rage is what its applications paid.
+            html += `<tr><td>${sim.player.auras.rend.name}</td><td></td><td></td><td>${(data[1] / total * 100).toFixed(2)}</td><td>${(data[2] / total * 100).toFixed(2)}</td><td></td><td>${(total / i).toFixed(2)}</td>${rage(sim.player.auras.rend)}${dpr(sim.player.auras.rend, total)}<td>${dps}</td></tr>`;
         }
 
         for (const key of ['sweepingstrikes', 'touchofthegrave', 'deepwounds', 'deepwounds2', 'deepwounds3', 'deepwounds4']) {
@@ -399,8 +407,8 @@ SIM.STATS = {
             if (!aura?.totaldmg) continue;
             shown.add(key);
             const dps = (aura.totaldmg / sim.totalduration).toFixed(2);
-            // These effects have no separate recorded attack table.
-            html += `<tr><td>${aura.name}</td><td></td><td></td><td></td><td></td><td></td><td></td>${rage(key == 'sweepingstrikes' ? aura : null)}<td></td><td>${dps}</td></tr>`;
+            // These effects have no separate recorded attack table. Only Sweeping Strikes costs rage.
+            html += `<tr><td>${aura.name}</td><td></td><td></td><td></td><td></td><td></td><td></td>${rage(key == 'sweepingstrikes' ? aura : null)}${dpr(aura, 0)}<td>${dps}</td></tr>`;
         }
 
         // Rage waits only: Death Wish, and any other aura that waited for rage without a row above.

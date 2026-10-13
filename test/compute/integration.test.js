@@ -25,7 +25,7 @@ async function until(check, timeout = 10000) {
 }
 
 function comparePlayer(actual, expected, key = '') {
-    if (typeof expected === 'number' && ['totaldmg', 'totalprocdmg', 'uptime', 'ragewait'].includes(key)) {
+    if (typeof expected === 'number' && ['totaldmg', 'totalprocdmg', 'uptime', 'ragewait', 'ragespent', 'stancerage', 'whiterage'].includes(key)) {
         // Per-event floating point accumulation changes grouping at batch boundaries.
         assert.ok(Math.abs(actual - expected) <= Math.max(1e-8, Math.abs(expected) * 1e-9), key);
     } else if (expected && typeof expected === 'object') {
@@ -92,6 +92,10 @@ test('real WASM reports validate and mixed chunks preserve all aggregate/player 
             report => { report.ragespread[Object.keys(report.ragespread)[0]] += 1; },
             report => { report.player.spells[spell].ragedelays = 0.5; },
             report => { report.player.auras[first].ragewait = -1; },
+            report => { report.player.spells[spell].ragespent = '1'; },
+            report => { delete report.player.auras[first].ragespent; },
+            report => { report.player.auras[first].stancerage = -1; },
+            report => { report.player.spells[spell].whiterage = -1; },
         ]) {
             const changed = structuredClone(expected);
             change(changed);

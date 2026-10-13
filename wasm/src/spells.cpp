@@ -48,6 +48,7 @@ bool rageReady(const PlayerState& player, const SpellState& spell) {
 void useBase(PlayerState& player, SpellState& spell) {
     player.timer = 1500;
     player.rage -= value(spell, "cost"_prop);
+    spell.ragespent += value(spell, "cost"_prop);
     spell.timer = value(spell, "cooldown"_prop) * 1000;
     spell.maxdelay = reactionDelay(player);
 }
@@ -203,19 +204,20 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
     switch (spell.kind) {
     case SpellKind::Whirlwind:
         if (!player.isValidStance("zerk"))
-            player.switchStance("zerk");
+            player.switchStance("zerk", &spell.stancerage);
         useBase(player, spell);
         return;
 
     case SpellKind::Overpower:
         if (!player.isValidStance("battle"))
-            player.switchStance("battle");
+            player.switchStance("battle", &spell.stancerage);
         player.timer = 1500;
         player.dodgetimer = 0;
         player.bloodthrilltimer = 0;
         spell.timer = cooldown * 1000;
         spell.maxdelay = reactionDelay(player);
         player.rage -= cost;
+        spell.ragespent += cost;
         return;
 
     case SpellKind::Execute:
@@ -223,7 +225,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
             std::string stance = "zerk";
             if (player.baseStance == "battle")
                 stance = "battle";
-            player.switchStance(stance);
+            player.switchStance(stance, &spell.stancerage);
         }
         if (!player.foreverMode && delayedHeroic && option(*delayedHeroic, "exmacro"_prop)) {
             if (spellCanUse(player, *delayedHeroic)) {
@@ -237,6 +239,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
         }
         player.timer = 1500;
         player.rage -= cost;
+        spell.ragespent += cost;
         spell.usedrage = static_cast<std::int32_t>(player.rage);
         spell.totalusedrage += spell.usedrage;
         spell.timer = 1 - detail::jsRemainder(player.step, 1.0);
@@ -261,6 +264,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
     case SpellKind::SunderArmor:
         player.timer = 1500;
         player.rage -= cost;
+        spell.ragespent += cost;
         spell.timer = cooldown * 1000;
         spell.stacks = std::min(6, spell.stacks + 1);
         if (player.props.boolean("exposed"_prop)) spell.stacks = 6;
@@ -272,10 +276,11 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
             std::string stance = "zerk";
             if (player.baseStance == "battle")
                 stance = "battle";
-            player.switchStance(stance);
+            player.switchStance(stance, &spell.stancerage);
         }
         player.timer = 1500;
         player.rage -= cost;
+        spell.ragespent += cost;
         spell.timer = cooldown * 1000;
         spell.maxdelay = reactionDelay(player);
         return;
@@ -283,13 +288,13 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
 
     case SpellKind::ThunderClap:
         if (!player.isValidStance("battle"))
-            player.switchStance("battle");
+            player.switchStance("battle", &spell.stancerage);
         useBase(player, spell);
         return;
 
     case SpellKind::BerserkerRage: {
         spell.timer = cooldown * 1000;
-        if (!player.isValidStance("zerk")) player.switchStance("zerk");
+        if (!player.isValidStance("zerk")) player.switchStance("zerk", &spell.stancerage);
         player.gainRage(value(spell, "rage"_prop));
         useAura(player, "berserkerrage"_action);
         spell.maxdelay = reactionDelay(player);
@@ -306,6 +311,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
 
     case SpellKind::Slam: {
         player.rage -= cost;
+        spell.ragespent += cost;
         spell.maxdelay = reactionDelay(player);
         if (value(spell, "casttime"_prop) && !value(spell, "swingmode"_prop)) {
             useWeapon(player, player.mh);
@@ -323,6 +329,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
     case SpellKind::ShieldSlam:
         player.timer = 1500;
         player.rage -= cost;
+        spell.ragespent += cost;
         spell.timer = cooldown * 1000;
         spell.maxdelay = reactionDelay(player);
         return;
@@ -342,7 +349,7 @@ void spellUse(PlayerState& player, SpellState& spell, SpellState* delayedHeroic)
 
     case SpellKind::SpearingStrike:
         if (!player.isValidStance("battle"))
-            player.switchStance("battle");
+            player.switchStance("battle", &spell.stancerage);
         useBase(player, spell);
         return;
 

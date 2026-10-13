@@ -1,7 +1,8 @@
 'use strict';
 
-// Rage gained and rage waits are report-only counters that the JavaScript reference engine does
-// not produce, so they are checked here against their definitions rather than for parity.
+// Rage gained, rage waits, and the rage cost counters are report-only counters that the JavaScript
+// reference engine does not produce, so they are checked here against their definitions rather
+// than for parity.
 const assert = require('node:assert/strict');
 const test = require('node:test');
 const {createConfiguredPlayer, createReferenceEngine, loadFixtures} = require('./reference-engine');
@@ -63,12 +64,26 @@ for (const fixture of loadFixtures()) {
             for (const [key, count] of Object.entries(part.ragespread)) spread[key] = (spread[key] || 0) + count;
         }
         assert.deepEqual(spread, full.ragespread);
-        for (const [key, action] of actions(full)) {
-            const group = key in full.player.spells ? 'spells' : 'auras';
-            const merged = parts.map(part => part.player[group][key]);
-            assert.equal(merged.reduce((sum, value) => sum + value.ragedelays, 0), action.ragedelays, `${key}.ragedelays`);
-            assertClose(merged.reduce((sum, value) => sum + value.ragewait, 0), action.ragewait, `${key}.ragewait`);
+        for (const group of ['spells', 'auras']) {
+            for (const [key, action] of Object.entries(full.player[group])) {
+                const merged = parts.map(part => part.player[group][key]);
+                assert.equal(merged.reduce((sum, value) => sum + value.ragedelays, 0), action.ragedelays, `${key}.ragedelays`);
+                for (const counter of ['ragewait', 'ragespent', 'stancerage', ...group === 'spells' ? ['whiterage'] : []])
+                    assertClose(merged.reduce((sum, value) => sum + value[counter], 0), action[counter], `${group}.${key}.${counter}`);
+            }
         }
+    });
+
+    test(`${fixture.name}: rage spent and lost to stance swaps fits within the rage gained`, () => {
+        const spec = specFor(fixture);
+        const iterations = 60;
+        const [report] = runBatches(spec, fixture.sim.seed, [iterations]);
+        const spent = actions(report).reduce((sum, [, action]) => sum + action.ragespent + action.stancerage, 0);
+        // What was not spent or lost is the rage left at the end of each fight.
+        const left = iterations * spec.sim.startrage + report.ragegained - spent;
+        assert.ok(spent > 0);
+        assert.ok(left >= -1e-6 && left <= iterations * (spec.player.props.ragecap || 100), `${left} rage left over`);
+        assert.equal(report.player.spells.stanceswitch?.stancerage || 0, 0, 'the switch back counts toward its cause');
     });
 }
 
@@ -147,4 +162,88 @@ test('Death Wish waiting for rage holds every GCD ability and is reported as its
         assert.equal(spell.ragedelays, 0, key);
         if (spell.cost) assert.equal(uses(spell), 0, `${key} waits behind the rage reserved for Death Wish`);
     }
+});
+
+test('abilities pay their cost, less the 80% refunded when they miss or are dodged', () => {
+    const fixture = foreverFixture();
+    const spec = specFor(fixture);
+    spec.player.props.ragecap = 1e9;
+    const [report] = runBatches(spec, fixture.sim.seed, [100]);
+    for (const key of ['bloodthirst', 'hamstring']) {
+        const spell = report.player.spells[key];
+        const cost = spec.player.spells.find(value => value.key === key).props.cost;
+        assert.ok(spell.data[1] + spell.data[2] > 0, `${key} missed or was dodged`);
+        assertClose(spell.ragespent, cost * (uses(spell) - .8 * (spell.data[1] + spell.data[2])), `${key}.ragespent`);
+        assert.equal(spell.stancerage, 0, `${key} is usable in Berserker Stance`);
+        assert.equal(spell.whiterage, 0, `${key} does not replace a white swing`);
+    }
+});
+
+// No misses or dodges, and enough target defense that glancing blows fill the rest of the white
+// table: every white swing glances, while Heroic Strike still hits and crits.
+function glancingSpec(fixture) {
+    const spec = specFor(fixture);
+    const {player} = spec;
+    for (const stats of [player.base, player.stats]) stats.hit = 100;
+    player.target.dodge = 100;
+    player.target.defense = Number(player.props.level) * 5 + 45;
+    return spec;
+}
+
+test("Heroic Strike's table roll is read on the white table: Forever gives up glancing rage when every white swing glances", () => {
+    const fixture = foreverFixture();
+    const spec = glancingSpec(fixture);
+    spec.player.props.ragecap = 1e9;
+    const [report] = runBatches(spec, fixture.sim.seed, [100]);
+    const {speed, twohand} = spec.player.weapons.mh.props;
+    const heroic = report.player.spells.heroicstrike;
+    // data: hit, miss, dodge, crit, glance. On its own table Heroic Strike crits, which would double the rage.
+    const [hits, misses, dodges, crits] = heroic.data;
+    assert.ok(hits && crits && !misses && !dodges, `Heroic Strike results ${heroic.data}`);
+    assert.ok(report.player.mh.data[4] > 0 && report.player.mh.data[4] === uses(report.player.mh), 'white swings all glance');
+    // A glance gives the base rage, plus Unbridled Wrath's chance of 1 more.
+    const expected = (hits + crits) * (speed * (twohand ? 4.5 : 3.46) + spec.player.talents.umbridledwrath / 100);
+    assertClose(heroic.whiterage, expected, 'heroicstrike.whiterage');
+});
+
+test('Classic Heroic Strike gives up the rage from the same damage roll without its bonus, glancing on average', () => {
+    const fixture = loadFixtures().find(value => value.name === 'classic-dw-fury');
+    const spec = glancingSpec(fixture);
+    // Glancing swings generate little rage in Classic, so start with plenty.
+    spec.player.props.ragecap = spec.sim.startrage = 1e9;
+    // With no bonus damage and no crits, a Heroic Strike deals exactly what the white swing would
+    // have dealt before its glancing reduction.
+    Object.assign(spec.player.spells.find(spell => spell.key === 'heroicstrike').props, {bonus: 0, value1: 0, nocrit: true});
+    const [report] = runBatches(spec, fixture.sim.seed, [100]);
+    const heroic = report.player.spells.heroicstrike;
+    assert.ok(heroic.totaldmg > 0);
+    assert.equal(heroic.data[0], uses(heroic), 'every Heroic Strike hits');
+    const diff = spec.player.target.defense - spec.player.stats[`skill_${spec.player.weapons.mh.props.type}`];
+    const clamp = (value, low, high) => Math.min(Math.max(value, low), high);
+    const glancing = (clamp(1.3 - .05 * diff, .01, .91) + clamp(1.2 - .03 * diff, .2, .99)) / 2;
+    const expected = heroic.totaldmg * glancing / spec.player.props.rageconversion * 7.5;
+    assert.ok(Math.abs(heroic.whiterage - expected) <= expected * 1e-9, `${heroic.whiterage} != ${expected}`);
+});
+
+test('the rage cap limits the white swing rage a queued strike gives up', () => {
+    const fixture = foreverFixture();
+    const spec = glancingSpec(fixture);
+    const heroic = runBatches(spec, fixture.sim.seed, [100])[0].player.spells.heroicstrike;
+    const {speed, twohand} = spec.player.weapons.mh.props;
+    const uncapped = uses(heroic) * (speed * (twohand ? 4.5 : 3.46) + spec.player.talents.umbridledwrath / 100);
+    assert.ok(heroic.whiterage > 0 && heroic.whiterage < uncapped, `${heroic.whiterage} of ${uncapped}`);
+});
+
+test('rage over the retained amount, there and back, counts toward the ability that needed the stance', () => {
+    const fixture = foreverFixture();
+    const spec = specFor(fixture);
+    const [report] = runBatches(spec, fixture.sim.seed, [100]);
+    const swapped = ['overpower', 'rend'].filter(key => (report.player.spells[key] || report.player.auras[key]).stancerage > 0);
+    assert.ok(swapped.length, 'a Battle Stance ability lost rage to a stance swap');
+    for (const key of ['bloodthirst', 'whirlwind', 'hamstring', 'stanceswitch'])
+        assert.equal(report.player.spells[key].stancerage, 0, key);
+
+    spec.player.talents.rageretained = 100;
+    const [kept] = runBatches(spec, fixture.sim.seed, [100]);
+    for (const [key, action] of actions(kept)) assert.equal(action.stancerage, 0, `${key} keeps all its rage`);
 });

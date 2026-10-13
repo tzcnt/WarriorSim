@@ -142,6 +142,7 @@ void PlayerState::reset(double startingRage) {
     if (auto* value = spell("fireball"_action)) value->idmg = 0;
 
     stance = props.string("basestance"_prop, "battle");
+    stanceCost = nullptr;
     if (auto* value = aura("battlestance"_action)) value->timer = stance == "battle" ? 1 : 0;
     if (auto* value = aura("berserkerstance"_action)) value->timer = stance == "zerk" ? 1 : 0;
     if (auto* value = aura("defensivestance"_action)) value->timer = stance == "def" ? 1 : 0;
@@ -295,10 +296,15 @@ void PlayerState::updateDmgMod() {
 }
 
 double PlayerState::glanceReduction(const WeaponState& weapon) {
+    return glanceReduction(weapon, rng.next());
+}
+
+// The glancing damage multiplier at `fraction` of the way through its range.
+double PlayerState::glanceReduction(const WeaponState& weapon, double fraction) const {
     const double diff = target.props.number("defense"_prop) - weapon.skill;
     const double low = std::clamp(1.3 - 0.05 * diff, 0.01, 0.91);
     const double high = std::clamp(1.2 - 0.03 * diff, 0.2, 0.99);
-    return rng.next() * (high - low) + low;
+    return fraction * (high - low) + low;
 }
 
 double PlayerState::glanceChance(const WeaponState& weapon) const {
@@ -375,12 +381,14 @@ void PlayerState::endAuras() {
 }
 
 Result PlayerState::rollWeapon(WeaponState& weapon) {
-    double tmp = 0;
     const int roll = rng.tenK();
-    double miss = weapon.dwmiss;
     // Only Classic removes the dual-wield miss penalty while a strike is queued.
-    if (!foreverMode && nextswinghs) miss = weapon.miss;
-    tmp += std::max(miss, 0.0) * 100;
+    return whiteTable(weapon, roll, !foreverMode && nextswinghs ? weapon.miss : weapon.dwmiss);
+}
+
+// The white attack table: one roll, out of 10000, against miss, dodge, glance, then crit.
+Result PlayerState::whiteTable(const WeaponState& weapon, int roll, double miss) const {
+    double tmp = std::max(miss, 0.0) * 100;
     if (roll < tmp) return Result::Miss;
     tmp += weapon.dodge * 100; if (roll < tmp) return Result::Dodge;
     tmp += weapon.glanceChance * 100; if (roll < tmp) return Result::Glance;
@@ -389,9 +397,11 @@ Result PlayerState::rollWeapon(WeaponState& weapon) {
     return Result::Hit;
 }
 
-Result PlayerState::rollMeleeSpell(SpellState& value, WeaponState& weapon) {
+// tableRoll receives the attack table roll: the one that decides miss and dodge.
+Result PlayerState::rollMeleeSpell(SpellState& value, WeaponState& weapon, int* tableRoll) {
     double tmp = std::max(weapon.miss, 0.0) * 100;
     int roll = rng.tenK();
+    if (tableRoll) *tableRoll = roll;
     if (roll < tmp) return Result::Miss;
     if (value.props.boolean("canDodge"_prop, true)) {
         tmp += weapon.dodge * 100;
@@ -445,20 +455,48 @@ void PlayerState::addRage(double dmg, Result result, WeaponState& weapon, const 
             refund = ability->props.boolean("refund"_prop, true) ? ability->props.number("cost"_prop) * .8 : 0;
             rage += refund;
         }
-    } else if (foreverMode) {
-        // Base weapon speed in seconds; crits double it, while glances and haste do not change it.
-        if (result != Result::Miss && result != Result::Dodge)
-            rage += weapon.speed * (weapon.twohand ? 4.5 : 3.46) *
-                (weapon.offhand ? .5 * (1 + talents.number("offragebonus"_prop)) : 1) * (result == Result::Crit ? 2 : 1);
     } else {
-        if (result == Result::Dodge)
-            rage += (averageWeaponDamage(*this, weapon) / props.number("rageconversion"_prop)) * 7.5 * .75;
-        else if (result != Result::Miss)
-            rage += (dmg / props.number("rageconversion"_prop)) * 7.5;
+        rage += swingRage(weapon, result, dmg);
     }
     rage = std::min(rage, props.number("ragecap"_prop, 100));
     // A refund is not generated rage. If the cap trims a gain, it trims the generated part first.
     countRageGain(before + refund);
+    if (refund) const_cast<SpellState*>(ability)->ragespent -= std::min(refund, rage - before);
+}
+
+// Rage from a white swing with this result and damage after armor, before Unbridled Wrath and the cap.
+double PlayerState::swingRage(const WeaponState& weapon, Result result, double dmg) const {
+    if (result == Result::Miss) return 0;
+    if (foreverMode) {
+        // Base weapon speed in seconds; crits double it, while glances and haste do not change it.
+        if (result == Result::Dodge) return 0;
+        return weapon.speed * (weapon.twohand ? 4.5 : 3.46) *
+            (weapon.offhand ? .5 * (1 + talents.number("offragebonus"_prop)) : 1) * (result == Result::Crit ? 2 : 1);
+    }
+    if (result == Result::Dodge)
+        return (averageWeaponDamage(*this, weapon) / props.number("rageconversion"_prop)) * 7.5 * .75;
+    return (dmg / props.number("rageconversion"_prop)) * 7.5;
+}
+
+// Rage the white swing that a queued strike replaced would have generated, from `before`, the rage
+// held when the swing began. `result` is the strike's table roll read on the white table, and dmg
+// is the strike's damage before its crit. The white swing has the same damage roll without the
+// strike's bonus; a white crit doubles it, and a glance takes the average glancing reduction.
+double PlayerState::replacedSwingRage(const SpellState& strike, const WeaponState& weapon, Result result,
+                                      double dmg, double before) const {
+    double white = 0;
+    if (!foreverMode && result != Result::Miss && result != Result::Dodge) {
+        white = (dmg / strike.props.number("eurekamod"_prop, 1) -
+                 strike.props.number("bonus"_prop, strike.props.number("value1"_prop)) * weapon.modifier *
+                 stats.number("dmgmod"_prop, 1)) * (1 - weaponArmorReduction(weapon));
+        if (result == Result::Crit) white *= 2;
+        if (result == Result::Glance) white *= glanceReduction(weapon, .5);
+    }
+    double gain = swingRage(weapon, result, white);
+    // Forever rolls Unbridled Wrath on white swings only; Classic rolls it on queued strikes too.
+    if (foreverMode && result != Result::Miss && result != Result::Dodge)
+        gain += talents.number("umbridledwrath"_prop) / 100;
+    return std::clamp(gain, 0.0, std::max(0.0, props.number("ragecap"_prop, 100) - before));
 }
 
 void PlayerState::gainRage(double amount) {
@@ -526,23 +564,32 @@ double PlayerState::attackMh(WeaponState& weapon, int adjacent, double damageSoF
     stepAuras();
     SpellState* ability = nullptr;
     Result result;
+    const double rageBefore = rage;
+    int tableRoll = 0;
     if (nextswinghs) {
         nextswinghs = false;
         auto* heroic = spell("heroicstrike"_action);
         auto* cleave = spell("cleave"_action);
         if (heroic && heroic->props.number("cost"_prop) <= rage) {
-            result = rollMeleeSpell(*heroic, mh);
+            result = rollMeleeSpell(*heroic, mh, &tableRoll);
             ability = heroic;
             rage -= ability->props.number("cost"_prop);
+            ability->ragespent += ability->props.number("cost"_prop);
         } else if (cleave && cleave->props.number("cost"_prop) <= rage) {
-            result = rollMeleeSpell(*cleave, mh);
+            result = rollMeleeSpell(*cleave, mh, &tableRoll);
             ability = cleave;
-            if (adjacent) rage -= ability->props.number("cost"_prop);
+            if (adjacent) {
+                rage -= ability->props.number("cost"_prop);
+                ability->ragespent += ability->props.number("cost"_prop);
+            }
         } else result = rollWeapon(weapon);
     } else result = rollWeapon(weapon);
 
     const bool empowered = ability && !adjacent ? beginEureka(*ability) : false;
     double dmg = weaponDamage(*this, weapon, ability) * (ability ? ability->props.number("eurekamod"_prop, 1) : 1);
+    // Without the queued strike, the swing would have rolled the same number on the white table.
+    if (ability && !adjacent)
+        ability->whiterage += replacedSwingRage(*ability, weapon, whiteTable(weapon, tableRoll, weapon.dwmiss), dmg, rageBefore);
     const double procDmg = procAttack(ability, weapon, result, adjacent, damageSoFar);
     if (result == Result::Dodge) dodgetimer = 5000;
     if (result == Result::Glance) dmg *= glanceReduction(weapon);
@@ -751,6 +798,7 @@ double PlayerState::procAttack(SpellState* ability, WeaponState& weapon, Result 
     int batched = 0;
     if (result != Result::Miss && result != Result::Dodge) {
         if (ability && ability->kind == SpellKind::Execute) {
+            ability->ragespent += rage;
             rage = 0;
         }
         const auto weaponDamageProc = [&](ProcState& proc) {
@@ -870,14 +918,21 @@ double PlayerState::procAttack(SpellState* ability, WeaponState& weapon, Result 
     return procDmg;
 }
 
-void PlayerState::switchStance(std::string_view value) {
+// Rage over the retained amount is lost. It counts toward `cost`, the stancerage of the action that
+// needed the new stance; a switch with no cause is the return to the base stance, which counts
+// toward the action that left it.
+void PlayerState::switchStance(std::string_view value, double* cost) {
+    if (!cost) cost = stanceCost;
+    const double kept = std::min(rage, talents.number("rageretained"_prop));
+    if (cost) *cost += rage - kept;
     stance = std::string(value);
+    stanceCost = stance == baseStance ? nullptr : cost;
     if (auto* auraValue = aura("battlestance"_action)) auraValue->timer = 0;
     if (auto* auraValue = aura("berserkerstance"_action)) auraValue->timer = 0;
     if (auto* auraValue = aura("defensivestance"_action)) auraValue->timer = 0;
     const auto stanceKey = detail::stanceAuraAction(stance);
     if (auto* auraValue = stanceKey ? aura(*stanceKey) : aura(std::string_view{})) auraValue->timer = 1;
-    rage = std::min(rage, talents.number("rageretained"_prop));
+    rage = kept;
     stancetimer = 1000;
     updateAuras();
 }

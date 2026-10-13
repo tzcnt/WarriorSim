@@ -788,11 +788,11 @@ BatchReport Engine::runBatch(std::uint32_t count, std::uint32_t globalIterationO
         spell.totaldmg = 0;
         spell.totalusedrage = 0;
         spell.ragedelays = 0;
-        spell.ragewait = 0;
+        spell.ragewait = spell.ragespent = spell.stancerage = spell.whiterage = 0;
         spell.data.fill(0);
     }
     for (auto& aura : player_.auras) {
-        aura.uptime = aura.totaldmg = aura.ragewait = 0;
+        aura.uptime = aura.totaldmg = aura.ragewait = aura.ragespent = aura.stancerage = 0;
         aura.ragedelays = 0;
         std::fill(aura.data.begin(), aura.data.end(), 0);
     }
@@ -863,6 +863,8 @@ std::string Engine::reportJson(const BatchReport& report, bool fullReport) const
             out << ",\"totaldmg\":"; jsonNumber(out, aura.totaldmg);
             out << ",\"ragedelays\":" << aura.ragedelays;
             out << ",\"ragewait\":"; jsonNumber(out, aura.ragewait);
+            out << ",\"ragespent\":"; jsonNumber(out, aura.ragespent);
+            out << ",\"stancerage\":"; jsonNumber(out, aura.stancerage);
             out << ",\"data\":[";
             for (std::size_t i = 0; i < aura.data.size(); ++i) {
                 if (i) out << ',';
@@ -881,6 +883,9 @@ std::string Engine::reportJson(const BatchReport& report, bool fullReport) const
             out << ",\"totalusedrage\":"; jsonNumber(out, spell.totalusedrage);
             out << ",\"ragedelays\":" << spell.ragedelays;
             out << ",\"ragewait\":"; jsonNumber(out, spell.ragewait);
+            out << ",\"ragespent\":"; jsonNumber(out, spell.ragespent);
+            out << ",\"stancerage\":"; jsonNumber(out, spell.stancerage);
+            out << ",\"whiterage\":"; jsonNumber(out, spell.whiterage);
             out << ",\"totaldmg\":";
             jsonNumber(out, spell.totaldmg);
             out << ",\"data\":[";

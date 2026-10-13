@@ -301,6 +301,12 @@ struct SpellState {
     // spent waiting. AuraState has the same pair.
     std::uint64_t ragedelays = 0;
     double ragewait = 0;
+    // Batch counters for damage per rage: rage paid after refunds (Execute's extra rage
+    // included), rage lost to the stance swaps this ability needed, and for a queued strike, the
+    // rage its replaced white swing would have generated. AuraState has the first two.
+    double ragespent = 0;
+    double stancerage = 0;
+    double whiterage = 0;
     Result lastResult = Result::Hit;
     std::unique_ptr<SpellState> backupHeroic;
     std::array<std::uint64_t, 5> data{};
@@ -329,6 +335,8 @@ struct AuraState {
     double idmg = 0;
     std::uint64_t ragedelays = 0;
     double ragewait = 0;
+    double ragespent = 0;
+    double stancerage = 0;
     std::vector<double> data;
 };
 
@@ -454,6 +462,8 @@ struct PlayerState {
     double bloodthrilltimer = 0;
     double weaponArmorReduction(const WeaponState& weapon) const;
     std::string stance;
+    // The stancerage counter of the action that left the base stance; the switch back adds to it.
+    double* stanceCost = nullptr;
     // String properties have no dense slot: props.string() hashes the name and copies
     // the value on every call. basestance is fixed per spec, so it is read once.
     std::string baseStance;
@@ -511,6 +521,7 @@ struct PlayerState {
     void updateArmorReduction();
     void updateDmgMod();
     [[nodiscard]] double glanceReduction(const WeaponState& weapon);
+    [[nodiscard]] double glanceReduction(const WeaponState& weapon, double fraction) const;
     [[nodiscard]] double glanceChance(const WeaponState& weapon) const;
     [[nodiscard]] double missChance(const WeaponState& weapon) const;
     [[nodiscard]] double dwMissChance(const WeaponState& weapon) const;
@@ -519,6 +530,9 @@ struct PlayerState {
     [[nodiscard]] double dodgeChance(const WeaponState& weapon) const;
     [[nodiscard]] double getArmorReduction() const;
     void addRage(double dmg, Result result, WeaponState& weapon, const SpellState* spell);
+    [[nodiscard]] double swingRage(const WeaponState& weapon, Result result, double dmg) const;
+    [[nodiscard]] double replacedSwingRage(const SpellState& strike, const WeaponState& weapon, Result result,
+                                           double dmg, double before) const;
     void gainRage(double amount);
     void countRageGain(double base);
     bool stepTimer(double amount);
@@ -528,7 +542,8 @@ struct PlayerState {
     void stepAuras(bool noBleeds = false);
     void endAuras();
     [[nodiscard]] Result rollWeapon(WeaponState& weapon);
-    [[nodiscard]] Result rollMeleeSpell(SpellState& spell, WeaponState& weapon);
+    [[nodiscard]] Result whiteTable(const WeaponState& weapon, int roll, double miss) const;
+    [[nodiscard]] Result rollMeleeSpell(SpellState& spell, WeaponState& weapon, int* tableRoll = nullptr);
     [[nodiscard]] Result rollMeleeAura(AuraState& aura, WeaponState& weapon);
     [[nodiscard]] Result rollMagicSpell(SpellState& spell);
     double attackMh(WeaponState& weapon, int adjacent = 0, double damageSoFar = 0);
@@ -541,7 +556,7 @@ struct PlayerState {
     double phantomProc(WeaponState& weapon);
     double magicProc(const ProcState& proc);
     double physProc(double dmg);
-    void switchStance(std::string_view value);
+    void switchStance(std::string_view value, double* cost = nullptr);
     [[nodiscard]] bool isValidStance(std::string_view value) const;
 };
 
