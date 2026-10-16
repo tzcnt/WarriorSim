@@ -455,6 +455,8 @@ struct PlayerState {
     double heroicdelay = 0;
     int extraattacks = 0;
     int batchedextras = 0;
+    // Forever's pending extra attack; infinite while none is pending.
+    double extratimer = std::numeric_limits<double>::infinity();
     double swordspecstep = std::numeric_limits<double>::quiet_NaN();
     double armorReduction = 0;
     double crit = 0;
@@ -549,7 +551,8 @@ struct PlayerState {
     [[nodiscard]] Result rollMeleeSpell(SpellState& spell, WeaponState& weapon, int* tableRoll = nullptr);
     [[nodiscard]] Result rollMeleeAura(AuraState& aura, WeaponState& weapon);
     [[nodiscard]] Result rollMagicSpell(SpellState& spell);
-    double attackMh(WeaponState& weapon, int adjacent = 0, double damageSoFar = 0);
+    // Forever's extra attacks (extra) leave the swing timer running.
+    double attackMh(WeaponState& weapon, int adjacent = 0, double damageSoFar = 0, bool extra = false);
     double attackOh(WeaponState& weapon);
     double cast(SpellState& spell, SpellState* delayedHeroic = nullptr, int adjacent = 0, double damageSoFar = 0);
     double castOh(SpellState& spell, int adjacent = 0, double damageSoFar = 0);

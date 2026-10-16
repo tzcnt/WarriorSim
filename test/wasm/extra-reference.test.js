@@ -102,6 +102,27 @@ for (const fixture of extraFixtures()) {
     });
 }
 
+// Main-hand swing times in the first fight. Each extra attack lands at the next 400 ms
+// batch: Classic's restarts the 2.5 second swing timer, while Forever's leaves it running.
+const batchedExtraSwings = {
+    classic: [0, 400, 2900, 5400, 5600, 8100, 10600, 10800],
+    forever: [0, 400, 2500, 5000, 5200, 7500, 10000, 10400],
+};
+for (const fixture of extraFixtures().filter(value => value.name.endsWith('batched-extra-attack-swing-timer'))) {
+    test(`${fixture.name}: extra attacks ${fixture.mode === 'forever' ? 'keep' : 'restart'} the swing timer`, () => {
+        const engine = createReferenceEngine(fixture.mode);
+        const player = createConfiguredPlayer(engine, fixture);
+        const swings = [];
+        const attackmh = player.attackmh;
+        player.attackmh = function(...args) {
+            swings.push(engine.evaluate('step'));
+            return attackmh.apply(this, args);
+        };
+        engine.createSimulation(player, {...fixture.sim, iterations: 1}).startSync();
+        assert.deepEqual(swings, batchedExtraSwings[fixture.mode]);
+    });
+}
+
 function traceCasts(fixture, keys) {
     const engine = createReferenceEngine(fixture.mode);
     const player = createConfiguredPlayer(engine, fixture);

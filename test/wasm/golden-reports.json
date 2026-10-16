@@ -1,6 +1,6 @@
 {
   "oracle": "destination JavaScript; no native execution",
-  "revision": "9a13787e997de8d92b59d2e1ec0c69b1e8df014d",
+  "revision": "aa6f852d9bd3551f4f4ca35d7012aa7b2d6bdc54",
   "reports": {
     "classic-dw-fury": {
       "iterations": 20,
@@ -818,94 +818,95 @@
     },
     "forever-dw-fury": {
       "iterations": 20,
-      "totaldmg": 406971.5546058269,
+      "totaldmg": 425137.06905806786,
       "totalduration": 405.07,
-      "mindps": 644.310157161343,
-      "maxdps": 1339.439869413956,
-      "sumdps": 20178.939467298682,
-      "sumdps2": 20930482.10235579,
+      "mindps": 814.2367507192706,
+      "maxdps": 1416.3388436632708,
+      "sumdps": 21063.25005421281,
+      "sumdps2": 22685587.922185414,
       "spread": {
-        "644": 1,
         "814": 1,
         "831": 1,
-        "855": 1,
-        "892": 1,
-        "929": 1,
-        "948": 1,
-        "963": 1,
-        "984": 1,
-        "999": 2,
-        "1006": 1,
-        "1033": 1,
-        "1054": 1,
-        "1063": 1,
-        "1088": 1,
-        "1106": 1,
-        "1310": 1,
-        "1321": 1,
-        "1339": 1
+        "894": 1,
+        "909": 1,
+        "937": 1,
+        "946": 1,
+        "951": 1,
+        "962": 1,
+        "1009": 1,
+        "1016": 1,
+        "1030": 1,
+        "1081": 1,
+        "1111": 1,
+        "1114": 1,
+        "1126": 1,
+        "1127": 1,
+        "1157": 1,
+        "1266": 1,
+        "1363": 1,
+        "1416": 1
       },
       "player": {
         "auras": {
           "crusader1": {
             "name": "Crusader (MH)",
-            "uptime": 210205,
+            "uptime": 223262,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 0
           },
           "windfury": {
             "name": "Windfury",
-            "uptime": 64443,
+            "uptime": 62871,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 0
           },
           "crusader2": {
             "name": "Crusader (OH)",
-            "uptime": 74049,
+            "uptime": 69874,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 0
           },
           "rend": {
             "name": "Rend",
-            "uptime": 201295,
-            "totaldmg": 11125.952640000007,
+            "uptime": 180794,
+            "totaldmg": 9933.438240000007,
             "totalusedrage": 0,
             "cost": 10,
             "data": [
-              20,
+              19,
               0,
-              1,
+              2,
               0,
               0
             ]
           },
           "battleshout": {
             "name": "Battle Shout",
-            "uptime": 410627,
+            "uptime": 410109,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 10
           },
           "recklessness": {
             "name": "Recklessness",
-            "uptime": 301384,
+            "uptime": 300506,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 0
           },
           "deathwish": {
             "name": "Death Wish",
-            "uptime": 395627,
+            "uptime": 395109,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 10
           },
           "mightyragepotion": {
             "name": "Mighty Rage Potion",
-            "uptime": 393972,
+            "uptime": 392155,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 0
@@ -919,15 +920,15 @@
           },
           "flurry": {
             "name": "Flurry",
-            "uptime": 361530,
+            "uptime": 359535,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 0
           },
           "deepwounds": {
             "name": "Deep Wounds",
-            "uptime": 374815,
-            "totaldmg": 13647.886373291018,
+            "uptime": 373219,
+            "totaldmg": 14401.052633972164,
             "totalusedrage": 0,
             "cost": 0
           },
@@ -971,14 +972,14 @@
           "heroicstrike": {
             "name": "Heroic Strike",
             "uptime": 0,
-            "totaldmg": 92109.50891316852,
+            "totaldmg": 109556.12880966073,
             "totalusedrage": 0,
             "cost": 12,
             "data": [
-              15,
+              18,
               0,
-              8,
-              66,
+              6,
+              78,
               0
             ]
           },
@@ -1013,42 +1014,42 @@
           "overpower": {
             "name": "Overpower",
             "uptime": 0,
-            "totaldmg": 14358.732933541445,
+            "totaldmg": 12085.388154111559,
             "totalusedrage": 0,
             "cost": 5,
             "data": [
               0,
               0,
               0,
-              15,
+              13,
               0
             ]
           },
           "hamstring": {
             "name": "Hamstring",
             "uptime": 0,
-            "totaldmg": 4313.973548016106,
+            "totaldmg": 5176.768257619328,
             "totalusedrage": 0,
             "cost": 10,
             "data": [
               0,
               0,
-              2,
-              40,
+              0,
+              48,
               0
             ]
           },
           "execute": {
             "name": "Execute",
             "uptime": 0,
-            "totaldmg": 58545.744680851065,
-            "totalusedrage": 659,
+            "totaldmg": 50710.063254744106,
+            "totalusedrage": 629,
             "cost": 10,
             "data": [
-              1,
+              4,
               0,
-              1,
-              30,
+              2,
+              25,
               0
             ]
           },
@@ -1069,13 +1070,13 @@
           "whirlwind": {
             "name": "Whirlwind",
             "uptime": 0,
-            "totaldmg": 26380.782982830864,
+            "totaldmg": 26110.736055204146,
             "totalusedrage": 0,
             "cost": 22,
             "data": [
               2,
               0,
-              4,
+              3,
               18,
               0
             ]
@@ -1083,14 +1084,14 @@
           "bloodthirst": {
             "name": "Bloodthirst",
             "uptime": 0,
-            "totaldmg": 59470.313973548014,
+            "totaldmg": 60306.22541690626,
             "totalusedrage": 0,
             "cost": 30,
             "data": [
-              4,
-              0,
               3,
-              33,
+              0,
+              4,
+              34,
               0
             ]
           },
@@ -1111,26 +1112,26 @@
         },
         "mh": {
           "name": "Dal'Rend's Sacred Charge",
-          "totaldmg": 68297.09833847519,
+          "totaldmg": 78796.0860851966,
           "totalprocdmg": 0,
           "data": [
             0,
-            19,
-            9,
-            56,
-            70
+            18,
+            10,
+            66,
+            72
           ]
         },
         "oh": {
           "name": "Dal'Rend's Tribal Guardian",
-          "totaldmg": 58721.5602221047,
+          "totaldmg": 58061.18215065302,
           "totalprocdmg": 0,
           "data": [
-            12,
-            10,
+            13,
             17,
-            120,
-            116
+            17,
+            118,
+            112
           ]
         }
       }

@@ -131,10 +131,39 @@ function extraFixtures() {
         return fixture;
     });
 
+    const batchedExtras = ['classic', 'forever'].map(mode => {
+        const fixture = base('classic-dw-fury');
+        fixture.name = `${mode}-batched-extra-attack-swing-timer`;
+        fixture.mode = mode;
+        // Only Berserker Stance, which sets the base stance both engines start in.
+        fixture.buffs = [2458];
+        delete fixture.buffsAdd;
+        delete fixture.expect;
+        fixture.sim = {...fixture.sim, timesecsmin: 12, timesecsmax: 12, iterations: 6, batching: 400};
+        fixture.mutatePlayer = player => {
+            // Every landed swing grants an extra attack at the next batch, at most once
+            // per 3 seconds, so the extra swings land between regular ones.
+            player.talents.swordproc = 0;
+            player.base.hit = 100;
+            player.base.haste = 1;
+            player.target.dodge = 100;
+            player.oh = null;
+            Object.assign(player.mh, {speed: 2.5, proc1: null, proc2: null, windfury: null});
+            player.trinketproc1 = {chance: 10000, extra: 1, cooldown: 3000};
+            player.trinketproc2 = null;
+            player.attackproc1 = player.attackproc2 = null;
+            player.spells = {stanceswitch: player.spells.stanceswitch};
+            player.auras = {};
+            player.preporder = [];
+            player.sortSpells();
+        };
+        return fixture;
+    });
+
     return [
         phantom, suppression, long, trinkets, ...frenzyFixtures(), ...flaskFixtures(),
         earthstrike, endSchedule, itemSpells, priority, clocks, gabbar, hamstring, ...bloodrageCases, ...armorProcCases, ...stanceCases,
-        ...aliasCases, orderedProcs, ...foreverFixtures(), ...racialFixtures(), ...swordResets, ...sweepingFixtures(), ...queuedStrikeFixtures(), ...berserkerRageFixtures(), ...bleedFixtures(),
+        ...aliasCases, orderedProcs, ...foreverFixtures(), ...racialFixtures(), ...swordResets, ...batchedExtras, ...sweepingFixtures(), ...queuedStrikeFixtures(), ...berserkerRageFixtures(), ...bleedFixtures(),
     ];
 }
 

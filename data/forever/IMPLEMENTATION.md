@@ -1,5 +1,9 @@
 # WoW Forever implementation decisions
 
+**2026-10-15 update:** Confirmed: extra attacks do not reset the swing timer, unlike
+Classic. Each one is an additional main-hand swing, and the next regular swing stays
+on schedule. This replaces the provisional Classic behavior in [the rage notes](RAGE_GAIN.md).
+
 **2026-10-07 update:** The 1-2 Oct server hotfixes rework Fury and Protection;
 see [the catalog notes](README.md). Improved Cleave, Boundless Rage, Precision and
 Toughness are removed, with their effects. Lingering Rage, Furious Precision and

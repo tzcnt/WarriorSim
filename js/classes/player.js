@@ -37,6 +37,7 @@ class Player {
         this.dodgetimer = 0;
         this.extraattacks = 0;
         this.batchedextras = 0;
+        this.extratimer = Infinity;
         this.nextswinghs = false;
         this.nextswingcl = false;
         this.ragecostbonus = 0;
@@ -584,6 +585,7 @@ class Player {
         this.mh.timer = 0;
         this.extraattacks = 0;
         this.batchedextras = 0;
+        this.extratimer = Infinity;
         this.nextswinghs = false;
         this.nextswingcl = false;
         for (let s in this.spells) {
@@ -1057,7 +1059,8 @@ class Player {
             return RESULT.CRIT;
         return RESULT.HIT;
     }
-    attackmh(weapon, adjacent, damageSoFar) {
+    // Forever's extra attacks (extra) leave the swing timer running.
+    attackmh(weapon, adjacent, damageSoFar, extra) {
         this.stepauras();
 
         let spell = null;
@@ -1102,7 +1105,7 @@ class Player {
             this.proccrit(false, adjacent);
         }
 
-        weapon.use();
+        if (!extra) weapon.use();
         let done = this.dealdamage(dmg, result, weapon, spell, adjacent);
         if (spell) {
             spell.totaldmg += done;
@@ -1113,11 +1116,11 @@ class Player {
             weapon.data[result]++;
         }
         weapon.totalprocdmg += procdmg;
-        /* start-log */ if (this.logging) this.log(`${spell ? spell.name + ' for' : 'Main hand attack for'} ${~~done} (${Object.keys(RESULT)[result]})${adjacent ? ' (Adjacent)' : ''}`); /* end-log */
+        /* start-log */ if (this.logging) this.log(`${spell ? spell.name + ' for' : 'Main hand attack for'} ${~~done} (${Object.keys(RESULT)[result]})${adjacent ? ' (Adjacent)' : ''}${extra ? ' (Extra)' : ''}`); /* end-log */
 
         if (spell instanceof Cleave && !adjacent) {
             this.nextswinghs = true;
-            done += this.attackmh(weapon, 1, done);
+            done += this.attackmh(weapon, 1, done, extra);
         }
         if (empowered) this.auras.eureka.consume();
         return done + procdmg;

@@ -445,8 +445,11 @@ class Simulation {
             if (!slamstep) {
 
                 // Attacks
-                if (player.mh.timer <= 0) {
-                    this.idmg += player.attackmh(player.mh);
+                if (player.mh.timer <= 0 || player.extratimer <= 0) {
+                    // A due swing goes first; a pending Forever extra attack follows at the same step.
+                    const extra = player.mh.timer > 0;
+                    if (extra) player.extratimer = Infinity;
+                    this.idmg += player.attackmh(player.mh, 0, 0, extra);
                     spellcheck = true;
                 }
                 if (player.oh && player.oh.timer <= 0) {
@@ -618,19 +621,34 @@ class Simulation {
             }
 
             // Extra attacks
-            if (player.extraattacks > 0) {
-                player.mh.timer = 0;
-                player.extraattacks--;
+            if (player.mode === 'forever') {
+                // Forever swings them one at a time on their own timer, leaving the main hand swing timer running.
+                if (player.extratimer === Infinity) {
+                    if (player.extraattacks > 0) {
+                        player.extratimer = 0;
+                        player.extraattacks--;
+                    }
+                    else if (player.batchedextras > 0) {
+                        player.extratimer = batching - (step % batching);
+                        player.batchedextras--;
+                    }
+                }
             }
-            if (player.batchedextras > 0) {
-                player.mh.timer = batching - (step % batching);
-                player.batchedextras--;
+            else {
+                if (player.extraattacks > 0) {
+                    player.mh.timer = 0;
+                    player.extraattacks--;
+                }
+                if (player.batchedextras > 0) {
+                    player.mh.timer = batching - (step % batching);
+                    player.batchedextras--;
+                }
             }
 
             // Determine when next step should happen
             if (!slamstep) {
-                if (player.mh.timer <= 0 || (player.oh && player.oh.timer <= 0) || (!player.spelldelay && spellcheck) || (!player.heroicdelay && spellcheck)) { next = 0; continue; }
-                next = Math.min(player.mh.timer, player.oh ? player.oh.timer : 9999);
+                if (player.mh.timer <= 0 || player.extratimer <= 0 || (player.oh && player.oh.timer <= 0) || (!player.spelldelay && spellcheck) || (!player.heroicdelay && spellcheck)) { next = 0; continue; }
+                next = Math.min(player.mh.timer, player.extratimer, player.oh ? player.oh.timer : 9999);
                 if (player.spelldelay && (delayedspell.maxdelay - player.spelldelay) < next) next = delayedspell.maxdelay - player.spelldelay + 1;
                 if (player.heroicdelay && (delayedheroic.maxdelay - player.heroicdelay) < next) next = delayedheroic.maxdelay - player.heroicdelay + 1;
             }
@@ -707,6 +725,7 @@ class Simulation {
             if (step > this.maxsteps) break;
             player.mh.step(next);
             if (player.oh) player.oh.step(next);
+            player.extratimer -= next;
             if (slamstep && delayedspell.swingmode) {
                 player.mh.timer = Math.max(0, player.mh.timer);
                 if (player.oh) player.oh.timer = Math.max(0, player.oh.timer);

@@ -106,6 +106,7 @@ void PlayerState::reset(double startingRage) {
     spelldelay = heroicdelay = 0;
     mh.timer = 0;
     extraattacks = batchedextras = 0;
+    extratimer = std::numeric_limits<double>::infinity();
     nextswinghs = nextswingcl = false;
     for (auto& value : spells) {
         value.timer = 0;
@@ -564,7 +565,7 @@ void PlayerState::castRacialAffectedAura(AuraState& ability) {
     if (empowered) consumeEureka();
 }
 
-double PlayerState::attackMh(WeaponState& weapon, int adjacent, double damageSoFar) {
+double PlayerState::attackMh(WeaponState& weapon, int adjacent, double damageSoFar, bool extra) {
     stepAuras();
     SpellState* ability = nullptr;
     Result result;
@@ -606,7 +607,7 @@ double PlayerState::attackMh(WeaponState& weapon, int adjacent, double damageSoF
         dmg *= 1 + (1 + abilityBonus);
         procCrit(false, adjacent);
     }
-    useWeapon(*this, weapon);
+    if (!extra) useWeapon(*this, weapon);
     double done = dealDamage(dmg, result, weapon, ability, adjacent != 0);
     const auto index = static_cast<std::size_t>(result);
     if (ability) {
@@ -619,7 +620,7 @@ double PlayerState::attackMh(WeaponState& weapon, int adjacent, double damageSoF
     weapon.totalprocdmg += procDmg;
     if (ability && ability->kind == SpellKind::Cleave && !adjacent) {
         nextswinghs = true;
-        done += attackMh(weapon, 1, done);
+        done += attackMh(weapon, 1, done, extra);
     }
     if (empowered) consumeEureka();
     return done + procDmg;

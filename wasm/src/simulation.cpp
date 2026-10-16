@@ -164,6 +164,31 @@ double positiveModulo(double value, double divisor) {
     return result < 0 ? result + divisor : result;
 }
 
+// Schedules granted extra attacks; rare, so kept out of the event loop. Classic's extra
+// attack restarts the main hand swing timer. Forever swings them one at a time on their
+// own timer, leaving the main hand swing timer running.
+[[gnu::noinline]] void scheduleExtraAttacks(PlayerState& player, double batching) {
+    if (player.foreverMode) {
+        if (!std::isinf(player.extratimer)) return;
+        if (player.extraattacks > 0) {
+            player.extratimer = 0;
+            --player.extraattacks;
+        } else {
+            player.extratimer = batching - positiveModulo(player.step, batching);
+            --player.batchedextras;
+        }
+        return;
+    }
+    if (player.extraattacks > 0) {
+        player.mh.timer = 0;
+        --player.extraattacks;
+    }
+    if (player.batchedextras > 0) {
+        player.mh.timer = batching - positiveModulo(player.step, batching);
+        --player.batchedextras;
+    }
+}
+
 void minPositive(double candidate, double& current) {
     if (candidate < current) current = candidate;
 }
@@ -262,7 +287,13 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
         }
 
         if (!slamStep) {
-            if (player_.mh.timer <= 0) { damage += player_.attackMh(player_.mh); spellcheck = true; }
+            if (player_.mh.timer <= 0 || player_.extratimer <= 0) {
+                // A due swing goes first; a pending Forever extra attack follows at the same step.
+                const bool extra = player_.mh.timer > 0;
+                if (extra) player_.extratimer = std::numeric_limits<double>::infinity();
+                damage += player_.attackMh(player_.mh, 0, 0, extra);
+                spellcheck = true;
+            }
             if (player_.oh && player_.oh->timer <= 0) { damage += player_.attackOh(*player_.oh); spellcheck = true; }
 
             const double reserve = reservedRage(player_);
@@ -425,22 +456,14 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
             spellcheck = true;
             slamStep = 0;
         }
-        if (player_.extraattacks > 0) {
-            player_.mh.timer = 0;
-            --player_.extraattacks;
-        }
-        if (player_.batchedextras > 0) {
-            const double batching = sim_.batching;
-            player_.mh.timer = batching - positiveModulo(player_.step, batching);
-            --player_.batchedextras;
-        }
+        if (player_.extraattacks > 0 || player_.batchedextras > 0) scheduleExtraAttacks(player_, sim_.batching);
 
         if (!slamStep) {
-            if (player_.mh.timer <= 0 || (player_.oh && player_.oh->timer <= 0) || (!player_.spelldelay && spellcheck) || (!player_.heroicdelay && spellcheck)) {
+            if (player_.mh.timer <= 0 || player_.extratimer <= 0 || (player_.oh && player_.oh->timer <= 0) || (!player_.spelldelay && spellcheck) || (!player_.heroicdelay && spellcheck)) {
                 next = 0;
                 continue;
             }
-            next = std::min(player_.mh.timer, player_.oh ? player_.oh->timer : 9999.0);
+            next = std::min(std::min(player_.mh.timer, player_.extratimer), player_.oh ? player_.oh->timer : 9999.0);
             if (player_.spelldelay && delayedSpell && delayedSpell.maxDelay() - player_.spelldelay < next)
                 next = delayedSpell.maxDelay() - player_.spelldelay + 1;
             if (player_.heroicdelay && delayedHeroic && delayedHeroic->maxdelay - player_.heroicdelay < next)
@@ -492,6 +515,7 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
         if (player_.step > maxSteps) break;
         player_.mh.timer -= next;
         if (player_.oh) player_.oh->timer -= next;
+        player_.extratimer -= next;
         if (slamStep && delayedSpell.spell->props.number("swingmode"_prop)) {
             player_.mh.timer = std::max(0.0, player_.mh.timer);
             if (player_.oh) player_.oh->timer = std::max(0.0, player_.oh->timer);

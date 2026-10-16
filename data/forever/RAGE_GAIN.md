@@ -4,6 +4,7 @@ Weapon quality (white -> green) yields no rage bonus.
 Critical hits grant no bonus (100% normal rage). Superseded by the 2026-10-01 patch notes: white-hit crits now grant 100% bonus rage (200% normal rage).
 Glancing hits carry no penalty (earn 100% normal rage).
 Misses and dodges grant 0 rage.
+Extra attacks (Windfury, Sword Specialization, item procs) do not reset the swing timer, unlike Classic. Confirmed 2026-10-15.
 
 ## Tested Numbers (level 8-10)
 Two-Hand: 4.5 rage per second
@@ -19,6 +20,3 @@ Provisional Implementation: No, damage per hit uses unmodified weapon speed.
 
 Q: Do we get rage from extra attacks?
 Provisional Implementation: Yes, same as a normal autoattack.
-
-Q: Does WF / extra attack reset swing timer?
-Provsional Implementation: Yes, same as Classic.
