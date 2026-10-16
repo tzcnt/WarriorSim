@@ -221,6 +221,10 @@
         "active": true,
         "minrage": "10",
         "priority": "2"
+      },
+      "11567": {
+        "minrage": "45",
+        "maincdactive": false
       }
     }
   }

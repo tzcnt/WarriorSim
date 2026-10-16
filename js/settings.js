@@ -532,8 +532,14 @@ SIM.SETTINGS = {
             ul.append(`<li data-id="minrageactive" class="${spell.minrageactive ? 'active' : ''}" data-group="usage">Only use when above <input type="text" name="minrage" value="${spell.minrage}" data-numberonly="true" /> rage</li>`);
         if (typeof spell.maxrage !== 'undefined') 
             ul.append(`<li data-id="maxrageactive" class="${spell.maxrageactive ? 'active' : ''}">Don't switch stance when above <input type="text" name="maxrage" value="${spell.maxrage}" data-numberonly="true" /> rage</li>`);
-        if (typeof spell.maincd !== 'undefined') 
-            ul.append(`<li data-id="maincdactive" class="${spell.maincdactive ? 'active' : ''}">Don't ${spell.name == "Heroic Strike" ? 'queue' : 'use'} if BT / MS cooldown shorter than <input type="text" name="maincd" value="${spell.maincd}" data-numberonly="true" /> seconds</li>`);
+        if (typeof spell.maincd !== 'undefined') {
+            const maincd = `<input type="text" name="maincd" value="${spell.maincd}" data-numberonly="true" />`;
+            // Heroic Strike and Cleave queue when either this or the rage condition holds; other abilities require it.
+            if (spell.classname == 'HeroicStrike' || spell.classname == 'Cleave')
+                ul.append(`<li data-id="maincdactive" class="${spell.maincdactive ? 'active' : ''}" title="Either enabled condition is enough to queue">${spell.name == "Heroic Strike" ? 'Queue' : 'Use'} when BT / MS cooldown is at least ${maincd} seconds</li>`);
+            else
+                ul.append(`<li data-id="maincdactive" class="${spell.maincdactive ? 'active' : ''}">Don't use if BT / MS cooldown shorter than ${maincd} seconds</li>`);
+        }
         if (mode === 'forever' && spell.classname === 'Slam')
             ul.append(`<li data-id="nextautoactive" class="${spell.nextautoactive ? 'active' : ''}">Do not use if next MH auto is ready in less than <input type="text" name="nextauto" value="${spell.nextauto || 0}" data-numberonly="true" /> milliseconds</li>`);
         if (typeof spell.duration !== 'undefined') 

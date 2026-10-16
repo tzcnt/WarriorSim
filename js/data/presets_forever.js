@@ -211,10 +211,10 @@ var profilePresets = [
                 {
                     "id": "11567",
                     "active": true,
-                    "minrage": "45",
+                    "minrage": "50",
                     "minrageactive": true,
-                    "maincd": "2",
-                    "maincdactive": false,
+                    "maincd": "4",
+                    "maincdactive": true,
                     "unqueue": 15,
                     "unqueueactive": false,
                     "exmacro": true

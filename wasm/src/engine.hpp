@@ -303,10 +303,12 @@ struct SpellState {
     double ragewait = 0;
     // Batch counters for damage per rage: rage paid after refunds (Execute's extra rage
     // included), rage lost to the stance swaps this ability needed, and for a queued strike, the
-    // rage its replaced white swing would have generated. AuraState has the first two.
+    // rage its replaced white swing would have generated and the damage that swing would have
+    // dealt. AuraState has the first two.
     double ragespent = 0;
     double stancerage = 0;
     double whiterage = 0;
+    double whitedmg = 0;
     Result lastResult = Result::Hit;
     std::unique_ptr<SpellState> backupHeroic;
     std::array<std::uint64_t, 5> data{};
@@ -531,8 +533,9 @@ struct PlayerState {
     [[nodiscard]] double getArmorReduction() const;
     void addRage(double dmg, Result result, WeaponState& weapon, const SpellState* spell);
     [[nodiscard]] double swingRage(const WeaponState& weapon, Result result, double dmg) const;
-    [[nodiscard]] double replacedSwingRage(const SpellState& strike, const WeaponState& weapon, Result result,
-                                           double dmg, double before) const;
+    [[nodiscard]] double replacedSwingDamage(const SpellState& strike, const WeaponState& weapon, Result result,
+                                             double dmg) const;
+    [[nodiscard]] double replacedSwingRage(const WeaponState& weapon, Result result, double dmg, double before) const;
     void gainRage(double amount);
     void countRageGain(double base);
     bool stepTimer(double amount);

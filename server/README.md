@@ -98,7 +98,7 @@ shown, with the `files` list sorted lexically by path:
 ```text
 {
   format: 2,
-  protocol: 4,
+  protocol: 5,
   specVersion: 1,
   entrypoints: { classic: [ordered script paths], forever: [ordered script paths] },
   files: [{ path: "js/...", sha256: "SHA-256 of that file's exact bytes" }, ...]

@@ -333,22 +333,28 @@ SIM.STATS = {
         let html = '<table><thead><tr><th>Action</th><th>Hit %</th><th>Crit %</th><th>Miss %</th><th>Dodge %</th><th>Glance %</th><th>Uses</th>' +
             '<th title="Times per fight this was the next ability to use, but there was not enough rage to pay for it">Rage Delays</th>' +
             '<th title="Seconds per fight spent waiting for that rage, until it could be used or something else came first">Rage Wait (s)</th>' +
-            '<th title="Damage per rage. Rage is what was paid after refunds, plus rage lost to the stance swaps the ability needed (there and back), plus for Heroic Strike and Cleave the rage the white swing they replaced would have generated">DPR</th>' +
+            '<th title="Damage per rage. Rage is what was paid after refunds, plus rage lost to the stance swaps the ability needed (there and back). Heroic Strike and Cleave replace a white swing: their rage adds what that swing would have generated, and their damage counts only what they dealt over what it would have dealt">DPR</th>' +
             '<th>DPS</th></tr></thead><tbody>';
 
         let i = sim.iterations;
         // Rage waits are counted for abilities that take a GCD; other rows leave these cells empty.
         const rage = action => action && action.ragedelays !== undefined ?
             `<td>${(action.ragedelays / i).toFixed(2)}</td><td>${(action.ragewait / 1000 / i).toFixed(2)}</td>` : '<td></td><td></td>';
-        // Damage per rage, with the rage per use broken down in the cell's tooltip when uses are counted.
+        // Damage per rage, with the damage and rage per use broken down in the cell's tooltip when uses are counted.
         const dpr = (action, uses) => {
             const cost = (action.ragespent || 0) + (action.stancerage || 0) + (action.whiterage || 0);
             if (!action.totaldmg || !(cost > 0)) return '<td></td>';
+            // A queued strike is credited only with the damage it added over the white swing it replaced.
+            const damage = action.totaldmg - (action.whitedmg || 0);
             const parts = [`${((action.ragespent || 0) / uses).toFixed(2)} paid after refunds`,
                 `${((action.stancerage || 0) / uses).toFixed(2)} lost to stance swaps`];
             if (action.whiterage !== undefined) parts.push(`${(action.whiterage / uses).toFixed(2)} white swing rage given up`);
-            const title = uses ? ` title="Rage per use: ${parts.join(', ')}"` : '';
-            return `<td${title}>${(action.totaldmg / cost).toFixed(2)}</td>`;
+            let title = `Rage per use: ${parts.join(', ')}`;
+            if (action.whitedmg) {
+                title = `Damage per use: ${(action.totaldmg / uses).toFixed(2)} dealt, less ` +
+                    `${(action.whitedmg / uses).toFixed(2)} white swing damage given up&#10;${title}`;
+            }
+            return `<td${uses ? ` title="${title}"` : ''}>${(damage / cost).toFixed(2)}</td>`;
         };
         let data = sim.player.mh.data;
         let total = data.reduce((a, b) => a + b, 0);

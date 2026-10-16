@@ -2,7 +2,7 @@
 (function(root) {
     'use strict';
     const protocol = {
-        version: 4,
+        version: 5,
         maxChunks: 8192,
         maxChunkSize: 2000,
         leaseMs: 15000,
@@ -84,7 +84,8 @@
                 const spell = job.spec.player.spells.find(spell => spell.key === key);
                 if (!spell || !counter(value, false) || value.data.length !== 5 ||
                     value.name !== (spell.props.name || key) || !Number.isFinite(value.totalusedrage) ||
-                    !Number.isFinite(value.cost) || !rageCounters(value) || !nonNegative(value.whiterage)) return false;
+                    !Number.isFinite(value.cost) || !rageCounters(value) || !nonNegative(value.whiterage) ||
+                    !nonNegative(value.whitedmg)) return false;
             }
             for (const [key, value] of Object.entries(report.player.auras)) {
                 const aura = job.spec.player.auras.find(aura => aura.key === key);

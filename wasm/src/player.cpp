@@ -478,21 +478,25 @@ double PlayerState::swingRage(const WeaponState& weapon, Result result, double d
     return (dmg / props.number("rageconversion"_prop)) * 7.5;
 }
 
-// Rage the white swing that a queued strike replaced would have generated, from `before`, the rage
-// held when the swing began. `result` is the strike's table roll read on the white table, and dmg
-// is the strike's damage before its crit. The white swing has the same damage roll without the
-// strike's bonus; a white crit doubles it, and a glance takes the average glancing reduction.
-double PlayerState::replacedSwingRage(const SpellState& strike, const WeaponState& weapon, Result result,
-                                      double dmg, double before) const {
-    double white = 0;
-    if (!foreverMode && result != Result::Miss && result != Result::Dodge) {
-        white = (dmg / strike.props.number("eurekamod"_prop, 1) -
-                 strike.props.number("bonus"_prop, strike.props.number("value1"_prop)) * weapon.modifier *
-                 stats.number("dmgmod"_prop, 1)) * (1 - weaponArmorReduction(weapon));
-        if (result == Result::Crit) white *= 2;
-        if (result == Result::Glance) white *= glanceReduction(weapon, .5);
-    }
-    double gain = swingRage(weapon, result, white);
+// Damage after armor that the white swing a queued strike replaced would have dealt. `result` is
+// the strike's table roll read on the white table, and dmg is the strike's damage before its crit.
+// The white swing has the same damage roll without the strike's bonus; a white crit doubles it,
+// and a glance takes the average glancing reduction.
+double PlayerState::replacedSwingDamage(const SpellState& strike, const WeaponState& weapon, Result result,
+                                        double dmg) const {
+    if (result == Result::Miss || result == Result::Dodge) return 0;
+    double white = (dmg / strike.props.number("eurekamod"_prop, 1) -
+                    strike.props.number("bonus"_prop, strike.props.number("value1"_prop)) * weapon.modifier *
+                    stats.number("dmgmod"_prop, 1)) * (1 - weaponArmorReduction(weapon));
+    if (result == Result::Crit) white *= 2;
+    if (result == Result::Glance) white *= glanceReduction(weapon, .5);
+    return white;
+}
+
+// Rage that replaced white swing would have generated from its result and damage, starting from
+// `before`, the rage held when the swing began.
+double PlayerState::replacedSwingRage(const WeaponState& weapon, Result result, double dmg, double before) const {
+    double gain = swingRage(weapon, result, dmg);
     // Forever rolls Unbridled Wrath on white swings only; Classic rolls it on queued strikes too.
     if (foreverMode && result != Result::Miss && result != Result::Dodge)
         gain += talents.number("umbridledwrath"_prop) / 100;
@@ -588,8 +592,12 @@ double PlayerState::attackMh(WeaponState& weapon, int adjacent, double damageSoF
     const bool empowered = ability && !adjacent ? beginEureka(*ability) : false;
     double dmg = weaponDamage(*this, weapon, ability) * (ability ? ability->props.number("eurekamod"_prop, 1) : 1);
     // Without the queued strike, the swing would have rolled the same number on the white table.
-    if (ability && !adjacent)
-        ability->whiterage += replacedSwingRage(*ability, weapon, whiteTable(weapon, tableRoll, weapon.dwmiss), dmg, rageBefore);
+    if (ability && !adjacent) {
+        const Result white = whiteTable(weapon, tableRoll, weapon.dwmiss);
+        const double whiteDmg = replacedSwingDamage(*ability, weapon, white, dmg);
+        ability->whitedmg += whiteDmg;
+        ability->whiterage += replacedSwingRage(weapon, white, whiteDmg, rageBefore);
+    }
     const double procDmg = procAttack(ability, weapon, result, adjacent, damageSoFar);
     if (result == Result::Dodge) dodgetimer = 5000;
     if (result == Result::Glance) dmg *= glanceReduction(weapon);

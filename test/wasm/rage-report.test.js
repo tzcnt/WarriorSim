@@ -68,7 +68,7 @@ for (const fixture of loadFixtures()) {
             for (const [key, action] of Object.entries(full.player[group])) {
                 const merged = parts.map(part => part.player[group][key]);
                 assert.equal(merged.reduce((sum, value) => sum + value.ragedelays, 0), action.ragedelays, `${key}.ragedelays`);
-                for (const counter of ['ragewait', 'ragespent', 'stancerage', ...group === 'spells' ? ['whiterage'] : []])
+                for (const counter of ['ragewait', 'ragespent', 'stancerage', ...group === 'spells' ? ['whiterage', 'whitedmg'] : []])
                     assertClose(merged.reduce((sum, value) => sum + value[counter], 0), action[counter], `${group}.${key}.${counter}`);
             }
         }
@@ -176,6 +176,7 @@ test('abilities pay their cost, less the 80% refunded when they miss or are dodg
         assertClose(spell.ragespent, cost * (uses(spell) - .8 * (spell.data[1] + spell.data[2])), `${key}.ragespent`);
         assert.equal(spell.stancerage, 0, `${key} is usable in Berserker Stance`);
         assert.equal(spell.whiterage, 0, `${key} does not replace a white swing`);
+        assert.equal(spell.whitedmg, 0, `${key} does not replace a white swing`);
     }
 });
 
@@ -206,13 +207,12 @@ test("Heroic Strike's table roll is read on the white table: Forever gives up gl
     assertClose(heroic.whiterage, expected, 'heroicstrike.whiterage');
 });
 
-test('Classic Heroic Strike gives up the rage from the same damage roll without its bonus, glancing on average', () => {
-    const fixture = loadFixtures().find(value => value.name === 'classic-dw-fury');
+// With no bonus damage and no crits, a Heroic Strike deals exactly what the white swing would have
+// dealt before its glancing reduction.
+function unbonusedGlancingStrike(fixture) {
     const spec = glancingSpec(fixture);
     // Glancing swings generate little rage in Classic, so start with plenty.
     spec.player.props.ragecap = spec.sim.startrage = 1e9;
-    // With no bonus damage and no crits, a Heroic Strike deals exactly what the white swing would
-    // have dealt before its glancing reduction.
     Object.assign(spec.player.spells.find(spell => spell.key === 'heroicstrike').props, {bonus: 0, value1: 0, nocrit: true});
     const [report] = runBatches(spec, fixture.sim.seed, [100]);
     const heroic = report.player.spells.heroicstrike;
@@ -221,7 +221,19 @@ test('Classic Heroic Strike gives up the rage from the same damage roll without 
     const diff = spec.player.target.defense - spec.player.stats[`skill_${spec.player.weapons.mh.props.type}`];
     const clamp = (value, low, high) => Math.min(Math.max(value, low), high);
     const glancing = (clamp(1.3 - .05 * diff, .01, .91) + clamp(1.2 - .03 * diff, .2, .99)) / 2;
-    const expected = heroic.totaldmg * glancing / spec.player.props.rageconversion * 7.5;
+    return {spec, heroic, whitedmg: heroic.totaldmg * glancing};
+}
+
+for (const mode of ['classic', 'forever']) {
+    test(`${mode} Heroic Strike gives up the damage of the same damage roll without its bonus, glancing on average`, () => {
+        const {heroic, whitedmg} = unbonusedGlancingStrike(loadFixtures().find(value => value.name === `${mode}-dw-fury`));
+        assert.ok(Math.abs(heroic.whitedmg - whitedmg) <= whitedmg * 1e-9, `${heroic.whitedmg} != ${whitedmg}`);
+    });
+}
+
+test('Classic Heroic Strike gives up the rage that damage would have generated', () => {
+    const {spec, heroic, whitedmg} = unbonusedGlancingStrike(loadFixtures().find(value => value.name === 'classic-dw-fury'));
+    const expected = whitedmg / spec.player.props.rageconversion * 7.5;
     assert.ok(Math.abs(heroic.whiterage - expected) <= expected * 1e-9, `${heroic.whiterage} != ${expected}`);
 });
 

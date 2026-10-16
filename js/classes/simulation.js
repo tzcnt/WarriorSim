@@ -203,7 +203,7 @@ function mergeSimulationReports(destination, source) {
 }
 
 // Native-only per-action counters; reports from the JavaScript reference engine lack them.
-const rageCounters = ['ragedelays', 'ragewait', 'ragespent', 'stancerage', 'whiterage'];
+const rageCounters = ['ragedelays', 'ragewait', 'ragespent', 'stancerage', 'whiterage', 'whitedmg'];
 
 function mergeRageCounters(destination, source) {
     for (const key of rageCounters) {

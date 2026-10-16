@@ -788,7 +788,7 @@ BatchReport Engine::runBatch(std::uint32_t count, std::uint32_t globalIterationO
         spell.totaldmg = 0;
         spell.totalusedrage = 0;
         spell.ragedelays = 0;
-        spell.ragewait = spell.ragespent = spell.stancerage = spell.whiterage = 0;
+        spell.ragewait = spell.ragespent = spell.stancerage = spell.whiterage = spell.whitedmg = 0;
         spell.data.fill(0);
     }
     for (auto& aura : player_.auras) {
@@ -886,6 +886,7 @@ std::string Engine::reportJson(const BatchReport& report, bool fullReport) const
             out << ",\"ragespent\":"; jsonNumber(out, spell.ragespent);
             out << ",\"stancerage\":"; jsonNumber(out, spell.stancerage);
             out << ",\"whiterage\":"; jsonNumber(out, spell.whiterage);
+            out << ",\"whitedmg\":"; jsonNumber(out, spell.whitedmg);
             out << ",\"totaldmg\":";
             jsonNumber(out, spell.totaldmg);
             out << ",\"data\":[";
