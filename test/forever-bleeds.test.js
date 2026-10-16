@@ -19,7 +19,7 @@ function setup(fixture, key) {
     aura.use();
     const tickDamage = key === 'rend' ? (fixture.mode === 'forever' ?
         (aura.value1 / aura.value2 + .02 * player.stats.ap) * player.stats.dmgmod *
-            aura.dmgmod * player.bleedmod * (player.auras.eureka?.timer ? 1.1 : 1) : aura.tickdmg) :
+            aura.dmgmod * player.bleedmod : aura.tickdmg) :
         (fixture.mode === 'forever' ? (player.mh.basemindmg + player.mh.basemaxdmg) / 2 :
             (player.mh.mindmg + player.mh.maxdmg) / 2 + player.mh.bonusdmg +
             player.stats.moddmgdone + player.stats.ap / 14 * player.mh.speed) *
@@ -98,20 +98,20 @@ for (const mode of ['classic', 'forever']) {
         const {engine, player, aura} = setup(fixture, 'rend');
         const snapshot = aura.tickdmg;
         player.mh.crit = 0;
+        // Eureka! affects only non-periodic abilities, so an active buff must not change ticks.
         player.auras.eureka = {timer: 0};
-        aura.eurekamod = 1.1; // A stale cast bonus must not affect Forever ticks.
-        for (const [ap, damageMod, bleedMod, eurekaMod, crit] of [
-            [100, 1, 1, 1, 0],
-            [1000, 1.2, .8, 1.1, 100],
-            [0, 1, 1, 1, 0],
+        for (const [ap, damageMod, bleedMod, eureka, crit] of [
+            [100, 1, 1, false, 0],
+            [1000, 1.2, .8, true, 100],
+            [0, 1, 1, false, 0],
         ]) {
             Object.assign(player.stats, {ap, dmgmod: damageMod});
             player.bleedmod = bleedMod;
-            player.auras.eureka.timer = eurekaMod > 1 ? 1e9 : 0;
+            player.auras.eureka.timer = eureka ? 1e9 : 0;
             player.crit = crit;
             const expected = mode === 'forever' ?
                 (aura.value1 / aura.value2 + .02 * ap) * damageMod * aura.dmgmod * bleedMod *
-                    eurekaMod * (crit ? 2 + player.talents.abilitiescrit : 1) : snapshot;
+                    (crit ? 2 + player.talents.abilitiescrit : 1) : snapshot;
             const before = aura.idmg;
             engine.evaluate('step = time', {time: aura.nexttick});
             aura.step();

@@ -1223,7 +1223,7 @@ class Eureka extends Aura {
     eligible(action) {
         return ['Bloodthirst','Whirlwind','Overpower','Execute','Bloodrage','HeroicStrike','Cleave',
             'MortalStrike','SunderArmor','Hamstring','ThunderClap','BerserkerRage','Slam','ShieldSlam',
-            'SpearingStrike','Rend','BattleShout','DeathWish','Recklessness','SweepingStrikes'].includes(action.constructor.name);
+            'SpearingStrike','BattleShout','DeathWish','Recklessness','SweepingStrikes'].includes(action.constructor.name);
     }
     use() {
         this.timer = step + this.duration * 1000;
@@ -1836,7 +1836,7 @@ class Rend extends Aura {
                 (this.player.crit + this.player.mh.crit) * 100;
             let dmg = this.player.mode === 'forever' ?
                 (this.value1 / this.value2 + 0.02 * this.player.stats.ap) *
-                    this.player.stats.dmgmod * this.dmgmod * this.player.bleedmod * (this.player.auras.eureka?.timer ? 1.1 : 1) :
+                    this.player.stats.dmgmod * this.dmgmod * this.player.bleedmod :
                 this.tickdmg;
             if (crit) dmg *= 1 + (1 + this.player.talents.abilitiescrit) + this.player.critbonus;
             this.idmg += dmg;
@@ -1883,7 +1883,7 @@ class Rend extends Aura {
 
         this.player.rage -= this.cost;
         if (this.player.mode !== 'forever') {
-            let dmg = this.value1 * this.player.stats.dmgmod * this.dmgmod * this.player.bleedmod * (this.eurekamod || 1);
+            let dmg = this.value1 * this.player.stats.dmgmod * this.dmgmod * this.player.bleedmod;
             this.tickdmg = dmg / this.value2;
         }
 

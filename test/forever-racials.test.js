@@ -327,6 +327,26 @@ test('Eureka empowers every cast for exactly 8 seconds, refunds discounted costs
     assert.equal(eureka.timer, 0);
 });
 
+test('Eureka does not discount or empower Rend, a periodic ability', () => {
+    const {player: p, run} = eurekaSetup();
+    const rend = p.auras.rend, cost = rend.cost;
+    assert.equal(rend.eurekabasecost, undefined);
+    assert.equal(p.cast(rend), 0);
+    assert.equal(rend.eurekamod, 1);
+    run('rng10k = () => 9999');
+    const tick = () => {
+        const before = rend.idmg;
+        Object.assign(rend, {stacks: 1, nexttick: 0, timer: 1e9});
+        rend.step();
+        return rend.idmg - before;
+    };
+    const empowered = tick();
+    p.auras.eureka.end();
+    close(rend.cost, cost);
+    assert.ok(empowered > 0);
+    close(empowered, tick());
+});
+
 test('Eureka applies at queued swing execution and to every Whirlwind hit', () => {
     const {player: p, run} = eurekaSetup();
     p.cast(p.spells.heroicstrike);

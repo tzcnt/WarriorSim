@@ -521,7 +521,8 @@ bool eurekaEligible(const SpellState& ability) {
         ability.kind != SpellKind::Fireball && ability.kind != SpellKind::GrilekFury && ability.kind != SpellKind::Spell;
 }
 bool eurekaEligible(const AuraState& ability) {
-    return ability.kind == AuraKind::Rend || ability.kind == AuraKind::BattleShout ||
+    // Eureka! affects only non-periodic abilities, so Rend is excluded.
+    return ability.kind == AuraKind::BattleShout ||
         ability.kind == AuraKind::DeathWish || ability.kind == AuraKind::Recklessness || ability.kind == AuraKind::SweepingStrikes;
 }
 }

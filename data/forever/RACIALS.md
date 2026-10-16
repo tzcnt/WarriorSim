@@ -14,7 +14,7 @@ October 15, 2026. Only Forever uses these replacements.
 | Tauren | Endurance: 2% increased critical damage and healing (was 1% hit chance). | +2 points of critical strike damage bonus; the hit bonus is removed. |
 | Skyborne | Wind Blessed haste bonus 3% (was 1%). | Haste multiplied by 1.03. |
 | Undead | Touch of the Grave: 20% chance for Warriors, 25-second internal cooldown; no longer scales with Shadow increases. | 20% chance per eligible hit, shared 25-second cooldown. |
-| Gnome | Eureka!: an 8-second buff with no charges; same damage and cost effect. | Every Warrior ability cast during the 8 seconds gets the bonus. |
+| Gnome | Eureka!: an 8-second buff with no charges; same damage and cost effect. | Every non-periodic Warrior ability cast during the 8 seconds gets the bonus; Rend does not. |
 
 The patch's movement, mount speed, treasure, utility-cooldown, dispel and
 crowd-control changes are outside the DPS model.
@@ -45,7 +45,7 @@ assumptions are documented below.
 | Human | Ruthless grants +2 percentage points of autoattack, ability and spell crit with any weapon; no racial weapon skill. |
 | Dwarf | Earth Fury adds 2 percentage points to every critical strike damage bonus; +5% physical and magic damage against Beasts. |
 | Night Elf | Elune’s Light grants +10 points of melee and spell crit for 15 seconds; 3-minute cooldown. |
-| Gnome | Maximum rage multiplied by 1.05; for 8 seconds, Eureka! makes Warrior abilities cost 10% less rage and deal 10% more damage; 2-minute cooldown. |
+| Gnome | Maximum rage multiplied by 1.05; for 8 seconds, Eureka! makes non-periodic Warrior abilities cost 10% less rage and deal 10% more damage; 2-minute cooldown. |
 | Orc | Savage grants +1 point of autoattack, ability and spell crit with any weapon; Blood Fury multiplies total AP and spell-power contributions by 1.10 for 15 seconds, with no GCD or rage cost and a 3-minute cooldown. No racial weapon skill. |
 | Undead | Touch of the Grave: 20% chance per landed damaging main-hand, off-hand, or special ability hit to deal 5% of maximum HP as magic damage, with a shared 25-second internal cooldown and a separate damage report. |
 | Tauren | Endurance adds 2 percentage points to every critical strike damage bonus; +5% maximum health. |
@@ -108,16 +108,17 @@ hit chance, so its +5% maximum health is retained.
   Fury and Berserking per the owner, September 28, 2026). Their first use can be
   scheduled in Rotation; they can be reused in long fights. They do not wait for the
   GCD and are used as soon as they are ready, after the usual reaction delay.
-- Eureka! lasts 8 seconds and has no charges. While it is active, every Warrior
-  ability costs 10% less rage, after talent reductions, and deals 10% more damage.
-  Fractional rage costs are retained. Execute's excess-rage conversion is unchanged.
-  The bonus is checked when an ability is cast. Queued Heroic Strike and Cleave check
-  it, and pay their cost, at the actual swing, so a strike queued just before it ends
-  swings at full cost and damage. Multiple targets and Whirlwind's off-hand share the
-  cast's bonus. Rend evaluates the current bonus on each tick. Sweeping Strikes copies
-  resulting hit damage without applying a second multiplier. Autoattacks, stance
-  changes, consumables and item procs are unaffected. The buff ends exactly 8 seconds
-  after use, so its discount never covers an ability chosen after it ends.
+- Eureka! lasts 8 seconds and has no charges. While it is active, every non-periodic
+  Warrior ability costs 10% less rage, after talent reductions, and deals 10% more
+  damage. The in-game tooltip limits it to non-periodic abilities, so Rend pays its
+  full cost and its ticks get no bonus. Fractional rage costs are retained. Execute's
+  excess-rage conversion is unchanged. The bonus is checked when an ability is cast.
+  Queued Heroic Strike and Cleave check it, and pay their cost, at the actual swing, so
+  a strike queued just before it ends swings at full cost and damage. Multiple targets
+  and Whirlwind's off-hand share the cast's bonus. Sweeping Strikes copies resulting
+  hit damage without applying a second multiplier. Autoattacks, stance changes,
+  consumables and item procs are unaffected. The buff ends exactly 8 seconds after
+  use, so its discount never covers an ability chosen after it ends.
 - Blood Fury has a 3-minute cooldown (patch notes, 2026-10-15; Classic keeps 2
   minutes). The dump gives no replacement cooldown for Berserking, so it uses
   Classic's 3 minutes. Both are reused in long fights.
