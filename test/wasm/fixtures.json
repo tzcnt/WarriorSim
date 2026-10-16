@@ -213,6 +213,9 @@
         "deepwounds"
       ]
     },
+    "buffsRemove": [
+      10627
+    ],
     "buffsAdd": [
       10614
     ],
