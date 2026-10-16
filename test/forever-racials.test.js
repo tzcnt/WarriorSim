@@ -65,25 +65,37 @@ test('Forever replaces Human/Orc skill racials; Classic retains them', () => {
     }
 });
 
-test('weapon specialization adds crit to qualifying autoattacks and specials in either hand', () => {
-    for (const [race, type, bonus] of [['Human',1,2], ['Dwarf',0,1], ['Orc',3,1]]) {
-        for (const [mh, oh] of [[true, false], [false, true], [true, true], [false, false]]) {
+test('Ruthless and Savage add crit to autoattacks, abilities and spells with any weapon', () => {
+    // Isolate the racial: only the base stance's crit remains.
+    const isolate = p => {
+        p.base.crit = p.base.spellcrit = p.base.agi = p.talents.crit = 0;
+        p.target.level = p.level;
+        p.addRacialBonuses(); p.updateAuras();
+    };
+    const neutral = setup('Night Elf').player;
+    isolate(neutral);
+    for (const [race, bonus] of [['Human', 2], ['Orc', 1], ['Dwarf', 0], ['Tauren', 0]]) {
+        for (const type of [0, 1, 2, 3]) {
             const {player: p, run} = setup(race);
-            for (const [hand, qualifies] of [['mh', mh], ['oh', oh]])
-                Object.assign(p[hand], {type: qualifies ? type : 2, crit: 0, miss: 0, dwmiss: 0, dodge: 0, glanceChance: 0});
-            p.base.spellcrit = 0; p.addRacialBonuses(); p.crit = 0;
-            assert.equal(p.base.spellcrit, mh || oh ? bonus : 0);
-            for (const [hand, qualifies] of [['mh', mh], ['oh', oh]]) {
-                assert.equal(p[hand].racialcrit, qualifies ? bonus : 0);
-                run(`rng10k = () => ${bonus * 100 - 1}`);
-                assert.equal(run(`p.rollmeleespell(p.spells.whirlwind, p.${hand})`), qualifies ? 3 : 0);
-                assert.equal(run(`p.rollweapon(p.${hand})`), qualifies ? 3 : 0);
+            isolate(p);
+            close(p.crit - neutral.crit, bonus);
+            close(p.stats.spellcrit - neutral.stats.spellcrit, bonus);
+            p.crit -= neutral.crit;
+            for (const hand of ['mh', 'oh']) {
+                Object.assign(p[hand], {type, crit: 0, miss: 0, dwmiss: 0, dodge: 0, glanceChance: 0});
+                if (bonus) {
+                    run(`rng10k = () => ${bonus * 100 - 1}`);
+                    assert.equal(run(`p.rollmeleespell(p.spells.whirlwind, p.${hand})`), 3);
+                    assert.equal(run(`p.rollweapon(p.${hand})`), 3);
+                }
                 run(`rng10k = () => ${bonus * 100}`);
                 assert.equal(run(`p.rollmeleespell(p.spells.whirlwind, p.${hand})`), 0);
                 assert.equal(run(`p.rollweapon(p.${hand})`), 0);
             }
         }
     }
+    // Classic keeps its weapon skill racials instead.
+    assert.equal(setup('Human', 'classic').player.base.crit, setup('Night Elf', 'classic').player.base.crit);
 });
 
 test('creature damage bonuses affect physical and magical damage only on matching targets', () => {
@@ -108,45 +120,64 @@ test('Skyborne has finite level-appropriate stats and multiplicative haste', () 
         assert.equal(sky.base.str, human.base.str);
         assert.equal(sky.base.agi, human.base.agi);
         assert.equal(sky.base.aprace, level * 3 - 20);
-        close(sky.stats.haste / human.stats.haste, 1.01);
+        close(sky.stats.haste / human.stats.haste, 1.03);
     }
     assert.match(fs.readFileSync('index.html','utf8'), /value="Skyborne"/);
     assert.doesNotMatch(fs.readFileSync('classic.html','utf8'), /value="Skyborne"/);
 });
 
-test('Endurance adds melee and spell hit; Expansive Mind multiplies the talented rage cap', () => {
+test('Endurance no longer adds hit; Expansive Mind multiplies the talented rage cap', () => {
     const normal = setup().player;
     const tauren = setup('Tauren').player;
-    assert.equal(tauren.base.hit, normal.base.hit + 1);
-    assert.equal(tauren.target.misschance, normal.target.misschance - 100);
+    assert.equal(tauren.base.hit, normal.base.hit);
+    assert.equal(tauren.target.misschance, normal.target.misschance);
+    assert.equal(tauren.target.binaryresist, normal.target.binaryresist);
+    for (const p of [normal, tauren]) p.update();
+    assert.equal(tauren.mh.dwmiss, normal.mh.dwmiss);
+    assert.equal(tauren.oh.dwmiss, normal.oh.dwmiss);
     const gnome = setup('Gnome').player;
     close(gnome.ragecap, normal.ragecap * 1.05);
     gnome.reset(1000);
     close(gnome.rage, gnome.ragecap);
 });
 
-test('Endurance reduces autoattack misses by one point for single weapons and both dual-wield hands', () => {
-    for (const dualWield of [false, true]) {
-        const normal = setup('Human');
-        const tauren = setup('Tauren');
-        const gearHit = normal.player.base.hit;
-        for (const {player: p} of [normal, tauren]) {
-            p.base.hit -= gearHit;
-            if (!dualWield) p.oh = null;
-            p.update();
-        }
-        for (const hand of dualWield ? ['mh', 'oh'] : ['mh']) {
-            const normalMiss = normal.player[hand].dwmiss;
-            const taurenMiss = tauren.player[hand].dwmiss;
-            close(taurenMiss, normalMiss - 1);
-            assert.ok(taurenMiss > 0);
-            const roll = Math.ceil(taurenMiss * 100);
-            normal.run(`rng10k = () => ${roll}`);
-            tauren.run(`rng10k = () => ${roll}`);
-            assert.equal(normal.run(`p.rollweapon(p.${hand})`), 1);
-            assert.notEqual(tauren.run(`p.rollweapon(p.${hand})`), 1);
-            tauren.run(`rng10k = () => ${roll - 1}`);
-            assert.equal(tauren.run(`p.rollweapon(p.${hand})`), 1);
+test('Earth Fury and Endurance add 2 points to every critical strike damage bonus', () => {
+    for (const race of ['Human', 'Orc', 'Night Elf', 'Gnome', 'Undead', 'Troll', 'Skyborne'])
+        assert.equal(setup(race).player.critbonus, 0, race);
+    for (const race of ['Dwarf', 'Tauren']) assert.equal(setup(race, 'classic').player.critbonus, 0);
+    for (const race of ['Dwarf', 'Tauren']) {
+        const {player: p, run} = setup(race);
+        assert.equal(p.critbonus, .02);
+        // Every roll crits, every damage roll is the maximum, and nothing else varies.
+        run(`p.procattack = () => 0; p.proccrit = () => {}; p.armorReduction = 0;
+            rng10k = () => 0; rng = (min, max) => max;`);
+        for (const hand of ['mh', 'oh']) Object.assign(p[hand], {miss: 0, dwmiss: 0, dodge: 0, glanceChance: 0});
+        Object.assign(p.target, {misschance: 0, mitigation: 1});
+        p.stats.spellcrit = 5;
+        p.talents.abilitiescrit = .2;
+        const rend = p.auras.rend;
+        // Each hit's crit multiplier without the racial: Impale 2/2 adds .2 to ability crits.
+        const hits = {
+            white: [2, () => p.attackmh(p.mh)],
+            offhand: [2, () => p.attackoh(p.oh)],
+            ability: [2.2, () => p.cast(p.spells.bloodthirst)],
+            offhandAbility: [2.2, () => p.castoh(p.spells.whirlwind)],
+            spell: [1.5, () => p.magicproc({magicdmg: 100})],
+            physical: [2, () => p.physproc(100)],
+            rendTick: [2.2, () => {
+                const before = rend.idmg;
+                Object.assign(rend, {stacks: 1, nexttick: 0, timer: 1e9});
+                rend.step();
+                return rend.idmg - before;
+            }],
+        };
+        for (const [name, [multiplier, hit]] of Object.entries(hits)) {
+            p.critbonus = 0;
+            const base = hit();
+            p.critbonus = .02;
+            const boosted = hit();
+            assert.ok(base > 0, `${race} ${name} deals damage`);
+            close(boosted / base, (multiplier + .02) / multiplier);
         }
     }
 });
@@ -160,6 +191,19 @@ test('saved rotation data cannot grant another race’s active abilities', () =>
     const {player: p} = setup('Gnome', 'classic');
     assert.equal(p.auras.eureka, undefined);
     assert.equal(p.ragecap, 100);
+});
+
+test('Forever Blood Fury has a 3-minute cooldown; Classic keeps 2 minutes', () => {
+    for (const [mode, seconds] of [['forever', 180], ['classic', 120]]) {
+        const {player: p, run} = setup('Orc', mode);
+        const fury = p.auras.bloodfury;
+        assert.equal(fury.cooldown, seconds);
+        fury.prep(600000); fury.use();
+        run('step = 15000; p.auras.bloodfury.step()');
+        p.timer = 0;
+        run(`step = ${seconds * 1000 - 1}`); assert.equal(fury.canUse(), false);
+        run(`step = ${seconds * 1000}`); assert.equal(fury.canUse(), true);
+    }
 });
 
 test('Blood Fury multiplies total AP, survives AP/Strength refreshes, and expires', () => {
@@ -254,55 +298,83 @@ function eurekaSetup() {
     return state;
 }
 
-test('Eureka empowers exactly three casts, refunds discounted costs, and resets cleanly', () => {
+test('Eureka empowers every cast for exactly 8 seconds, refunds discounted costs, and resets cleanly', () => {
     const {player: p, run} = eurekaSetup();
+    const eureka = p.auras.eureka;
     const bt = p.spells.bloodthirst, baseCost = bt.eurekabasecost;
+    assert.equal(eureka.timer, 8000);
     close(bt.cost, baseCost * .9);
     const expected = bt.dmg() * p.mh.modifier * 1.1 + p.stats.moddmgtaken;
-    close(p.cast(bt), expected);
-    assert.equal(p.auras.eureka.stacks, 2);
+    for (let i = 0; i < 5; i++) close(p.cast(bt), expected);
+    assert.equal(eureka.timer, 8000, 'casts do not consume Eureka!');
     p.rage = 100;
     run('p.rollmeleespell = () => RESULT.DODGE');
     assert.equal(p.cast(bt), 0);
     close(p.rage, 100 - baseCost * .9 * .2);
-    assert.equal(p.auras.eureka.stacks, 1);
-    run('p.rollmeleespell = () => RESULT.HIT');
+    run('p.rollmeleespell = () => RESULT.HIT; step = 7999');
     close(p.cast(bt), expected);
-    assert.equal(p.auras.eureka.stacks, 0);
+    close(bt.cost, baseCost * .9);
+    run('step = 8000');
+    const plain = p.cast(bt);
+    assert.equal(bt.eurekamod, 1);
+    close(plain, bt.dmg() * p.mh.modifier + p.stats.moddmgtaken);
+    assert.equal(eureka.timer, 0);
+    assert.equal(eureka.uptime, 8000);
     close(bt.cost, baseCost);
-    p.auras.eureka.use();
+    run('step = 9000'); eureka.cooldowntimer = 0; eureka.use();
     p.reset(100);
     close(bt.cost, baseCost);
-    assert.equal(p.auras.eureka.stacks, 0);
+    assert.equal(eureka.timer, 0);
 });
 
-test('Eureka consumes at queued swing execution and once for all Whirlwind hits', () => {
-    const {player: p} = eurekaSetup();
+test('Eureka applies at queued swing execution and to every Whirlwind hit', () => {
+    const {player: p, run} = eurekaSetup();
     p.cast(p.spells.heroicstrike);
-    assert.equal(p.auras.eureka.stacks, 3);
     p.attackmh(p.mh);
-    assert.equal(p.auras.eureka.stacks, 2);
-    p.auras.eureka.stacks = 1;
+    assert.equal(p.spells.heroicstrike.eurekamod, 1.1);
     p.nextswinghs = false;
     const ww = p.spells.whirlwind;
     p.cast(ww);
-    assert.equal(p.auras.eureka.stacks, 0);
     assert.equal(ww.eurekamod, 1.1);
     p.castoh(ww);
     p.cast(ww, null, 1);
     assert.equal(ww.eurekamod, 1.1);
-    assert.equal(p.auras.eureka.stacks, 0);
+    // A strike queued during Eureka! swings after it expires at full cost and damage.
+    const hs = p.spells.heroicstrike, cost = hs.eurekabasecost;
+    close(hs.cost, cost * .9);
+    p.cast(hs);
+    run('step = 8000');
+    p.rage = 100;
+    p.attackmh(p.mh);
+    assert.equal(hs.eurekamod, 1);
+    close(hs.cost, cost);
+    close(p.rage, 100 - cost);
     p.cast(ww);
     assert.equal(ww.eurekamod, 1);
 });
 
-test('Touch of the Grave has a 5% chance, scales with HP and shares a 1 second cooldown', () => {
+test('Eureka expires exactly at 8 seconds during combat, before any later rage check', () => {
+    const {player: p, engine, fixture} = setup('Gnome');
+    const eureka = p.auras.eureka;
+    const expirations = [];
+    const stepAura = eureka.step;
+    eureka.step = function() {
+        const active = this.timer;
+        stepAura.call(this);
+        if (active && !this.timer) expirations.push([engine.evaluate('step'), this.starttimer]);
+    };
+    engine.createSimulation(p, fixture.sim).startSync();
+    assert.ok(expirations.length >= fixture.sim.iterations);
+    for (const [at, start] of expirations) assert.equal(at, start + 8000);
+});
+
+test('Touch of the Grave has a 20% chance, scales with HP and shares a 25 second cooldown', () => {
     const {player: p, run} = setup('Undead');
     const grave = p.auras.touchofthegrave;
     p.maxhealth = 6000;
-    assert.equal(grave.chance, 500);
-    assert.equal(grave.cooldown, 1);
-    run('rng10k = () => 499; p.magicproc = proc => proc.magicdmg;');
+    assert.equal(grave.chance, 2000);
+    assert.equal(grave.cooldown, 25);
+    run('rng10k = () => 1999; p.magicproc = proc => proc.magicdmg;');
     for (const result of ['MISS', 'DODGE']) run(`p.dealdamage(100, RESULT.${result}, p.mh, null, false)`);
     run('p.dealdamage(0, RESULT.HIT, p.mh, null, false)');
     assert.equal(grave.totaldmg, 0);
@@ -310,14 +382,14 @@ test('Touch of the Grave has a 5% chance, scales with HP and shares a 1 second c
     assert.equal(grave.totaldmg, 300);
     run('p.dealdamage(100, RESULT.HIT, p.oh, null, false)');
     assert.equal(grave.totaldmg, 300, 'simultaneous off-hand hit shares the cooldown');
-    run('step = 999; p.dealdamage(100, RESULT.HIT, p.oh, null, false)');
+    run('step = 24999; p.dealdamage(100, RESULT.HIT, p.oh, null, false)');
     assert.equal(grave.totaldmg, 300);
-    run('step = 1000; p.dealdamage(100, RESULT.HIT, p.oh, null, false)');
-    assert.equal(grave.totaldmg, 600, 'off-hand can proc at exactly 1 second');
-    run('step = 2000; rng10k = () => 500; p.dealdamage(100, RESULT.HIT, p.mh, null, false)');
-    assert.equal(grave.totaldmg, 600, 'roll 500 is outside the 5% proc range');
+    run('step = 25000; p.dealdamage(100, RESULT.HIT, p.oh, null, false)');
+    assert.equal(grave.totaldmg, 600, 'off-hand can proc at exactly 25 seconds');
+    run('step = 50000; rng10k = () => 2000; p.dealdamage(100, RESULT.HIT, p.mh, null, false)');
+    assert.equal(grave.totaldmg, 600, 'roll 2000 is outside the 20% proc range');
     p.maxhealth = 12000;
-    run('rng10k = () => 499; p.dealdamage(100, RESULT.HIT, p.mh, null, false)');
+    run('rng10k = () => 1999; p.dealdamage(100, RESULT.HIT, p.mh, null, false)');
     assert.equal(grave.totaldmg, 1200);
     run('step = 0; p.reset(100)');
     assert.equal(grave.idmg, 0);
@@ -334,12 +406,12 @@ test('Touch of the Grave checks melee and magic ability hits and ignores armor',
     p.stats.spellcrit = 0;
     p.stats.spelldmgmod = 1;
     p.talents.weaponmasterarp = 0;
-    run('rng10k = () => 499');
+    run('rng10k = () => 1999');
     for (const reduction of [0, .25, .5, .75]) {
         p.armorReduction = reduction;
         for (const defense of ['MELEE', 'MAGIC']) {
             const before = p.auras.touchofthegrave.totaldmg;
-            run(`step += 1000; p.dealdamage(100, RESULT.MISS, p.mh,
+            run(`step += 25000; p.dealdamage(100, RESULT.MISS, p.mh,
                 {defenseType: DEFENSETYPE.${defense}, school: SCHOOL.PHYSICAL}, false)`);
             assert.equal(p.auras.touchofthegrave.totaldmg, before);
             run(`p.dealdamage(100, RESULT.HIT, p.mh,
@@ -402,12 +474,13 @@ test('Eureka becomes usable again at exactly two minutes and re-applies the 10% 
     const {player: p, run} = eurekaSetup();
     p.auras.eureka.prep(200000);
     const bt = p.spells.bloodthirst, cost = bt.eurekabasecost;
-    for (let i = 0; i < 3; i++) { p.rage = 100; p.cast(bt); }
+    run('step = 8000; p.auras.eureka.step()');
+    close(bt.cost, cost);
     run('step = 119999'); assert.equal(p.auras.eureka.canUse(), false);
     run('step = 120000'); assert.equal(p.auras.eureka.canUse(), true);
     p.auras.eureka.use();
     close(bt.cost, cost * .9);
-    assert.equal(p.auras.eureka.stacks, 3);
+    assert.equal(p.auras.eureka.timer, 128000);
 });
 
 for (const mode of ['classic', 'forever']) test(`${mode}: Berserking details and tooltips match the selected rules`, () => {
@@ -429,9 +502,13 @@ for (const mode of ['classic', 'forever']) test(`${mode}: Berserking details and
 
 test('saved racial tooltips cannot restore the old provisional values', () => {
     const {run} = setup('Gnome');
-    const eureka = run("racialSpellDescription({id: 'forever:eureka', localDescription: 'Old: 10% and 3 minutes'}, 'forever')");
+    const eureka = run("racialSpellDescription({id: 'forever:eureka', localDescription: 'Your next three abilities'}, 'forever')");
+    assert.match(eureka, /For 8 seconds/);
     assert.match(eureka, /10% less rage/);
     assert.match(eureka, /2-minute cooldown/);
-    assert.doesNotMatch(eureka, /Provisional/);
+    assert.doesNotMatch(eureka, /next three|Provisional/);
     assert.match(run("racialSpellDescription({id: 'forever:elunes-light'}, 'forever')"), /3-minute cooldown/);
+    assert.match(run("racialSpellDescription({id: 20572, localDescription: 'Old'}, 'forever')"), /3-minute cooldown/);
+    const descriptions = run('JSON.stringify(foreverRacialDescriptions)');
+    assert.doesNotMatch(descriptions, /Specialization|\+1% hit|\+1% haste|5% chance|1 second/);
 });

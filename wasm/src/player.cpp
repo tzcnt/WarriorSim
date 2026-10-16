@@ -332,7 +332,7 @@ double PlayerState::critChance() const {
 }
 
 double PlayerState::effectiveCrit(const WeaponState& weapon) const {
-    return std::max(0.0, crit + weapon.crit + (foreverMode ? weapon.props.number("racialcrit"_prop) : 0) +
+    return std::max(0.0, crit + weapon.crit +
         (weapon.skill - target.props.number("defense"_prop)) * .04 +
         (baseStance == "zerk" ? 3 : 0));
 }
@@ -393,7 +393,7 @@ Result PlayerState::whiteTable(const WeaponState& weapon, int roll, double miss)
     if (roll < tmp) return Result::Miss;
     tmp += weapon.dodge * 100; if (roll < tmp) return Result::Dodge;
     tmp += weapon.glanceChance * 100; if (roll < tmp) return Result::Glance;
-    tmp += (crit + weapon.crit + (foreverMode ? weapon.props.number("racialcrit"_prop) : 0)) * 100;
+    tmp += (crit + weapon.crit) * 100;
     if (roll < tmp) return Result::Crit;
     return Result::Hit;
 }
@@ -409,7 +409,7 @@ Result PlayerState::rollMeleeSpell(SpellState& value, WeaponState& weapon, int* 
         if (roll < tmp) return Result::Dodge;
     }
     if (!value.props.boolean("weaponspell"_prop, true)) { roll = rng.tenK(); tmp = 0; }
-    double valueCrit = crit + weapon.crit + (foreverMode ? weapon.props.number("racialcrit"_prop) : 0);
+    double valueCrit = crit + weapon.crit;
     if (value.kind == SpellKind::Overpower) valueCrit += talents.number("overpowercrit"_prop);
     tmp += valueCrit * 100;
     if (roll < tmp && !value.props.boolean("nocrit"_prop)) return Result::Crit;
@@ -427,7 +427,7 @@ Result PlayerState::rollMeleeAura(AuraState& value, WeaponState& weapon) {
     // Aura's base class does not define weaponspell. Rend therefore follows
     // JavaScript's `!undefined` branch and consumes a separate crit-table roll.
     if (!value.props.boolean("weaponspell"_prop)) { roll = rng.tenK(); tmp = 0; }
-    tmp += (crit + weapon.crit + (foreverMode ? weapon.props.number("racialcrit"_prop) : 0)) * 100;
+    tmp += (crit + weapon.crit) * 100;
     if (roll < tmp && !value.props.boolean("nocrit"_prop)) return Result::Crit;
     return Result::Hit;
 }
@@ -481,15 +481,15 @@ double PlayerState::swingRage(const WeaponState& weapon, Result result, double d
 
 // Damage after armor that the white swing a queued strike replaced would have dealt. `result` is
 // the strike's table roll read on the white table, and dmg is the strike's damage before its crit.
-// The white swing has the same damage roll without the strike's bonus; a white crit doubles it,
-// and a glance takes the average glancing reduction.
+// The white swing has the same damage roll without the strike's bonus; a white crit doubles it
+// (plus the racial crit bonus), and a glance takes the average glancing reduction.
 double PlayerState::replacedSwingDamage(const SpellState& strike, const WeaponState& weapon, Result result,
                                         double dmg) const {
     if (result == Result::Miss || result == Result::Dodge) return 0;
     double white = (dmg / strike.props.number("eurekamod"_prop, 1) -
                     strike.props.number("bonus"_prop, strike.props.number("value1"_prop)) * weapon.modifier *
                     stats.number("dmgmod"_prop, 1)) * (1 - weaponArmorReduction(weapon));
-    if (result == Result::Crit) white *= 2;
+    if (result == Result::Crit) white *= 2 + critbonus;
     if (result == Result::Glance) white *= glanceReduction(weapon, .5);
     return white;
 }
@@ -542,27 +542,16 @@ void PlayerState::updateEurekaCosts(bool active) {
     for (auto& ability : auras) update(ability);
 }
 
-bool PlayerState::beginEureka(SpellState& ability) {
-    const auto* eureka = aura("eureka"_action);
-    if (!eureka) return false;
-    const bool empowered = eureka && eureka->stacks && eurekaEligible(ability);
-    ability.props.set("eurekamod"_prop, empowered ? 1.1 : 1);
-    return empowered;
-}
-
-void PlayerState::consumeEureka() {
-    if (auto* eureka = aura("eureka"_action); eureka && eureka->stacks && !--eureka->stacks) {
-        auraEnd(*this, *eureka);
-    }
+void PlayerState::beginEureka(SpellState& ability) {
+    if (const auto* eureka = aura("eureka"_action))
+        ability.props.set("eurekamod"_prop, eureka->timer && eurekaEligible(ability) ? 1.1 : 1);
 }
 
 void PlayerState::castRacialAffectedAura(AuraState& ability) {
     stepAuras();
-    const auto* eureka = aura("eureka"_action);
-    const bool empowered = eureka && eureka->stacks && eurekaEligible(ability);
-    ability.props.set("eurekamod"_prop, empowered ? 1.1 : 1);
+    if (const auto* eureka = aura("eureka"_action))
+        ability.props.set("eurekamod"_prop, eureka->timer && eurekaEligible(ability) ? 1.1 : 1);
     auraUse(*this, ability);
-    if (empowered) consumeEureka();
 }
 
 double PlayerState::attackMh(WeaponState& weapon, int adjacent, double damageSoFar, bool extra) {
@@ -590,7 +579,7 @@ double PlayerState::attackMh(WeaponState& weapon, int adjacent, double damageSoF
         } else result = rollWeapon(weapon);
     } else result = rollWeapon(weapon);
 
-    const bool empowered = ability && !adjacent ? beginEureka(*ability) : false;
+    if (ability && !adjacent) beginEureka(*ability);
     double dmg = weaponDamage(*this, weapon, ability) * (ability ? ability->props.number("eurekamod"_prop, 1) : 1);
     // Without the queued strike, the swing would have rolled the same number on the white table.
     if (ability && !adjacent) {
@@ -604,7 +593,7 @@ double PlayerState::attackMh(WeaponState& weapon, int adjacent, double damageSoF
     if (result == Result::Glance) dmg *= glanceReduction(weapon);
     if (result == Result::Crit) {
         const double abilityBonus = ability ? talents.number("abilitiescrit"_prop) : 0;
-        dmg *= 1 + (1 + abilityBonus);
+        dmg *= 1 + (1 + abilityBonus) + critbonus;
         procCrit(false, adjacent);
     }
     if (!extra) useWeapon(*this, weapon);
@@ -622,7 +611,6 @@ double PlayerState::attackMh(WeaponState& weapon, int adjacent, double damageSoF
         nextswinghs = true;
         done += attackMh(weapon, 1, done, extra);
     }
-    if (empowered) consumeEureka();
     return done + procDmg;
 }
 
@@ -634,7 +622,7 @@ double PlayerState::attackOh(WeaponState& weapon) {
     if (result == Result::Dodge) dodgetimer = 5000;
     if (result == Result::Glance) dmg *= glanceReduction(weapon);
     if (result == Result::Crit) {
-        dmg *= 2;
+        dmg *= 2 + critbonus;
         procCrit(true, 0);
     }
     useWeapon(*this, weapon);
@@ -647,16 +635,12 @@ double PlayerState::attackOh(WeaponState& weapon) {
 
 double PlayerState::cast(SpellState& ability, SpellState* delayedHeroic, int adjacent,
                          double damageSoFar) {
-    bool empowered = false;
     if (!adjacent) {
         stepAuras();
-        if (!isQueuedStrike(&ability)) empowered = beginEureka(ability);
+        if (!isQueuedStrike(&ability)) beginEureka(ability);
         spellUse(*this, ability, delayedHeroic);
     }
-    if (ability.props.boolean("useonly"_prop)) {
-        if (empowered) consumeEureka();
-        return 0;
-    }
+    if (ability.props.boolean("useonly"_prop)) return 0;
     double dmg = spellDamage(*this, ability) * mh.modifier * ability.props.number("eurekamod"_prop, 1);
     if (dmg) dmg += stats.number("moddmgtaken"_prop);
     Result result = Result::Hit;
@@ -671,16 +655,15 @@ double PlayerState::cast(SpellState& ability, SpellState* delayedHeroic, int adj
         if (result == Result::Dodge) dodgetimer = 5000;
     } else if (result == Result::Crit) {
         if (defenseType == 1)
-            dmg *= 1 + .5 * (1 + talents.number("abilitiescrit"_prop));
+            dmg *= 1 + .5 * (1 + talents.number("abilitiescrit"_prop)) + critbonus;
         else
-            dmg *= 1 + (1 + talents.number("abilitiescrit"_prop));
+            dmg *= 1 + (1 + talents.number("abilitiescrit"_prop)) + critbonus;
         procCrit(false, adjacent);
     }
     const double done = dealDamage(dmg, result, mh, &ability, adjacent != 0);
     if (!adjacent) ++ability.data[static_cast<std::size_t>(result)];
     ability.totaldmg += done;
     mh.totalprocdmg += procDmg;
-    if (empowered) consumeEureka();
     (void)delayedHeroic; // consumed by Execute's spellUse implementation.
     return done + procDmg;
 }
@@ -693,7 +676,7 @@ double PlayerState::castOh(SpellState& ability, int adjacent, double damageSoFar
     const double procDmg = procAttack(&ability, *oh, result, adjacent, damageSoFar);
     if (result == Result::Dodge) dodgetimer = 5000;
     if (result == Result::Crit) {
-        dmg *= 1 + (1 + talents.number("abilitiescrit"_prop));
+        dmg *= 1 + (1 + talents.number("abilitiescrit"_prop)) + critbonus;
         procCrit(true, adjacent);
     }
     const double done = dealDamage(dmg, result, *oh, &ability, adjacent != 0);
@@ -758,7 +741,7 @@ double PlayerState::magicProc(const ProcState& proc) {
     else mod *= target.props.number("mitigation"_prop, 1);
     if (rng.tenK() < miss) return 0;
     if (rng.tenK() < stats.number("spellcrit"_prop) * 100)
-        mod *= 1 + .5;
+        mod *= 1 + .5 + critbonus;
     if (proc.coefficient) {
         const auto* fury = aura("bloodfury"_action);
         dmg += props.number("spelldamage"_prop) * proc.coefficient * (foreverMode && fury && fury->timer ? 1.1 : 1);
@@ -773,7 +756,7 @@ double PlayerState::physProc(double dmg) {
     tmp += mh.dodge * 100;
     if (roll < tmp) dmg = 0;
     roll = rng.tenK();
-    if (roll < (crit + mh.crit) * 100) dmg *= 2;
+    if (roll < (crit + mh.crit) * 100) dmg *= 2 + critbonus;
     return dmg * stats.number("dmgmod"_prop, 1) * mh.modifier;
 }
 

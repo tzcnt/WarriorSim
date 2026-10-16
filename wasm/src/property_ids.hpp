@@ -150,7 +150,7 @@ inline constexpr std::array<std::string_view, kDensePropertyCount> kDensePropert
     "swingmode",
     "tickrage",
     "weaponmasterarp",
-    "racialcrit",
+    "critbonus",
     "eurekamod",
     "eurekabasecost",
     "costreduction",
@@ -306,7 +306,7 @@ constexpr int propertyIndex(std::string_view value) {
     case propertyHash("swingmode"): return value == "swingmode" ? 137 : -1;
     case propertyHash("tickrage"): return value == "tickrage" ? 138 : -1;
     case propertyHash("weaponmasterarp"): return value == "weaponmasterarp" ? 139 : -1;
-    case propertyHash("racialcrit"): return value == "racialcrit" ? 140 : -1;
+    case propertyHash("critbonus"): return value == "critbonus" ? 140 : -1;
     case propertyHash("eurekamod"): return value == "eurekamod" ? 141 : -1;
     case propertyHash("eurekabasecost"): return value == "eurekabasecost" ? 142 : -1;
     case propertyHash("costreduction"): return value == "costreduction" ? 143 : -1;

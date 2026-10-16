@@ -479,6 +479,9 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
             minPositive(sweeping->timer - player_.step, next);
         if (const auto* sweeping = player_.aura("sweepingstrikes"_action); sweeping && sweeping->cooldownTimer > player_.step)
             minPositive(sweeping->cooldownTimer - player_.step, next);
+        // Eureka! expires exactly, so its discounted costs never pass a rage check after it ends.
+        if (const auto* eureka = player_.aura("eureka"_action); eureka && eureka->timer > player_.step)
+            minPositive(eureka->timer - player_.step, next);
         for (const auto& [isAura, index] : player_.configured.scheduledNoGcd) {
             const double ready = isAura
                 ? std::max(player_.auras[static_cast<std::size_t>(index)].useStep, player_.auras[static_cast<std::size_t>(index)].cooldownTimer)
@@ -538,6 +541,7 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
         if (auto* sweeping = player_.aura("sweepingstrikes"_action); sweeping && sweeping->props.number("duration"_prop) && sweeping->timer)
             if (!auraStep(player_, *sweeping)) spellcheck = true;
         if (const auto* sweeping = player_.aura("sweepingstrikes"_action); sweeping && sweeping->cooldownTimer == player_.step) spellcheck = true;
+        if (auto* eureka = player_.aura("eureka"_action); eureka && eureka->timer) (void)auraStep(player_, *eureka);
         if (!player_.spelldelay || preemptible) {
             for (const auto& [isAura, index] : player_.configured.scheduledNoGcd)
                 if (canUse(player_, findAction(player_, index, isAura))) spellcheck = true;

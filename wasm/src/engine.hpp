@@ -460,6 +460,8 @@ struct PlayerState {
     double swordspecstep = std::numeric_limits<double>::quiet_NaN();
     double armorReduction = 0;
     double crit = 0;
+    // Forever's Earth Fury and Endurance add to every critical strike damage bonus; 0 otherwise.
+    double critbonus = 0;
     bool nextswinghs = false;
     bool nextswingcl = false;
     bool foreverMode = false;
@@ -510,8 +512,7 @@ struct PlayerState {
     template<std::size_t N> double prop(const char (&)[N], double = 0) const = delete;
 
     void updateEurekaCosts(bool active);
-    bool beginEureka(SpellState& ability);
-    void consumeEureka();
+    void beginEureka(SpellState& ability);
     void castRacialAffectedAura(AuraState& ability);
     void buildConfiguredActionLists();
     void reset(double startingRage);

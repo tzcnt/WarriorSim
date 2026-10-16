@@ -154,7 +154,7 @@ const endSchedules = {
     },
     'forever-racial-night-elf-end-schedule': {eluneslight: [180000, 269000, 1000], deathwish: [180000, 269000, 2000]},
     'forever-racial-gnome-end-schedule': {eureka: [120000, 290000, 1000], deathwish: [180000, 269000, 2000]},
-    'forever-racial-orc-end-schedule': {bloodfury: [120000, 282000, 1000], deathwish: [180000, 269000, 2000]},
+    'forever-racial-orc-end-schedule': {bloodfury: [180000, 282000, 1000], deathwish: [180000, 269000, 2000]},
     'forever-racial-troll-end-schedule': {berserking: [180000, 287000, 1000], deathwish: [180000, 269000, 2000]},
 };
 
