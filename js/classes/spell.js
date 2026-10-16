@@ -1106,7 +1106,7 @@ class BloodFury extends Aura {
         super(player, id, 'Blood Fury');
         this.duration = 15;
         this.mult_stats = player.mode === 'forever' ? {apmod: 10} : {baseapmod: 25};
-        this.cooldown = 120;
+        this.cooldown = player.mode === 'forever' ? 180 : 120;
         // Forever's Blood Fury neither triggers nor waits for the GCD.
         this.gcd = player.mode === 'forever' ? 0 : 1500;
     }
@@ -1168,8 +1168,8 @@ class Berserking extends Aura {
 class TouchOfTheGrave extends Aura {
     constructor(player) {
         super(player, undefined, 'Touch of the Grave');
-        this.chance = 500;
-        this.cooldown = 1; // Shared internal cooldown across all eligible hits.
+        this.chance = 2000;
+        this.cooldown = 25; // Shared internal cooldown across all eligible hits.
         this.healthcoeff = .05;
         this.idmg = this.totaldmg = 0;
     }
@@ -1201,11 +1201,12 @@ class ElunesLight extends Aura {
 class Eureka extends Aura {
     constructor(player, id) {
         super(player, id, 'Eureka!');
+        this.duration = 8;
         this.cooldown = 120;
         this.costreduction = .10;
     }
     canUse() {
-        return !this.stacks && step >= this.usestep && step >= (this.cooldowntimer || 0);
+        return !this.timer && step >= this.usestep && step >= (this.cooldowntimer || 0);
     }
     updateCosts(active) {
         for (const action of [...Object.values(this.player.spells), ...Object.values(this.player.auras)]) {
@@ -1222,19 +1223,23 @@ class Eureka extends Aura {
     eligible(action) {
         return ['Bloodthirst','Whirlwind','Overpower','Execute','Bloodrage','HeroicStrike','Cleave',
             'MortalStrike','SunderArmor','Hamstring','ThunderClap','BerserkerRage','Slam','ShieldSlam',
-            'SpearingStrike','Rend','BattleShout','DeathWish','Recklessness','SweepingStrikes'].includes(action.constructor.name);
+            'SpearingStrike','BattleShout','DeathWish','Recklessness','SweepingStrikes'].includes(action.constructor.name);
     }
     use() {
-        this.timer = 1; // Charges have no duration in the dump.
-        this.stacks = 3;
+        this.timer = step + this.duration * 1000;
         this.starttimer = step;
         this.cooldowntimer = nextUseStep(this, step + this.cooldown * 1000);
         this.updateCosts(true);
         this.maxdelay = rng(this.player.reactionmin, this.player.reactionmax);
+        /* start-log */ if (this.player.logging) this.player.log(`${this.name} applied`); /* end-log */
     }
-    step() {}
-    consume() {
-        if (this.stacks && !--this.stacks) this.end();
+    step() {
+        if (step >= this.timer) {
+            this.uptime += (this.timer - this.starttimer);
+            this.timer = 0;
+            this.updateCosts(false);
+            /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
+        }
     }
     end() {
         this.updateCosts(false);
@@ -1828,12 +1833,12 @@ class Rend extends Aura {
         while (step >= this.nexttick && this.stacks) {
             // Roll each tick independently; Rend's application still cannot crit.
             const crit = this.player.mode === 'forever' && rng10k() <
-                (this.player.crit + this.player.mh.crit + (this.player.mh.racialcrit || 0)) * 100;
+                (this.player.crit + this.player.mh.crit) * 100;
             let dmg = this.player.mode === 'forever' ?
                 (this.value1 / this.value2 + 0.02 * this.player.stats.ap) *
-                    this.player.stats.dmgmod * this.dmgmod * this.player.bleedmod * (this.player.auras.eureka?.stacks ? 1.1 : 1) :
+                    this.player.stats.dmgmod * this.dmgmod * this.player.bleedmod :
                 this.tickdmg;
-            if (crit) dmg *= 1 + (1 + this.player.talents.abilitiescrit);
+            if (crit) dmg *= 1 + (1 + this.player.talents.abilitiescrit) + this.player.critbonus;
             this.idmg += dmg;
             this.totaldmg += dmg;
 
@@ -1878,7 +1883,7 @@ class Rend extends Aura {
 
         this.player.rage -= this.cost;
         if (this.player.mode !== 'forever') {
-            let dmg = this.value1 * this.player.stats.dmgmod * this.dmgmod * this.player.bleedmod * (this.eurekamod || 1);
+            let dmg = this.value1 * this.player.stats.dmgmod * this.dmgmod * this.player.bleedmod;
             this.tickdmg = dmg / this.value2;
         }
 

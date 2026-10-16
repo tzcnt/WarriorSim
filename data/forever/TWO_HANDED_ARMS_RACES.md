@@ -1,5 +1,10 @@
 # Race comparison: optimized two-handed Arms
 
+> **Outdated:** these results predate the
+> [October 15, 2026 racial changes](RACIALS.md#october-15-2026-patch-notes) and
+> have not been rerun. Human, Dwarf, Orc, Tauren, Undead, Gnome and Skyborne
+> changed; Night Elf and Troll did not.
+
 **Night Elf remains the strongest tested race for this preset.** It leads Human
 by **7.467 DPS (+1.19%)**. Elune's Light retains the preset's existing
 16-seconds-before-end setting. The preset file was not changed.

@@ -101,3 +101,23 @@ for (const mode of ['classic', 'forever']) test(`${mode}: Windfury buff charges,
     assert.ok(!buffed());
     assert.ok(wf.canProc());
 });
+
+test('Forever Windfury and Grace of Air Totems stack, and every preset enables both', () => {
+    const engine = createReferenceEngine('forever');
+    const fixture = structuredClone(loadFixtures().find(f => f.mode === 'forever'));
+    createConfiguredPlayer(engine, fixture);
+    const groups = engine.evaluate(`[10614, 10627].map(id => buffs.find(b => b.id === id).group)`);
+    assert.notEqual(groups[0], groups[1], 'selecting one totem does not deselect the other');
+    const select = ids => {
+        engine.evaluate('buffs.forEach(b => b.active = ids.includes(b.id))', {ids});
+        return engine.createPlayer({...fixture.player, mode: 'forever'});
+    };
+    const windfury = select([10614]), both = select([10614, 10627]);
+    assert.equal(both.base.agi - windfury.base.agi, 77);
+    assert.equal(both.auras.windfury.stats.ap, 246);
+    const spec = both.serializeSimulationSpec(fixture.sim);
+    assert.equal(spec.player.auras.filter(a => a.kind === 'Windfury').length, 1);
+    assert.equal(spec.player.base.agi, both.base.agi);
+    for (const preset of engine.evaluate('profilePresets'))
+        for (const id of ['10614', '10627']) assert.ok(preset.profile.buffs.includes(id), `${preset.id}: ${id}`);
+});

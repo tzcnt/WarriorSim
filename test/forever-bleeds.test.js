@@ -19,7 +19,7 @@ function setup(fixture, key) {
     aura.use();
     const tickDamage = key === 'rend' ? (fixture.mode === 'forever' ?
         (aura.value1 / aura.value2 + .02 * player.stats.ap) * player.stats.dmgmod *
-            aura.dmgmod * player.bleedmod * (player.auras.eureka?.stacks ? 1.1 : 1) : aura.tickdmg) :
+            aura.dmgmod * player.bleedmod : aura.tickdmg) :
         (fixture.mode === 'forever' ? (player.mh.basemindmg + player.mh.basemaxdmg) / 2 :
             (player.mh.mindmg + player.mh.maxdmg) / 2 + player.mh.bonusdmg +
             player.stats.moddmgdone + player.stats.ap / 14 * player.mh.speed) *
@@ -37,10 +37,9 @@ for (const fixture of bleedFixtures()) {
         test(`${fixture.name}: ${key} tick crit chance, damage and proc isolation`, () => {
             for (const chance of [0, 30, 100]) {
                 const {engine, player, aura, tickDamage} = setup(fixture, key);
-                // Include main-hand talent and racial crit in the mixed threshold.
-                player.crit = chance ? chance - 7 : 0;
+                // Include main-hand talent crit in the mixed threshold.
+                player.crit = chance ? chance - 5 : 0;
                 player.mh.crit = chance ? 5 : 0;
-                player.mh.racialcrit = chance ? 2 : 0;
                 const rolls = [0, 2999, 3000, 9999];
                 engine.evaluate('rng10k = () => rolls.shift()', {rolls});
                 const expiration = aura.timer;
@@ -77,7 +76,6 @@ for (const key of ['rend', 'deepwounds']) {
         const fixture = bleedFixtures().find(f => f.name === 'forever-bleeds-impale-2');
         const {engine, player, aura, tickDamage} = setup(fixture, key);
         player.crit = player.mh.crit = 0;
-        delete player.mh.racialcrit;
         const rolls = [5000, 5000, 9999, 0];
         engine.evaluate('rng10k = () => rolls.shift(); step = 3000', {rolls});
         aura.step();
@@ -99,21 +97,21 @@ for (const mode of ['classic', 'forever']) {
         const fixture = bleedFixtures().find(f => f.mode === mode);
         const {engine, player, aura} = setup(fixture, 'rend');
         const snapshot = aura.tickdmg;
-        player.mh.crit = player.mh.racialcrit = 0;
-        player.auras.eureka = {stacks: 0};
-        aura.eurekamod = 1.1; // A stale cast bonus must not affect Forever ticks.
-        for (const [ap, damageMod, bleedMod, eurekaMod, crit] of [
-            [100, 1, 1, 1, 0],
-            [1000, 1.2, .8, 1.1, 100],
-            [0, 1, 1, 1, 0],
+        player.mh.crit = 0;
+        // Eureka! affects only non-periodic abilities, so an active buff must not change ticks.
+        player.auras.eureka = {timer: 0};
+        for (const [ap, damageMod, bleedMod, eureka, crit] of [
+            [100, 1, 1, false, 0],
+            [1000, 1.2, .8, true, 100],
+            [0, 1, 1, false, 0],
         ]) {
             Object.assign(player.stats, {ap, dmgmod: damageMod});
             player.bleedmod = bleedMod;
-            player.auras.eureka.stacks = eurekaMod > 1 ? 3 : 0;
+            player.auras.eureka.timer = eureka ? 1e9 : 0;
             player.crit = crit;
             const expected = mode === 'forever' ?
                 (aura.value1 / aura.value2 + .02 * ap) * damageMod * aura.dmgmod * bleedMod *
-                    eurekaMod * (crit ? 2 + player.talents.abilitiescrit : 1) : snapshot;
+                    (crit ? 2 + player.talents.abilitiescrit : 1) : snapshot;
             const before = aura.idmg;
             engine.evaluate('step = time', {time: aura.nexttick});
             aura.step();
@@ -133,7 +131,7 @@ function stackingSetup(rotation = {}) {
     player.stats.dmgmod = player.base.dmgmod = player.bleedmod = 1;
     player.talents.deepwounds = .6;
     Object.assign(player.mh, {mindmg: 100, maxdmg: 100, basemindmg: 100, basemaxdmg: 100, bonusdmg: 0,
-        modifier: 1, crit: 0, racialcrit: 0});
+        modifier: 1, crit: 0});
     Object.assign(player.oh, {mindmg: 40, maxdmg: 40, basemindmg: 40, basemaxdmg: 40, bonusdmg: 0, modifier: .5});
     return {engine, player, aura: player.auras.deepwounds,
         at: time => engine.evaluate('step = time', {time})};

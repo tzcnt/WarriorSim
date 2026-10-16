@@ -35,8 +35,9 @@ the remaining mechanics below as confirmed game behavior.
 | Mechanic | Current implementation | Evidence / status |
 | --- | --- | --- |
 | Rank 7 damage and cadence | 147 total base damage, split into seven ticks of 21 before modifiers, at 3-second intervals. First tick occurs 3 seconds after application; last tick at 21 seconds. | Current spell data and engine behavior; not independently confirmed here. |
-| Crit chance inputs | Uses current player crit plus main-hand weapon/talent crit and main-hand racial crit. | Implemented formula; the confirmation establishes dynamic timing, not every component of this formula. |
-| Crit damage | Multiplies a critical tick by `2 + talents.abilitiescrit` (2× without Impale; 2.1× / 2.2× with one / two ranks). | Implemented; multiplier and Impale interaction not independently confirmed here. |
+| Crit chance inputs | Uses current player crit (including Ruthless and Savage) plus main-hand weapon/talent crit. | Implemented formula; the confirmation establishes dynamic timing, not every component of this formula. |
+| Crit damage | Multiplies a critical tick by `2 + talents.abilitiescrit` (2× without Impale; 2.1× / 2.2× with one / two ranks), plus .02 for Dwarf and Tauren. | Implemented; multiplier and Impale interaction not independently confirmed here. |
+| Eureka! | Neither Rend's cost nor its ticks benefit; the in-game tooltip limits Eureka! to non-periodic abilities. | Tooltip text, reported by the user on 2026-10-15. |
 | Application roll | Application can miss or be dodged, but cannot crit. | Implemented; not independently confirmed here. |
 | Crit-triggered effects | Tick crits do not trigger Deep Wounds or other attack-crit procs. | Implemented and tested; not independently confirmed here. |
 | Improved Rend | Increases damage by 12% / 23% / 35%. | Matches the captured client-build 1.60.1.69876 talent descriptions; not a separate live-server verification. |

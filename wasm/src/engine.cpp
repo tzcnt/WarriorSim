@@ -235,6 +235,7 @@ PlayerState readPlayer(const val& value) {
     out.baseStance = out.props.string("basestance"_prop);
     out.stance = out.props.string("stance"_prop, out.props.string("basestance"_prop, "battle"));
     out.crit = out.props.number("crit"_prop);
+    out.critbonus = out.props.number("critbonus"_prop);
     out.armorReduction = out.props.number("armorReduction"_prop);
     out.buildConfiguredActionLists();
     return out;

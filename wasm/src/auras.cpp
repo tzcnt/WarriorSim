@@ -287,9 +287,7 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
         aura.cooldownTimer = nextUseStep(aura, player.step + cooldownMs(aura));
         break;
     case AuraKind::Eureka:
-        aura.timer = 1;
-        aura.stacks = 3;
-        aura.starttimer = player.step;
+        begin(player, aura);
         aura.cooldownTimer = nextUseStep(aura, player.step + cooldownMs(aura));
         player.updateEurekaCosts(true);
         setDelay(player, aura);
@@ -402,7 +400,7 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
             const double baseDamage = aura.props.number("value1"_prop);
             const double value2 = aura.props.number("value2"_prop);
             aura.props.set("tickdmg"_prop, baseDamage * player.stats.number("dmgmod"_prop, 1) *
-                aura.props.number("dmgmod"_prop, 1) * player.prop("bleedmod"_prop, 1) * aura.props.number("eurekamod"_prop, 1) / value2);
+                aura.props.number("dmgmod"_prop, 1) * player.prop("bleedmod"_prop, 1) / value2);
         }
         player.updateDmgMod();
         setDelay(player, aura);
@@ -478,15 +476,13 @@ bool auraStep(PlayerState& player, AuraState& aura) {
         while (player.step >= aura.nexttick && aura.stacks) {
             double damage = aura.props.number("tickdmg"_prop);
             if (player.foreverMode) {
-                const auto* eureka = player.aura("eureka"_action);
                 damage = (aura.props.number("value1"_prop) / aura.props.number("value2"_prop) +
                     0.02 * player.stats.number("ap"_prop)) * player.stats.number("dmgmod"_prop, 1) *
-                    aura.props.number("dmgmod"_prop, 1) * player.prop("bleedmod"_prop, 1) * (eureka && eureka->stacks ? 1.1 : 1);
+                    aura.props.number("dmgmod"_prop, 1) * player.prop("bleedmod"_prop, 1);
             }
             // The application cannot crit; each tick rolls independently.
-            if (player.foreverMode && player.rng.tenK() <
-                (player.crit + player.mh.crit + player.mh.props.number("racialcrit"_prop)) * 100)
-                damage *= 1 + (1 + player.talents.number("abilitiescrit"_prop));
+            if (player.foreverMode && player.rng.tenK() < (player.crit + player.mh.crit) * 100)
+                damage *= 1 + (1 + player.talents.number("abilitiescrit"_prop)) + player.critbonus;
             aura.idmg += damage;
             aura.totaldmg += damage;
             aura.nexttick += 3000;
@@ -545,7 +541,10 @@ bool auraStep(PlayerState& player, AuraState& aura) {
     case AuraKind::MightyRagePotion:
         return stepWithUpdate(player, aura, &PlayerState::updateStrength, false, true);
     case AuraKind::Eureka:
-        return true;
+        if (player.step < aura.timer) return true;
+        expire(player, aura);
+        player.updateEurekaCosts(false);
+        return false;
     case AuraKind::ElunesLight:
         return stepWithUpdate(player, aura, &PlayerState::updateAuras, true);
     case AuraKind::BloodFury:

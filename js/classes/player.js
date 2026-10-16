@@ -42,6 +42,7 @@ class Player {
         this.nextswingcl = false;
         this.ragecostbonus = 0;
         this.ragecap = 100;
+        this.critbonus = 0;
         this.bloodthrilltimer = 0;
         this.logging = config.logging;
         this.race = config.race;
@@ -209,19 +210,15 @@ class Player {
     }
     addRacialBonuses() {
         if (this.mode !== 'forever') return;
-        // Weapon racials affect autoattacks and abilities; each hand qualifies independently.
-        const specialization = {Human: [WEAPONTYPE.SWORD, 2], Dwarf: [WEAPONTYPE.MACE, 1], Orc: [WEAPONTYPE.AXE, 1]}[this.race];
-        for (const weapon of [this.mh, this.oh].filter(Boolean))
-            weapon.racialcrit = specialization && weapon.type === specialization[0] ? specialization[1] : 0;
-        this.base.spellcrit += Math.max(this.mh.racialcrit, this.oh?.racialcrit || 0);
-        if (this.race === 'Tauren') {
-            this.base.hit += 1;
-            this.target.misschance = Math.max(100, this.target.misschance - 100);
-            this.target.binaryresist = this.getTargetSpellBinaryResist();
-        }
+        // Ruthless and Savage: autoattack, ability and spell crit with any weapon.
+        const crit = {Human: 2, Orc: 1}[this.race] || 0;
+        this.base.crit += crit;
+        this.base.spellcrit += crit;
+        // Earth Fury and Endurance: +2 percentage points of critical strike damage bonus.
+        if (this.race === 'Dwarf' || this.race === 'Tauren') this.critbonus = .02;
         if (this.race === 'Gnome') this.ragecap *= 1.05;
         if (this.race === 'Undead') this.auras.touchofthegrave = new TouchOfTheGrave(this);
-        if (this.race === 'Skyborne') this.base.haste *= 1.01;
+        if (this.race === 'Skyborne') this.base.haste *= 1.03;
         if ((['Dwarf', 'Troll'].includes(this.race) && this.target.creaturetype === 'Beast') ||
             (this.race === 'Skyborne' && this.target.creaturetype === 'Elemental')) {
             this.base.dmgmod *= 1.05;
@@ -1023,7 +1020,7 @@ class Player {
         if (roll < tmp) return RESULT.DODGE;
         tmp += weapon.glanceChance * 100;
         if (roll < tmp) return RESULT.GLANCE;
-        tmp += (this.crit + weapon.crit + (this.mode === 'forever' ? weapon.racialcrit || 0 : 0)) * 100;
+        tmp += (this.crit + weapon.crit) * 100;
         if (roll < tmp) return RESULT.CRIT;
         return RESULT.HIT;
     }
@@ -1041,7 +1038,7 @@ class Player {
             roll = rng10k();
             tmp = 0;
         }
-        let crit = this.crit + weapon.crit + (this.mode === 'forever' ? weapon.racialcrit || 0 : 0);
+        let crit = this.crit + weapon.crit;
         if (spell instanceof Overpower)
             crit += this.talents.overpowercrit;
         tmp += crit * 100;
@@ -1088,7 +1085,7 @@ class Player {
             result = this.rollweapon(weapon);
         }
 
-        const empowered = spell && !adjacent ? this.beginEureka(spell) : false;
+        if (spell && !adjacent) this.beginEureka(spell);
         let dmg = weapon.dmg(spell) * (spell?.eurekamod || 1);
         procdmg = this.procattack(spell, weapon, result, adjacent, damageSoFar);
 
@@ -1100,7 +1097,7 @@ class Player {
         }
         if (result == RESULT.CRIT) {
             // Impale increases the critical damage bonus for specials.
-            let critmod = 1 + 1 * (1 + (spell ? this.talents.abilitiescrit : 0))
+            let critmod = 1 + 1 * (1 + (spell ? this.talents.abilitiescrit : 0)) + this.critbonus;
             dmg *= critmod;
             this.proccrit(false, adjacent);
         }
@@ -1122,7 +1119,6 @@ class Player {
             this.nextswinghs = true;
             done += this.attackmh(weapon, 1, done, extra);
         }
-        if (empowered) this.auras.eureka.consume();
         return done + procdmg;
     }
     attackoh(weapon) {
@@ -1142,7 +1138,7 @@ class Player {
             dmg *= this.getGlanceReduction(weapon);
         }
         if (result == RESULT.CRIT) {
-            let critmod = 1 + 1
+            let critmod = 1 + 1 + this.critbonus;
             dmg *= critmod;
             this.proccrit(true);
         }
@@ -1157,21 +1153,16 @@ class Player {
     }
     beginEureka(spell) {
         const eureka = this.auras.eureka;
-        if (!eureka) return false;
-        const empowered = !!(eureka?.stacks && eureka.eligible(spell));
-        spell.eurekamod = empowered ? 1.1 : 1;
-        return empowered;
+        if (eureka) spell.eurekamod = eureka.timer && eureka.eligible(spell) ? 1.1 : 1;
     }
     cast(spell, delayedheroic, adjacent, damageSoFar) {
-        let empowered = false;
         if (!adjacent) {
             this.stepauras();
-            // Queued attacks consume a charge when the swing executes, not when queued.
-            if (!(spell instanceof HeroicStrike) && !(spell instanceof Cleave)) empowered = this.beginEureka(spell);
+            // Queued attacks check Eureka! when the swing executes, not when queued.
+            if (!(spell instanceof HeroicStrike) && !(spell instanceof Cleave)) this.beginEureka(spell);
             spell.use(delayedheroic);
         }
         if (spell.useonly) {
-            if (empowered) this.auras.eureka.consume();
             /* start-log */ if (this.logging) this.log(`${spell.name} used`); /* end-log */
             return 0;
         }
@@ -1201,9 +1192,9 @@ class Player {
         else if (result == RESULT.CRIT) {
             let critmod;
             if (spell.defenseType == DEFENSETYPE.MAGIC) 
-                critmod = 1 + 0.5 * (1 + this.talents.abilitiescrit);
+                critmod = 1 + 0.5 * (1 + this.talents.abilitiescrit) + this.critbonus;
             else
-                critmod = 1 + 1 * (1 + this.talents.abilitiescrit);
+                critmod = 1 + 1 * (1 + this.talents.abilitiescrit) + this.critbonus;
 
             dmg *= critmod;
             this.proccrit(false, adjacent);
@@ -1213,7 +1204,6 @@ class Player {
         if (!adjacent) spell.data[result]++;
         spell.totaldmg += done;
         this.mh.totalprocdmg += procdmg;
-        if (empowered) this.auras.eureka.consume();
         /* start-log */ if (this.logging) this.log(`${spell.name} for ${~~done} (${Object.keys(RESULT)[result]})${adjacent ? ' (Adjacent)' : ''}.`); /* end-log */
         return done + procdmg;
     }
@@ -1231,7 +1221,7 @@ class Player {
             this.dodgetimer = 5000;
         }
         else if (result == RESULT.CRIT) {
-            let critmod = 1 + 1 * (1 + this.talents.abilitiescrit);
+            let critmod = 1 + 1 * (1 + this.talents.abilitiescrit) + this.critbonus;
             dmg *= critmod;
             this.proccrit(true, adjacent);
         }
@@ -1406,7 +1396,7 @@ class Player {
         if (proc.binaryspell) miss = this.target.binaryresist;
         else mod *= this.target.mitigation;
         if (rng10k() < miss) return 0;
-        if (rng10k() < (this.stats.spellcrit * 100)) mod *= 1 + 0.5;
+        if (rng10k() < (this.stats.spellcrit * 100)) mod *= 1 + 0.5 + this.critbonus;
         if (proc.coeff) dmg += this.spelldamage * proc.coeff * (this.mode === 'forever' && this.auras.bloodfury?.timer ? 1.1 : 1);
         return (dmg * mod * this.stats.spelldmgmod);
     }
@@ -1419,7 +1409,7 @@ class Player {
         if (roll < tmp) { dmg = 0; }
         roll = rng10k();
         let crit = this.crit + this.mh.crit;
-        if (roll < (crit * 100)) dmg *= 1 + 1;
+        if (roll < (crit * 100)) dmg *= 1 + 1 + this.critbonus;
         return dmg * this.stats.dmgmod * this.mh.modifier;
     }
     serializeSimulationSpec(simConfig) {

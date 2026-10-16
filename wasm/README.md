@@ -35,7 +35,7 @@ Several counters for rage and damage per rage are native-only; the JavaScript re
   - `ragespent` is the rage paid, less refunds from misses and dodges. Execute's extra rage counts when Execute lands.
   - `stancerage` is rage over the retained amount that was lost to a stance swap the action needed. The later return to the base stance counts toward the action that left it.
   - `whiterage` (spells only) is, for Heroic Strike and Cleave, the rage the replaced white swing would have generated. The strike's attack-table roll is read on the white table, with the dual-wield miss penalty and glancing blows. Classic generates it from `whitedmg` as for any white swing. Forever adds Unbridled Wrath's expected rage. Neither goes above the rage cap.
-- Full reports also give each spell `whitedmg`: for Heroic Strike and Cleave, the damage the replaced white swing would have dealt to the primary target, which the Stats table subtracts from the strike's damage for damage per rage. It uses the same white-table result as `whiterage`, and the strike's damage roll without its bonus damage, after armor. A white crit doubles it, and a glance takes the average glancing reduction. Procs are not included; the strike triggers its own.
+- Full reports also give each spell `whitedmg`: for Heroic Strike and Cleave, the damage the replaced white swing would have dealt to the primary target, which the Stats table subtracts from the strike's damage for damage per rage. It uses the same white-table result as `whiterage`, and the strike's damage roll without its bonus damage, after armor. A white crit doubles it (2.02× for Forever Dwarf and Tauren), and a glance takes the average glancing reduction. Procs are not included; the strike triggers its own.
 
 ## Shared execution
 

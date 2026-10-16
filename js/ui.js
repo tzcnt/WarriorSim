@@ -700,8 +700,8 @@ SIM.UI = {
         let ohmiss = player.oh ? Math.max(player.oh.dwmiss, 0) : 0;
         view.sidebar.find('#miss').attr('title', 'Auto-attack miss chance for each equipped weapon').html(mhmiss.toFixed(2) + '% <small>MH</small>' + (player.oh ? space + ohmiss.toFixed(2) + '% <small>OH</small>' : ''));
         view.sidebar.find('#dodge').html(player.mh.dodge.toFixed(2) + '% <small>MH</small>' + (player.oh ? space + player.oh.dodge.toFixed(2) + '% <small>OH</small>' : ''));
-        let mhcrit = player.crit + player.mh.crit + (player.mode === 'forever' ? player.mh.racialcrit || 0 : 0);
-        let ohcrit = player.crit + (player.oh ? player.oh.crit : 0) + (player.mode === 'forever' ? player.oh?.racialcrit || 0 : 0);
+        let mhcrit = player.crit + player.mh.crit;
+        let ohcrit = player.crit + (player.oh ? player.oh.crit : 0);
         view.sidebar.find('#crit').html(mhcrit.toFixed(2) + '% <small>MH</small>' + (player.oh ? space + ohcrit.toFixed(2) + '% <small>OH</small>' : ''));
         let mhcap = Math.max(0, 100 - mhmiss - player.mh.dodge - player.mh.glanceChance);
         let ohcap = Math.max(0, player.oh ? 100 - ohmiss - player.oh.dodge - player.oh.glanceChance : 0);

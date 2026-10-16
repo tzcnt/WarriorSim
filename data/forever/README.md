@@ -79,7 +79,7 @@ or 105 for Gnomes.
 - Spearing Strike: 40% normalized main-hand damage, or 120% against Giant/Dragonkin/mounted targets selected in Settings. Any melee weapon; requires Battle Stance. Like Overpower, it switches stance only when Tactical Mastery retains its cost, optionally below a configured rage. Mounted targets stay mounted, so every hit gets the bonus. Uses ordinary melee hit/crit/refund rules.
 - Enrage: existing incoming damaging attacks roll a 30% chance for 2% Physical damage per rank for 12 seconds; reapplication refreshes it. Death Wish's Forever +5% incoming damage penalty applies to the existing damage/rage events.
 - Extra attacks: from Windfury, Sword Specialization, Hand of Justice or weapon procs, they swing the main hand without resetting its swing timer, so each one adds a swing. Classic's extra attack restarts the timer instead. Pending extra attacks swing one at a time. Hand of Justice's waits for the next spell batch, as in Classic.
-- Windfury Totem: follows Classic's rules except for 246 AP, a 1-second buff (Classic: 1.5 seconds) and a 100 ms internal cooldown from each proc. Main-hand autoattack and melee ability hits roll 20% for an extra attack. The buff has two charges, spent only by white swings from either hand, and Windfury cannot proc while it is active. A white-swing proc spends one charge and the extra attack the other. After an ability proc, the remaining charge applies the AP to the next white swing, usually the off-hand, and any abilities before it, unless the buff expires first.
+- Windfury Totem: follows Classic's rules except for 246 AP, a 1-second buff (Classic: 1.5 seconds) and a 100 ms internal cooldown from each proc. Main-hand autoattack and melee ability hits roll 20% for an extra attack. The buff has two charges, spent only by white swings from either hand, and Windfury cannot proc while it is active. A white-swing proc spends one charge and the extra attack the other. After an ability proc, the remaining charge applies the AP to the next white swing, usually the off-hand, and any abilities before it, unless the buff expires first. Since 2026-10-15 it stacks with Grace of Air Totem; both can be selected together.
 - Sweeping Strikes: 30 rage before Focused Rage, Battle Stance, 30-second cooldown, 1.5-second GCD, five copied melee hits to an adjacent target. Copies inherit the original hit's damage, generate no rage/procs, and are reported separately. The captured description supplies no duration, so the implementation retains unspent charges until consumed or combat ends.
 
 Target armor debuffs use the highest-rank values in client build 1.60.1.70009
@@ -148,6 +148,8 @@ for Forever while preserving Classic combat behavior.
 Every permanent preset spent points in removed talents, so each was rebuilt on
 2026-10-07 and then tuned in the app. Gear, buffs and rotations were also revised.
 The first-visit default is the first preset, Dual Wield Fury.
+Since 2026-10-15 every preset enables Grace of Air Totem alongside Windfury Totem; the
+DPS below predates that and later engine changes.
 The DPS below is from this checkout's native engine, including the Deep Wounds change.
 It uses 100,000 fights per preset with a common seed and each preset's own settings
 (single-target, 50–60 s). This is a measurement, not a rerun of
