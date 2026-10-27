@@ -460,8 +460,6 @@ struct PlayerState {
     double swordspecstep = std::numeric_limits<double>::quiet_NaN();
     double armorReduction = 0;
     double crit = 0;
-    // Forever's Earth Fury and Endurance add to every critical strike damage bonus; 0 otherwise.
-    double critbonus = 0;
     bool nextswinghs = false;
     bool nextswingcl = false;
     bool foreverMode = false;

@@ -482,7 +482,7 @@ bool auraStep(PlayerState& player, AuraState& aura) {
             }
             // The application cannot crit; each tick rolls independently.
             if (player.foreverMode && player.rng.tenK() < (player.crit + player.mh.crit) * 100)
-                damage *= 1 + (1 + player.talents.number("abilitiescrit"_prop)) + player.critbonus;
+                damage *= 1 + (1 + player.talents.number("abilitiescrit"_prop));
             aura.idmg += damage;
             aura.totaldmg += damage;
             aura.nexttick += 3000;

@@ -1,7 +1,8 @@
 # Race comparison: optimized two-handed Arms
 
 > **Outdated:** these results predate the
-> [October 15, 2026 racial changes](RACIALS.md#october-15-2026-patch-notes) and
+> [October 15](RACIALS.md#october-15-2026-patch-notes) and
+> [October 26, 2026](RACIALS.md#october-26-2026-patch-notes) racial changes and
 > have not been rerun. Human, Dwarf, Orc, Tauren, Undead, Gnome and Skyborne
 > changed; Night Elf and Troll did not.
 

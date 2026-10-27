@@ -481,15 +481,15 @@ double PlayerState::swingRage(const WeaponState& weapon, Result result, double d
 
 // Damage after armor that the white swing a queued strike replaced would have dealt. `result` is
 // the strike's table roll read on the white table, and dmg is the strike's damage before its crit.
-// The white swing has the same damage roll without the strike's bonus; a white crit doubles it
-// (plus the racial crit bonus), and a glance takes the average glancing reduction.
+// The white swing has the same damage roll without the strike's bonus; a white crit doubles it,
+// and a glance takes the average glancing reduction.
 double PlayerState::replacedSwingDamage(const SpellState& strike, const WeaponState& weapon, Result result,
                                         double dmg) const {
     if (result == Result::Miss || result == Result::Dodge) return 0;
     double white = (dmg / strike.props.number("eurekamod"_prop, 1) -
                     strike.props.number("bonus"_prop, strike.props.number("value1"_prop)) * weapon.modifier *
                     stats.number("dmgmod"_prop, 1)) * (1 - weaponArmorReduction(weapon));
-    if (result == Result::Crit) white *= 2 + critbonus;
+    if (result == Result::Crit) white *= 2;
     if (result == Result::Glance) white *= glanceReduction(weapon, .5);
     return white;
 }
@@ -594,7 +594,7 @@ double PlayerState::attackMh(WeaponState& weapon, int adjacent, double damageSoF
     if (result == Result::Glance) dmg *= glanceReduction(weapon);
     if (result == Result::Crit) {
         const double abilityBonus = ability ? talents.number("abilitiescrit"_prop) : 0;
-        dmg *= 1 + (1 + abilityBonus) + critbonus;
+        dmg *= 1 + (1 + abilityBonus);
         procCrit(false, adjacent);
     }
     if (!extra) useWeapon(*this, weapon);
@@ -623,7 +623,7 @@ double PlayerState::attackOh(WeaponState& weapon) {
     if (result == Result::Dodge) dodgetimer = 5000;
     if (result == Result::Glance) dmg *= glanceReduction(weapon);
     if (result == Result::Crit) {
-        dmg *= 2 + critbonus;
+        dmg *= 2;
         procCrit(true, 0);
     }
     useWeapon(*this, weapon);
@@ -656,9 +656,9 @@ double PlayerState::cast(SpellState& ability, SpellState* delayedHeroic, int adj
         if (result == Result::Dodge) dodgetimer = 5000;
     } else if (result == Result::Crit) {
         if (defenseType == 1)
-            dmg *= 1 + .5 * (1 + talents.number("abilitiescrit"_prop)) + critbonus;
+            dmg *= 1 + .5 * (1 + talents.number("abilitiescrit"_prop));
         else
-            dmg *= 1 + (1 + talents.number("abilitiescrit"_prop)) + critbonus;
+            dmg *= 1 + (1 + talents.number("abilitiescrit"_prop));
         procCrit(false, adjacent);
     }
     const double done = dealDamage(dmg, result, mh, &ability, adjacent != 0);
@@ -677,7 +677,7 @@ double PlayerState::castOh(SpellState& ability, int adjacent, double damageSoFar
     const double procDmg = procAttack(&ability, *oh, result, adjacent, damageSoFar);
     if (result == Result::Dodge) dodgetimer = 5000;
     if (result == Result::Crit) {
-        dmg *= 1 + (1 + talents.number("abilitiescrit"_prop)) + critbonus;
+        dmg *= 1 + (1 + talents.number("abilitiescrit"_prop));
         procCrit(true, adjacent);
     }
     const double done = dealDamage(dmg, result, *oh, &ability, adjacent != 0);
@@ -742,7 +742,7 @@ double PlayerState::magicProc(const ProcState& proc) {
     else mod *= target.props.number("mitigation"_prop, 1);
     if (rng.tenK() < miss) return 0;
     if (rng.tenK() < stats.number("spellcrit"_prop) * 100)
-        mod *= 1 + .5 + critbonus;
+        mod *= 1 + .5;
     if (proc.coefficient) {
         const auto* fury = aura("bloodfury"_action);
         dmg += props.number("spelldamage"_prop) * proc.coefficient * (foreverMode && fury && fury->timer ? 1.1 : 1);
@@ -757,7 +757,7 @@ double PlayerState::physProc(double dmg) {
     tmp += mh.dodge * 100;
     if (roll < tmp) dmg = 0;
     roll = rng.tenK();
-    if (roll < (crit + mh.crit) * 100) dmg *= 2 + critbonus;
+    if (roll < (crit + mh.crit) * 100) dmg *= 2;
     return dmg * stats.number("dmgmod"_prop, 1) * mh.modifier;
 }
 

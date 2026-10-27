@@ -8,7 +8,7 @@
 
 namespace warriorsim::detail {
 
-inline constexpr std::size_t kDensePropertyCount = 146;
+inline constexpr std::size_t kDensePropertyCount = 145;
 inline constexpr std::array<std::string_view, kDensePropertyCount> kDensePropertyNames = {
     "abilitiescrit",
     "adjacent",
@@ -150,7 +150,6 @@ inline constexpr std::array<std::string_view, kDensePropertyCount> kDensePropert
     "swingmode",
     "tickrage",
     "weaponmasterarp",
-    "critbonus",
     "eurekamod",
     "eurekabasecost",
     "costreduction",
@@ -306,12 +305,11 @@ constexpr int propertyIndex(std::string_view value) {
     case propertyHash("swingmode"): return value == "swingmode" ? 137 : -1;
     case propertyHash("tickrage"): return value == "tickrage" ? 138 : -1;
     case propertyHash("weaponmasterarp"): return value == "weaponmasterarp" ? 139 : -1;
-    case propertyHash("critbonus"): return value == "critbonus" ? 140 : -1;
-    case propertyHash("eurekamod"): return value == "eurekamod" ? 141 : -1;
-    case propertyHash("eurekabasecost"): return value == "eurekabasecost" ? 142 : -1;
-    case propertyHash("costreduction"): return value == "costreduction" ? 143 : -1;
-    case propertyHash("healthcoeff"): return value == "healthcoeff" ? 144 : -1;
-    case propertyHash("maxhealth"): return value == "maxhealth" ? 145 : -1;
+    case propertyHash("eurekamod"): return value == "eurekamod" ? 140 : -1;
+    case propertyHash("eurekabasecost"): return value == "eurekabasecost" ? 141 : -1;
+    case propertyHash("costreduction"): return value == "costreduction" ? 142 : -1;
+    case propertyHash("healthcoeff"): return value == "healthcoeff" ? 143 : -1;
+    case propertyHash("maxhealth"): return value == "maxhealth" ? 144 : -1;
     default: return -1;
     }
 }

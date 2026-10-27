@@ -42,7 +42,6 @@ class Player {
         this.nextswingcl = false;
         this.ragecostbonus = 0;
         this.ragecap = 100;
-        this.critbonus = 0;
         this.bloodthrilltimer = 0;
         this.logging = config.logging;
         this.race = config.race;
@@ -210,15 +209,20 @@ class Player {
     }
     addRacialBonuses() {
         if (this.mode !== 'forever') return;
-        // Ruthless and Savage: autoattack, ability and spell crit with any weapon.
-        const crit = {Human: 2, Orc: 1}[this.race] || 0;
-        this.base.crit += crit;
-        this.base.spellcrit += crit;
-        // Earth Fury and Endurance: +2 percentage points of critical strike damage bonus.
-        if (this.race === 'Dwarf' || this.race === 'Tauren') this.critbonus = .02;
+        // Ruthless: autoattack, ability and spell crit with any weapon.
+        if (this.race === 'Human') {
+            this.base.crit += 1;
+            this.base.spellcrit += 1;
+        }
+        // Artisan’s Precision: melee and spell hit.
+        if (this.race === 'Dwarf') {
+            this.base.hit += 1;
+            this.target.misschance = Math.max(100, this.target.misschance - 100);
+            this.target.binaryresist = this.getTargetSpellBinaryResist();
+        }
         if (this.race === 'Gnome') this.ragecap *= 1.05;
         if (this.race === 'Undead') this.auras.touchofthegrave = new TouchOfTheGrave(this);
-        if (this.race === 'Skyborne') this.base.haste *= 1.03;
+        if (this.race === 'Skyborne') this.base.haste *= 1.02;
         if ((['Dwarf', 'Troll'].includes(this.race) && this.target.creaturetype === 'Beast') ||
             (this.race === 'Skyborne' && this.target.creaturetype === 'Elemental')) {
             this.base.dmgmod *= 1.05;
@@ -1097,7 +1101,7 @@ class Player {
         }
         if (result == RESULT.CRIT) {
             // Impale increases the critical damage bonus for specials.
-            let critmod = 1 + 1 * (1 + (spell ? this.talents.abilitiescrit : 0)) + this.critbonus;
+            let critmod = 1 + 1 * (1 + (spell ? this.talents.abilitiescrit : 0));
             dmg *= critmod;
             this.proccrit(false, adjacent);
         }
@@ -1138,7 +1142,7 @@ class Player {
             dmg *= this.getGlanceReduction(weapon);
         }
         if (result == RESULT.CRIT) {
-            let critmod = 1 + 1 + this.critbonus;
+            let critmod = 1 + 1;
             dmg *= critmod;
             this.proccrit(true);
         }
@@ -1192,9 +1196,9 @@ class Player {
         else if (result == RESULT.CRIT) {
             let critmod;
             if (spell.defenseType == DEFENSETYPE.MAGIC) 
-                critmod = 1 + 0.5 * (1 + this.talents.abilitiescrit) + this.critbonus;
+                critmod = 1 + 0.5 * (1 + this.talents.abilitiescrit);
             else
-                critmod = 1 + 1 * (1 + this.talents.abilitiescrit) + this.critbonus;
+                critmod = 1 + 1 * (1 + this.talents.abilitiescrit);
 
             dmg *= critmod;
             this.proccrit(false, adjacent);
@@ -1221,7 +1225,7 @@ class Player {
             this.dodgetimer = 5000;
         }
         else if (result == RESULT.CRIT) {
-            let critmod = 1 + 1 * (1 + this.talents.abilitiescrit) + this.critbonus;
+            let critmod = 1 + 1 * (1 + this.talents.abilitiescrit);
             dmg *= critmod;
             this.proccrit(true, adjacent);
         }
@@ -1396,7 +1400,7 @@ class Player {
         if (proc.binaryspell) miss = this.target.binaryresist;
         else mod *= this.target.mitigation;
         if (rng10k() < miss) return 0;
-        if (rng10k() < (this.stats.spellcrit * 100)) mod *= 1 + 0.5 + this.critbonus;
+        if (rng10k() < (this.stats.spellcrit * 100)) mod *= 1 + 0.5;
         if (proc.coeff) dmg += this.spelldamage * proc.coeff * (this.mode === 'forever' && this.auras.bloodfury?.timer ? 1.1 : 1);
         return (dmg * mod * this.stats.spelldmgmod);
     }
@@ -1409,7 +1413,7 @@ class Player {
         if (roll < tmp) { dmg = 0; }
         roll = rng10k();
         let crit = this.crit + this.mh.crit;
-        if (roll < (crit * 100)) dmg *= 1 + 1 + this.critbonus;
+        if (roll < (crit * 100)) dmg *= 1 + 1;
         return dmg * this.stats.dmgmod * this.mh.modifier;
     }
     serializeSimulationSpec(simConfig) {

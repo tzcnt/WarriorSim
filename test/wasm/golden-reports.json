@@ -1,6 +1,6 @@
 {
   "oracle": "destination JavaScript; no native execution",
-  "revision": "aa6f852d9bd3551f4f4ca35d7012aa7b2d6bdc54",
+  "revision": "f684dadf4f49eb5db6c07604fcf8bf9bf880ee6e",
   "reports": {
     "classic-dw-fury": {
       "iterations": 20,
@@ -818,16 +818,17 @@
     },
     "forever-dw-fury": {
       "iterations": 20,
-      "totaldmg": 425137.06905806786,
+      "totaldmg": 422335.27211932745,
       "totalduration": 405.07,
       "mindps": 814.2367507192706,
       "maxdps": 1416.3388436632708,
-      "sumdps": 21063.25005421281,
-      "sumdps2": 22685587.922185414,
+      "sumdps": 20935.378348734263,
+      "sumdps2": 22438398.766754817,
       "spread": {
         "814": 1,
         "831": 1,
         "894": 1,
+        "903": 1,
         "909": 1,
         "937": 1,
         "946": 1,
@@ -835,7 +836,6 @@
         "962": 1,
         "1009": 1,
         "1016": 1,
-        "1030": 1,
         "1081": 1,
         "1111": 1,
         "1114": 1,
@@ -857,7 +857,7 @@
           },
           "windfury": {
             "name": "Windfury",
-            "uptime": 62871,
+            "uptime": 61871,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 0
@@ -871,12 +871,12 @@
           },
           "rend": {
             "name": "Rend",
-            "uptime": 180794,
-            "totaldmg": 9933.438240000007,
+            "uptime": 190732,
+            "totaldmg": 10502.822880000007,
             "totalusedrage": 0,
             "cost": 10,
             "data": [
-              19,
+              20,
               0,
               2,
               0,
@@ -885,21 +885,21 @@
           },
           "battleshout": {
             "name": "Battle Shout",
-            "uptime": 410109,
+            "uptime": 410556,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 10
           },
           "recklessness": {
             "name": "Recklessness",
-            "uptime": 300506,
+            "uptime": 300953,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 0
           },
           "deathwish": {
             "name": "Death Wish",
-            "uptime": 395109,
+            "uptime": 395556,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 10
@@ -920,15 +920,15 @@
           },
           "flurry": {
             "name": "Flurry",
-            "uptime": 359535,
+            "uptime": 359095,
             "totaldmg": 0,
             "totalusedrage": 0,
             "cost": 0
           },
           "deepwounds": {
             "name": "Deep Wounds",
-            "uptime": 373219,
-            "totaldmg": 14401.052633972164,
+            "uptime": 373666,
+            "totaldmg": 14157.814450378413,
             "totalusedrage": 0,
             "cost": 0
           },
@@ -972,14 +972,14 @@
           "heroicstrike": {
             "name": "Heroic Strike",
             "uptime": 0,
-            "totaldmg": 109556.12880966073,
+            "totaldmg": 106345.19148936172,
             "totalusedrage": 0,
             "cost": 12,
             "data": [
-              18,
+              19,
               0,
               6,
-              78,
+              75,
               0
             ]
           },
@@ -1028,22 +1028,22 @@
           "hamstring": {
             "name": "Hamstring",
             "uptime": 0,
-            "totaldmg": 5176.768257619328,
+            "totaldmg": 5068.918918918926,
             "totalusedrage": 0,
             "cost": 10,
             "data": [
               0,
               0,
               0,
-              48,
+              47,
               0
             ]
           },
           "execute": {
             "name": "Execute",
             "uptime": 0,
-            "totaldmg": 50710.063254744106,
-            "totalusedrage": 629,
+            "totaldmg": 50209.085681426106,
+            "totalusedrage": 613,
             "cost": 10,
             "data": [
               4,
@@ -1070,7 +1070,7 @@
           "whirlwind": {
             "name": "Whirlwind",
             "uptime": 0,
-            "totaldmg": 26110.736055204146,
+            "totaldmg": 26203.364721104088,
             "totalusedrage": 0,
             "cost": 22,
             "data": [
@@ -1084,14 +1084,14 @@
           "bloodthirst": {
             "name": "Bloodthirst",
             "uptime": 0,
-            "totaldmg": 60306.22541690626,
+            "totaldmg": 62045.38297872339,
             "totalusedrage": 0,
             "cost": 30,
             "data": [
               3,
               0,
-              4,
-              34,
+              3,
+              35,
               0
             ]
           },
@@ -1112,26 +1112,26 @@
         },
         "mh": {
           "name": "Dal'Rend's Sacred Charge",
-          "totaldmg": 78796.0860851966,
+          "totaldmg": 78503.05885560285,
           "totalprocdmg": 0,
           "data": [
             0,
             18,
             10,
-            66,
-            72
+            65,
+            74
           ]
         },
         "oh": {
           "name": "Dal'Rend's Tribal Guardian",
-          "totaldmg": 58061.18215065302,
+          "totaldmg": 57214.24398970046,
           "totalprocdmg": 0,
           "data": [
             13,
-            17,
-            17,
-            118,
-            112
+            18,
+            16,
+            115,
+            115
           ]
         }
       }

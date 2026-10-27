@@ -65,7 +65,7 @@ test('Forever replaces Human/Orc skill racials; Classic retains them', () => {
     }
 });
 
-test('Ruthless and Savage add crit to autoattacks, abilities and spells with any weapon', () => {
+test('Ruthless adds crit to autoattacks, abilities and spells with any weapon; Savage is removed', () => {
     // Isolate the racial: only the base stance's crit remains.
     const isolate = p => {
         p.base.crit = p.base.spellcrit = p.base.agi = p.talents.crit = 0;
@@ -74,7 +74,7 @@ test('Ruthless and Savage add crit to autoattacks, abilities and spells with any
     };
     const neutral = setup('Night Elf').player;
     isolate(neutral);
-    for (const [race, bonus] of [['Human', 2], ['Orc', 1], ['Dwarf', 0], ['Tauren', 0]]) {
+    for (const [race, bonus] of [['Human', 1], ['Orc', 0], ['Dwarf', 0], ['Tauren', 0]]) {
         for (const type of [0, 1, 2, 3]) {
             const {player: p, run} = setup(race);
             isolate(p);
@@ -120,14 +120,20 @@ test('Skyborne has finite level-appropriate stats and multiplicative haste', () 
         assert.equal(sky.base.str, human.base.str);
         assert.equal(sky.base.agi, human.base.agi);
         assert.equal(sky.base.aprace, level * 3 - 20);
-        close(sky.stats.haste / human.stats.haste, 1.03);
+        close(sky.stats.haste / human.stats.haste, 1.02);
     }
     assert.match(fs.readFileSync('index.html','utf8'), /value="Skyborne"/);
     assert.doesNotMatch(fs.readFileSync('classic.html','utf8'), /value="Skyborne"/);
 });
 
-test('Endurance no longer adds hit; Expansive Mind multiplies the talented rage cap', () => {
+test('Artisan’s Precision adds melee and spell hit; Endurance does not; Expansive Mind multiplies the talented rage cap', () => {
     const normal = setup().player;
+    const dwarf = setup('Dwarf').player;
+    assert.equal(dwarf.base.hit, normal.base.hit + 1);
+    assert.equal(dwarf.target.misschance, normal.target.misschance - 100);
+    assert.ok(dwarf.target.binaryresist < normal.target.binaryresist);
+    const classicDwarf = setup('Dwarf', 'classic').player;
+    assert.equal(classicDwarf.base.hit, setup('Human', 'classic').player.base.hit);
     const tauren = setup('Tauren').player;
     assert.equal(tauren.base.hit, normal.base.hit);
     assert.equal(tauren.target.misschance, normal.target.misschance);
@@ -141,22 +147,43 @@ test('Endurance no longer adds hit; Expansive Mind multiplies the talented rage 
     close(gnome.rage, gnome.ragecap);
 });
 
-test('Earth Fury and Endurance add 2 points to every critical strike damage bonus', () => {
-    for (const race of ['Human', 'Orc', 'Night Elf', 'Gnome', 'Undead', 'Troll', 'Skyborne'])
-        assert.equal(setup(race).player.critbonus, 0, race);
-    for (const race of ['Dwarf', 'Tauren']) assert.equal(setup(race, 'classic').player.critbonus, 0);
-    for (const race of ['Dwarf', 'Tauren']) {
+test('Artisan’s Precision reduces autoattack misses by one point for single weapons and both dual-wield hands', () => {
+    for (const dualWield of [false, true]) {
+        const normal = setup('Human');
+        const dwarf = setup('Dwarf');
+        const gearHit = normal.player.base.hit;
+        for (const {player: p} of [normal, dwarf]) {
+            p.base.hit -= gearHit;
+            if (!dualWield) p.oh = null;
+            p.update();
+        }
+        for (const hand of dualWield ? ['mh', 'oh'] : ['mh']) {
+            const normalMiss = normal.player[hand].dwmiss;
+            const dwarfMiss = dwarf.player[hand].dwmiss;
+            close(dwarfMiss, normalMiss - 1);
+            assert.ok(dwarfMiss > 0);
+            const roll = Math.ceil(dwarfMiss * 100);
+            normal.run(`rng10k = () => ${roll}`);
+            dwarf.run(`rng10k = () => ${roll}`);
+            assert.equal(normal.run(`p.rollweapon(p.${hand})`), 1);
+            assert.notEqual(dwarf.run(`p.rollweapon(p.${hand})`), 1);
+            dwarf.run(`rng10k = () => ${roll - 1}`);
+            assert.equal(dwarf.run(`p.rollweapon(p.${hand})`), 1);
+        }
+    }
+});
+
+test('no race adds to the critical strike damage bonus', () => {
+    for (const race of ['Human','Dwarf','Gnome','Night Elf','Orc','Troll','Undead','Tauren','Skyborne']) {
         const {player: p, run} = setup(race);
-        assert.equal(p.critbonus, .02);
-        // Every roll crits, every damage roll is the maximum, and nothing else varies.
+        // Every roll lands, every damage roll is the maximum, and only the crit chance varies.
         run(`p.procattack = () => 0; p.proccrit = () => {}; p.armorReduction = 0;
             rng10k = () => 0; rng = (min, max) => max;`);
-        for (const hand of ['mh', 'oh']) Object.assign(p[hand], {miss: 0, dwmiss: 0, dodge: 0, glanceChance: 0});
+        for (const hand of ['mh', 'oh']) Object.assign(p[hand], {crit: 0, miss: 0, dwmiss: 0, dodge: 0, glanceChance: 0});
         Object.assign(p.target, {misschance: 0, mitigation: 1});
-        p.stats.spellcrit = 5;
         p.talents.abilitiescrit = .2;
         const rend = p.auras.rend;
-        // Each hit's crit multiplier without the racial: Impale 2/2 adds .2 to ability crits.
+        // Each hit's crit multiplier: Impale 2/2 adds .2 to ability crits.
         const hits = {
             white: [2, () => p.attackmh(p.mh)],
             offhand: [2, () => p.attackoh(p.oh)],
@@ -172,12 +199,12 @@ test('Earth Fury and Endurance add 2 points to every critical strike damage bonu
             }],
         };
         for (const [name, [multiplier, hit]] of Object.entries(hits)) {
-            p.critbonus = 0;
-            const base = hit();
-            p.critbonus = .02;
-            const boosted = hit();
-            assert.ok(base > 0, `${race} ${name} deals damage`);
-            close(boosted / base, (multiplier + .02) / multiplier);
+            p.crit = p.stats.spellcrit = 0;
+            const normal = hit();
+            p.crit = p.stats.spellcrit = 100;
+            const crit = hit();
+            assert.ok(normal > 0, `${race} ${name} deals damage`);
+            close(crit / normal, multiplier);
         }
     }
 });
@@ -530,5 +557,6 @@ test('saved racial tooltips cannot restore the old provisional values', () => {
     assert.match(run("racialSpellDescription({id: 'forever:elunes-light'}, 'forever')"), /3-minute cooldown/);
     assert.match(run("racialSpellDescription({id: 20572, localDescription: 'Old'}, 'forever')"), /3-minute cooldown/);
     const descriptions = run('JSON.stringify(foreverRacialDescriptions)');
-    assert.doesNotMatch(descriptions, /Specialization|\+1% hit|\+1% haste|5% chance|1 second/);
+    assert.doesNotMatch(descriptions, /Specialization|Savage|Earth Fury|critical strike damage|\+2% crit|\+[13]% haste|\+5% Spirit|5% chance|1 second/);
+    assert.doesNotMatch(run('foreverRacialDescriptions.Tauren'), /hit/);
 });

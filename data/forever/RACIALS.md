@@ -2,9 +2,22 @@
 
 Sources: https://www.wowhead.com/forever/guide/new-race-class-combinations, the owner's
 provisional parameters, supplied September 13, 2026, and the racial patch notes of
-October 15, 2026. Only Forever uses these replacements.
+October 15 and October 26, 2026. Only Forever uses these replacements.
+
+## October 26, 2026 patch notes
+
+| Race | Change | Simulator |
+| --- | --- | --- |
+| Human | Ruthless: 1% increased critical strike chance (was 2%). | +1 point of autoattack, ability and spell crit with any weapon. |
+| Orc | Savage (1% increased critical strike chance) removed. | No crit bonus. |
+| Dwarf | Earth Fury (2% increased critical strike damage and healing) removed. Added Artisan’s Precision: 1% increased hit chance with spells and attacks. | +1 point of melee and spell hit; no critical strike damage bonus. |
+| Tauren | Endurance provides only 5% increased health (no hit chance or critical damage modifiers). | No critical strike damage bonus; +5% maximum health is retained. |
+| Skyborne | Wind Blessed haste bonus 2% (was 3%). | Haste multiplied by 1.02. |
 
 ## October 15, 2026 patch notes
+
+The October 26 notes replace this table's Ruthless, Savage, Earth Fury, Endurance and
+Wind Blessed values. Blood Fury's cooldown, Touch of the Grave and Eureka! still apply.
 
 | Race | Change | Simulator |
 | --- | --- | --- |
@@ -42,15 +55,15 @@ assumptions are documented below.
 
 | Race | DPS implementation |
 | --- | --- |
-| Human | Ruthless grants +2 percentage points of autoattack, ability and spell crit with any weapon; no racial weapon skill. |
-| Dwarf | Earth Fury adds 2 percentage points to every critical strike damage bonus; +5% physical and magic damage against Beasts. |
+| Human | Ruthless grants +1 percentage point of autoattack, ability and spell crit with any weapon; no racial weapon skill. |
+| Dwarf | Artisan’s Precision grants +1 percentage point of melee and spell hit; +5% physical and magic damage against Beasts. |
 | Night Elf | Elune’s Light grants +10 points of melee and spell crit for 15 seconds; 3-minute cooldown. |
 | Gnome | Maximum rage multiplied by 1.05; for 8 seconds, Eureka! makes non-periodic Warrior abilities cost 10% less rage and deal 10% more damage; 2-minute cooldown. |
-| Orc | Savage grants +1 point of autoattack, ability and spell crit with any weapon; Blood Fury multiplies total AP and spell-power contributions by 1.10 for 15 seconds, with no GCD or rage cost and a 3-minute cooldown. No racial weapon skill. |
+| Orc | Blood Fury multiplies total AP and spell-power contributions by 1.10 for 15 seconds, with no GCD or rage cost and a 3-minute cooldown. No racial weapon skill or crit. |
 | Undead | Touch of the Grave: 20% chance per landed damaging main-hand, off-hand, or special ability hit to deal 5% of maximum HP as magic damage, with a shared 25-second internal cooldown and a separate damage report. |
-| Tauren | Endurance adds 2 percentage points to every critical strike damage bonus; +5% maximum health. |
+| Tauren | Endurance: +5% maximum health. No Tauren damage scales with health. |
 | Troll | Berserking is fixed at +10% haste for 10 seconds regardless of old saved haste settings, with no GCD or rage cost; +5% physical and magic damage against Beasts. |
-| Skyborne | One race for both factions: +3% haste and +5% physical and magic damage against Elementals. Uses Human base stats, without Human racials. |
+| Skyborne | One race for both factions: +2% haste and +5% physical and magic damage against Elementals. Uses Human base stats, without Human racials. |
 
 ## Health for Touch of the Grave
 
@@ -91,18 +104,15 @@ itself or generate rage.
 
 ## Other retained assumptions
 
-Ruthless and Savage add to the base crit chance, so they apply with any weapon to
-autoattacks, abilities, Forever Rend ticks, physical item procs and spells. They do
-not improve weapon skill.
+Ruthless adds to the base crit chance, so it applies with any weapon to autoattacks,
+abilities, Forever Rend ticks, physical item procs and spells. It does not improve
+weapon skill.
 
-The in-game tooltip for Earth Fury and Endurance reads “increases your critical strike
-bonus to damage and healing by 2%”. The simulator adds 2 percentage points to the bonus,
-alongside Impale's: a white crit deals 2.02× instead of 2×, an ability crit with Impale
-2/2 deals 2.22× instead of 2.2×, and a spell or magic item proc crit deals 1.52× instead
-of 1.5×. This includes physical item procs, Forever Rend ticks and Touch of the Grave.
-Deep Wounds uses weapon damage rather than the crit's damage, so it is unaffected.
-The healing half is outside the DPS model. The patch notes replace only Endurance's
-hit chance, so its +5% maximum health is retained.
+Artisan’s Precision follows the rule used for Endurance's former +1% hit. One point
+of melee hit lowers the miss chance of abilities and of each autoattack hand,
+including dual-wield. The target's spell miss chance falls by one point, no lower
+than Classic's 1% minimum, which also lowers binary resists. It does not improve
+weapon skill. No race modifies the critical strike damage bonus.
 
 - Elune’s Light, Eureka!, Blood Fury and Berserking have no rage cost or GCD (Blood
   Fury and Berserking per the owner, September 28, 2026). Their first use can be
@@ -143,12 +153,13 @@ parameters.
 ## Validation
 
 `test/forever-racials.test.js` covers passives, autoattack, ability and spell crit
-with every weapon type, crit damage at each kind of critical hit, the removed hit
-bonus, Skyborne at several levels, racial availability, AP/haste/crit expiry,
-Eureka!'s 8-second window and exact expiry in combat, queued strikes, refunds, rage
-caps, exact cooldowns including Blood Fury's 3 minutes, HP from gear/buffs, HP
-overrides, the 20% proc boundary, the shared 25-second proc cooldown, ability hit
-eligibility and rotation tooltips. Seventeen racial fixtures in
+with every weapon type, Artisan’s Precision's melee and spell hit, unmodified crit
+damage at each kind of critical hit for every race, Endurance's removed hit bonus,
+Skyborne at several levels, racial availability, AP/haste/crit expiry, Eureka!'s
+8-second window and exact expiry in combat, queued strikes, refunds, rage caps, exact
+cooldowns including Blood Fury's 3 minutes, HP from gear/buffs, HP overrides, the 20%
+proc boundary, the shared 25-second proc cooldown, ability hit eligibility and
+rotation tooltips. Seventeen racial fixtures in
 `test/wasm/racial-fixtures.js` compare full JS/WASM reports and fresh/persistent
 partitions, including health overrides, long fights, multiple targets, Rend and
 queued Cleave.

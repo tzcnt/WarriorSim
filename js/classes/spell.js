@@ -1838,7 +1838,7 @@ class Rend extends Aura {
                 (this.value1 / this.value2 + 0.02 * this.player.stats.ap) *
                     this.player.stats.dmgmod * this.dmgmod * this.player.bleedmod :
                 this.tickdmg;
-            if (crit) dmg *= 1 + (1 + this.player.talents.abilitiescrit) + this.player.critbonus;
+            if (crit) dmg *= 1 + (1 + this.player.talents.abilitiescrit);
             this.idmg += dmg;
             this.totaldmg += dmg;
 
