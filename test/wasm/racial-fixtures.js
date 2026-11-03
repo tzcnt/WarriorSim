@@ -33,7 +33,7 @@ function racialFixtures() {
     rend.rotation['forever:eureka'] = {active: true, timetostartactive: true, timetostart: 0, timetoendactive: false};
     fixtures.push(rend);
     for (const [race, id, timetoend] of [['Night Elf', 'forever:elunes-light', 31], ['Gnome', 'forever:eureka', 10],
-        ['Orc', 20572, 18], ['Troll', 26296, 13]]) {
+        ['Orc', 20572, 18], ['Troll', 26296, 18]]) {
         const endSchedule = structuredClone(fixtures.find(f => f.player.race === race));
         endSchedule.name = `forever-racial-${race.toLowerCase().replace(' ', '-')}-end-schedule`;
         endSchedule.sim = {...endSchedule.sim, timesecsmin: 300, timesecsmax: 300};

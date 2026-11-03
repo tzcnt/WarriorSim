@@ -1106,7 +1106,7 @@ class BloodFury extends Aura {
         super(player, id, 'Blood Fury');
         this.duration = 15;
         this.mult_stats = player.mode === 'forever' ? {apmod: 10} : {baseapmod: 25};
-        this.cooldown = player.mode === 'forever' ? 180 : 120;
+        this.cooldown = 120;
         // Forever's Blood Fury neither triggers nor waits for the GCD.
         this.gcd = player.mode === 'forever' ? 0 : 1500;
     }
@@ -1136,7 +1136,7 @@ class BloodFury extends Aura {
 class Berserking extends Aura {
     constructor(player, id) {
         super(player, id);
-        this.duration = 10;
+        this.duration = player.mode === 'forever' ? 15 : 10;
         if (player.mode === 'forever') this.mult_stats = {haste: 10};
         this.cooldown = 180;
         // Forever's Berserking has no rage cost.
@@ -1169,7 +1169,7 @@ class TouchOfTheGrave extends Aura {
     constructor(player) {
         super(player, undefined, 'Touch of the Grave');
         this.chance = 2000;
-        this.cooldown = 25; // Shared internal cooldown across all eligible hits.
+        this.cooldown = 15; // Shared internal cooldown across all eligible hits.
         this.healthcoeff = .05;
         this.idmg = this.totaldmg = 0;
     }

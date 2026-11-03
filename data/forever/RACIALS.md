@@ -2,7 +2,15 @@
 
 Sources: https://www.wowhead.com/forever/guide/new-race-class-combinations, the owner's
 provisional parameters, supplied September 13, 2026, and the racial patch notes of
-October 15 and October 26, 2026. Only Forever uses these replacements.
+October 15, 26 and 27, 2026. Only Forever uses these replacements.
+
+## October 27, 2026 patch notes
+
+| Race | Change | Simulator |
+| --- | --- | --- |
+| Orc | Blood Fury’s cooldown reduced to 2 minutes (was 3 minutes). | Blood Fury is reused every 120 seconds, as in Classic. |
+| Troll | Berserking duration increased to 15 seconds (was 10 seconds). | +10% haste for 15 seconds; Classic keeps 10 seconds. |
+| Undead | Touch of the Grave internal cooldown reduced to 15 seconds (was 25 seconds). | Shared 15-second cooldown across all eligible hits. |
 
 ## October 26, 2026 patch notes
 
@@ -17,7 +25,9 @@ October 15 and October 26, 2026. Only Forever uses these replacements.
 ## October 15, 2026 patch notes
 
 The October 26 notes replace this table's Ruthless, Savage, Earth Fury, Endurance and
-Wind Blessed values. Blood Fury's cooldown, Touch of the Grave and Eureka! still apply.
+Wind Blessed values, and the October 27 notes replace Blood Fury's cooldown and Touch
+of the Grave's internal cooldown. Touch of the Grave's proc chance and Eureka! still
+apply.
 
 | Race | Change | Simulator |
 | --- | --- | --- |
@@ -41,7 +51,7 @@ confirmed game data.
 | --- | --- | --- |
 | Touch of the Grave | Proc chance | 20% for Warriors (patch notes, 2026-10-15; was 5%) |
 | Touch of the Grave | Damage | 5% of the player's HP |
-| Touch of the Grave | Internal cooldown | 25 seconds (patch notes, 2026-10-15; was 1 second) |
+| Touch of the Grave | Internal cooldown | 15 seconds (patch notes, 2026-10-27; was 25 seconds from 2026-10-15, 1 second before) |
 | Skyborne | Base stats | Use Human base stats for now |
 | Eureka! | Cost reduction | 10% (patch notes, 2026-09-24; was 40%) |
 | Eureka! | Duration | 8 seconds, no charges (patch notes, 2026-10-15; was three charges) |
@@ -59,10 +69,10 @@ assumptions are documented below.
 | Dwarf | Artisan’s Precision grants +1 percentage point of melee and spell hit; +5% physical and magic damage against Beasts. |
 | Night Elf | Elune’s Light grants +10 points of melee and spell crit for 15 seconds; 3-minute cooldown. |
 | Gnome | Maximum rage multiplied by 1.05; for 8 seconds, Eureka! makes non-periodic Warrior abilities cost 10% less rage and deal 10% more damage; 2-minute cooldown. |
-| Orc | Blood Fury multiplies total AP and spell-power contributions by 1.10 for 15 seconds, with no GCD or rage cost and a 3-minute cooldown. No racial weapon skill or crit. |
-| Undead | Touch of the Grave: 20% chance per landed damaging main-hand, off-hand, or special ability hit to deal 5% of maximum HP as magic damage, with a shared 25-second internal cooldown and a separate damage report. |
+| Orc | Blood Fury multiplies total AP and spell-power contributions by 1.10 for 15 seconds, with no GCD or rage cost and a 2-minute cooldown. No racial weapon skill or crit. |
+| Undead | Touch of the Grave: 20% chance per landed damaging main-hand, off-hand, or special ability hit to deal 5% of maximum HP as magic damage, with a shared 15-second internal cooldown and a separate damage report. |
 | Tauren | Endurance: +5% maximum health. No Tauren damage scales with health. |
-| Troll | Berserking is fixed at +10% haste for 10 seconds regardless of old saved haste settings, with no GCD or rage cost; +5% physical and magic damage against Beasts. |
+| Troll | Berserking is fixed at +10% haste for 15 seconds regardless of old saved haste settings, with no GCD or rage cost; +5% physical and magic damage against Beasts. |
 | Skyborne | One race for both factions: +2% haste and +5% physical and magic damage against Elementals. Uses Human base stats, without Human racials. |
 
 ## Health for Touch of the Grave
@@ -94,7 +104,7 @@ catalog can be accounted for with the override.
 
 Touch of the Grave calculates 5% of that health at each proc, without an additional
 spell-power coefficient. Each landed damaging hit rolls 20%. Main-hand, off-hand, and
-special ability hits share a 25-second internal cooldown, which starts when a roll
+special ability hits share a 15-second internal cooldown, which starts when a roll
 succeeds, so simultaneous hits cannot both proc. Armor does not reduce the proc damage.
 It uses the existing spell miss, crit, damage multiplier and resistance model; those
 details remain provisional. The simulator has no Shadow-specific damage modifiers,
@@ -129,9 +139,12 @@ weapon skill. No race modifies the critical strike damage bonus.
   hit damage without applying a second multiplier. Autoattacks, stance changes,
   consumables and item procs are unaffected. The buff ends exactly 8 seconds after
   use, so its discount never covers an ability chosen after it ends.
-- Blood Fury has a 3-minute cooldown (patch notes, 2026-10-15; Classic keeps 2
-  minutes). The dump gives no replacement cooldown for Berserking, so it uses
-  Classic's 3 minutes. Both are reused in long fights.
+- Blood Fury has a 2-minute cooldown (patch notes, 2026-10-27; 3 minutes from
+  2026-10-15), the same as Classic. The dump gives no replacement cooldown for
+  Berserking, so it uses Classic's 3 minutes. Both are reused in long fights.
+- Berserking lasts 15 seconds (patch notes, 2026-10-27). Selecting Troll schedules
+  it 18 seconds before the end by default, as for Blood Fury; Classic keeps its
+  10-second duration and 13-second default.
 - Every scheduled cooldown is reused as soon as it is ready after its first use. A
   schedule N seconds before the end counts back whole cooldowns, plus 2 seconds each
   for GCD and reaction delays, to the first use; the final use waits for that time.
@@ -157,9 +170,9 @@ with every weapon type, Artisan’s Precision's melee and spell hit, unmodified 
 damage at each kind of critical hit for every race, Endurance's removed hit bonus,
 Skyborne at several levels, racial availability, AP/haste/crit expiry, Eureka!'s
 8-second window and exact expiry in combat, queued strikes, refunds, rage caps, exact
-cooldowns including Blood Fury's 3 minutes, HP from gear/buffs, HP overrides, the 20%
-proc boundary, the shared 25-second proc cooldown, ability hit eligibility and
-rotation tooltips. Seventeen racial fixtures in
+cooldowns including Blood Fury's 2 minutes, Berserking's 15 seconds, HP from
+gear/buffs, HP overrides, the 20% proc boundary, the shared 15-second proc cooldown,
+ability hit eligibility and rotation tooltips. Seventeen racial fixtures in
 `test/wasm/racial-fixtures.js` compare full JS/WASM reports and fresh/persistent
 partitions, including health overrides, long fights, multiple targets, Rend and
 queued Cleave.

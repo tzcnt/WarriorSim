@@ -22,7 +22,8 @@ const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9
 
 for (const mode of ['classic', 'forever']) test(`${mode}: selecting a race enables its racial with the default end schedule`, () => {
     const {engine, fixture, run} = setup('Human', mode);
-    const cases = [['Orc', 20572, 'bloodfury', 18], ['Troll', 26296, 'berserking', 13]];
+    // Forever's Berserking lasts 15 seconds, so it ends as late as Blood Fury.
+    const cases = [['Orc', 20572, 'bloodfury', 18], ['Troll', 26296, 'berserking', mode === 'forever' ? 18 : 13]];
     if (mode === 'forever') cases.push(['Night Elf', 'forever:elunes-light', 'eluneslight', 31], ['Gnome', 'forever:eureka', 'eureka', 10]);
     const otherSpells = run('JSON.stringify(spells.filter(s => !racialSpellRules[s.id]))');
     for (const [race, id, key, seconds] of cases) {
@@ -220,8 +221,8 @@ test('saved rotation data cannot grant another race’s active abilities', () =>
     assert.equal(p.ragecap, 100);
 });
 
-test('Forever Blood Fury has a 3-minute cooldown; Classic keeps 2 minutes', () => {
-    for (const [mode, seconds] of [['forever', 180], ['classic', 120]]) {
+test('Blood Fury has a 2-minute cooldown in both modes', () => {
+    for (const [mode, seconds] of [['forever', 120], ['classic', 120]]) {
         const {player: p, run} = setup('Orc', mode);
         const fury = p.auras.bloodfury;
         assert.equal(fury.cooldown, seconds);
@@ -246,14 +247,18 @@ test('Blood Fury multiplies total AP, survives AP/Strength refreshes, and expire
     assert.equal(p.auras.bloodfury.uptime, 15000);
 });
 
-test('Forever Berserking ignores legacy haste settings while Classic preserves them', () => {
-    for (const mode of ['classic','forever']) {
+test('Forever Berserking lasts 15 seconds and ignores legacy haste settings; Classic keeps 10 seconds and its haste', () => {
+    for (const [mode, duration] of [['classic', 10000], ['forever', 15000]]) {
         const {player: p, run} = setup('Troll', mode);
         const haste = p.stats.haste;
-        p.auras.berserking.use();
+        const zerk = p.auras.berserking;
+        zerk.use();
         close(p.stats.haste / haste, mode === 'forever' ? 1.1 : 1.99);
-        run('step = 10000; p.auras.berserking.step()');
+        run(`step = ${duration - 1}; p.auras.berserking.step()`);
+        close(p.stats.haste / haste, mode === 'forever' ? 1.1 : 1.99);
+        run(`step = ${duration}; p.auras.berserking.step()`);
         close(p.stats.haste, haste);
+        assert.equal(zerk.uptime, duration);
     }
 });
 
@@ -415,12 +420,12 @@ test('Eureka expires exactly at 8 seconds during combat, before any later rage c
     for (const [at, start] of expirations) assert.equal(at, start + 8000);
 });
 
-test('Touch of the Grave has a 20% chance, scales with HP and shares a 25 second cooldown', () => {
+test('Touch of the Grave has a 20% chance, scales with HP and shares a 15 second cooldown', () => {
     const {player: p, run} = setup('Undead');
     const grave = p.auras.touchofthegrave;
     p.maxhealth = 6000;
     assert.equal(grave.chance, 2000);
-    assert.equal(grave.cooldown, 25);
+    assert.equal(grave.cooldown, 15);
     run('rng10k = () => 1999; p.magicproc = proc => proc.magicdmg;');
     for (const result of ['MISS', 'DODGE']) run(`p.dealdamage(100, RESULT.${result}, p.mh, null, false)`);
     run('p.dealdamage(0, RESULT.HIT, p.mh, null, false)');
@@ -429,11 +434,11 @@ test('Touch of the Grave has a 20% chance, scales with HP and shares a 25 second
     assert.equal(grave.totaldmg, 300);
     run('p.dealdamage(100, RESULT.HIT, p.oh, null, false)');
     assert.equal(grave.totaldmg, 300, 'simultaneous off-hand hit shares the cooldown');
-    run('step = 24999; p.dealdamage(100, RESULT.HIT, p.oh, null, false)');
+    run('step = 14999; p.dealdamage(100, RESULT.HIT, p.oh, null, false)');
     assert.equal(grave.totaldmg, 300);
-    run('step = 25000; p.dealdamage(100, RESULT.HIT, p.oh, null, false)');
-    assert.equal(grave.totaldmg, 600, 'off-hand can proc at exactly 25 seconds');
-    run('step = 50000; rng10k = () => 2000; p.dealdamage(100, RESULT.HIT, p.mh, null, false)');
+    run('step = 15000; p.dealdamage(100, RESULT.HIT, p.oh, null, false)');
+    assert.equal(grave.totaldmg, 600, 'off-hand can proc at exactly 15 seconds');
+    run('step = 30000; rng10k = () => 2000; p.dealdamage(100, RESULT.HIT, p.mh, null, false)');
     assert.equal(grave.totaldmg, 600, 'roll 2000 is outside the 20% proc range');
     p.maxhealth = 12000;
     run('rng10k = () => 1999; p.dealdamage(100, RESULT.HIT, p.mh, null, false)');
@@ -458,7 +463,7 @@ test('Touch of the Grave checks melee and magic ability hits and ignores armor',
         p.armorReduction = reduction;
         for (const defense of ['MELEE', 'MAGIC']) {
             const before = p.auras.touchofthegrave.totaldmg;
-            run(`step += 25000; p.dealdamage(100, RESULT.MISS, p.mh,
+            run(`step += 15000; p.dealdamage(100, RESULT.MISS, p.mh,
                 {defenseType: DEFENSETYPE.${defense}, school: SCHOOL.PHYSICAL}, false)`);
             assert.equal(p.auras.touchofthegrave.totaldmg, before);
             run(`p.dealdamage(100, RESULT.HIT, p.mh,
@@ -543,7 +548,7 @@ for (const mode of ['classic', 'forever']) test(`${mode}: Berserking details and
     run('SIM.SETTINGS.buildSpellDetails(spells.find(s => s.id == 26296), element)');
     assert.equal(rows.join('').includes('name="haste"'), mode === 'classic');
     const description = run(`racialSpellDescription(spells.find(s => s.id == 26296), '${mode}')`);
-    if (mode === 'forever') assert.match(description, /10% for 10 seconds/);
+    if (mode === 'forever') assert.match(description, /10% for 15 seconds/);
     else assert.equal(description, undefined);
 });
 
@@ -555,8 +560,8 @@ test('saved racial tooltips cannot restore the old provisional values', () => {
     assert.match(eureka, /2-minute cooldown/);
     assert.doesNotMatch(eureka, /next three|Provisional/);
     assert.match(run("racialSpellDescription({id: 'forever:elunes-light'}, 'forever')"), /3-minute cooldown/);
-    assert.match(run("racialSpellDescription({id: 20572, localDescription: 'Old'}, 'forever')"), /3-minute cooldown/);
+    assert.match(run("racialSpellDescription({id: 20572, localDescription: 'Old'}, 'forever')"), /2-minute cooldown/);
     const descriptions = run('JSON.stringify(foreverRacialDescriptions)');
-    assert.doesNotMatch(descriptions, /Specialization|Savage|Earth Fury|critical strike damage|\+2% crit|\+[13]% haste|\+5% Spirit|5% chance|1 second/);
+    assert.doesNotMatch(descriptions, /Specialization|Savage|Earth Fury|critical strike damage|\+2% crit|\+[13]% haste|\+5% Spirit|5% chance|1 second|3-minute|25 second|10 seconds/);
     assert.doesNotMatch(run('foreverRacialDescriptions.Tauren'), /hit/);
 });
