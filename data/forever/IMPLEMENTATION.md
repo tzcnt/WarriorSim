@@ -1,5 +1,16 @@
 # WoW Forever implementation decisions
 
+**2026-11-03 update:** The day's patch notes change Slam, Arms and Fury; see
+[the catalog notes](README.md). Slam's cooldown is 15/12.5/10 seconds at 0/1/2 Improved
+Slam ranks. Tactical Mastery retains 10 rage plus 5 per Improved Tactical Mastery rank,
+25 at 3/3. Saved builds move to `forever-v4`, and older positional builds migrate through
+their recorded talent order. The notes leave these details open, so they are our
+interpretation:
+
+- Reckless Swings is off the global cooldown, works in any stance and is used on cooldown when enabled. A charge is spent by a landed melee hit with damage on the primary target: white swings from either hand, extra attacks, queued Heroic Strike/Cleave and melee specials. Misses, dodges and adjacent-target hits keep it. Each charge adds a flat 5 rage, not scaled for the off-hand. The health cost is not modeled.
+- Improved Whirlwind's damage bonus multiplies Whirlwind's other modifiers and applies to both hands' hits on the primary target, which stands in for "the closest enemy". Adjacent targets take normal damage.
+- Defensive Stance's threat, Defiance, Booming Voice's Piercing Howl discount, and the Blood Craze/Gore Drinker threat and sitting changes are outside the DPS model and remain data-only.
+
 **2026-10-15 update:** Confirmed: extra attacks do not reset the swing timer, unlike
 Classic. Each one is an additional main-hand swing, and the next regular swing stays
 on schedule. This replaces the provisional Classic behavior in [the rage notes](RAGE_GAIN.md).

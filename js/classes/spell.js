@@ -113,8 +113,13 @@ class Whirlwind extends Spell {
     constructor(player, id) {
         super(player, id);
         this.cost = 25 - player.ragecostbonus - (player.whirlwindcost || 0);
-        if (player.mode === 'forever') this.cost -= 3 * player.talents.ragingblows;
         this.cooldown = 10;
+        if (player.mode === 'forever') {
+            this.cost -= 3 * player.talents.ragingblows;
+            // Improved Whirlwind: shorter cooldown, and more damage to the primary (closest) target only.
+            this.cooldown -= player.talents.whirlwindcd;
+            this.primarymod = 1 + player.talents.whirlwinddmg / 100;
+        }
         this.refund = false;
     }
     dmg(weapon) {
@@ -507,7 +512,7 @@ class Slam extends Spell {
         this.gcd = 1500;
         if (player.mode === 'forever') {
             this.casttime = this.gcd = 1500 - player.talents.impslam * 250;
-            this.cooldown = player.talents.impslam ? 15 : 18;
+            this.cooldown = 15 - player.talents.impslam * 2.5;
             this.swingmode = player.talents.impslam ? 1 : 0;
         }
         this.mhthreshold = 0;
@@ -771,6 +776,42 @@ class SweepingStrikes extends Aura {
     copy(damage) {
         this.idmg += damage;
         this.totaldmg += damage;
+        if (!--this.stacks) this.end();
+    }
+}
+
+// Forever: off the GCD. Each of the next 4 landed melee attacks against the primary target,
+// from either hand, generates 5 more rage. Its health cost is outside the DPS model.
+class RecklessSwings extends Aura {
+    constructor(player, id) {
+        super(player, id, 'Reckless Swings');
+        this.duration = 8;
+        this.cooldown = 15;
+        this.charges = 4;
+        this.rage = 5;
+        this.cooldowntimer = 0;
+    }
+    canUse() {
+        return this.cooldowntimer <= step;
+    }
+    use() {
+        if (this.timer) this.uptime += step - this.starttimer;
+        this.timer = step + this.duration * 1000;
+        this.starttimer = step;
+        this.stacks = this.charges;
+        this.cooldowntimer = step + this.cooldown * 1000;
+        this.maxdelay = rng(this.player.reactionmin, this.player.reactionmax);
+        /* start-log */ if (this.player.logging) this.player.log(`${this.name} applied`); /* end-log */
+    }
+    step() {
+        if (this.timer && step >= this.timer) {
+            this.uptime += this.timer - this.starttimer;
+            this.timer = this.stacks = 0;
+            /* start-log */ if (this.player.logging) this.player.log(`${this.name} removed`); /* end-log */
+        }
+    }
+    proc() {
+        this.player.rage = Math.min(this.player.rage + this.rage, this.player.ragecap);
         if (!--this.stacks) this.end();
     }
 }

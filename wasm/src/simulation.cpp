@@ -332,6 +332,8 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
                     choose(player_, delayedSpell, bloodrageSelection, false);
                 if (!delayedSpell)
                     choose(player_, delayedSpell, "berserkerrage"_action, false);
+                if (!delayedSpell)
+                    choose(player_, delayedSpell, "recklessswings"_action, true);
                 if (!delayedSpell) {
                     for (const int index : player_.configured.onUseAuras)
                         if (choose(player_, delayedSpell, index, true)) break;
@@ -479,6 +481,10 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
             minPositive(sweeping->timer - player_.step, next);
         if (const auto* sweeping = player_.aura("sweepingstrikes"_action); sweeping && sweeping->cooldownTimer > player_.step)
             minPositive(sweeping->cooldownTimer - player_.step, next);
+        if (const auto* reckless = player_.aura("recklessswings"_action)) {
+            if (reckless->timer > player_.step) minPositive(reckless->timer - player_.step, next);
+            if (reckless->cooldownTimer > player_.step) minPositive(reckless->cooldownTimer - player_.step, next);
+        }
         // Eureka! expires exactly, so its discounted costs never pass a rage check after it ends.
         if (const auto* eureka = player_.aura("eureka"_action); eureka && eureka->timer > player_.step)
             minPositive(eureka->timer - player_.step, next);
@@ -541,6 +547,10 @@ double Engine::runOne(std::uint32_t globalIteration, double& duration) {
         if (auto* sweeping = player_.aura("sweepingstrikes"_action); sweeping && sweeping->props.number("duration"_prop) && sweeping->timer)
             if (!auraStep(player_, *sweeping)) spellcheck = true;
         if (const auto* sweeping = player_.aura("sweepingstrikes"_action); sweeping && sweeping->cooldownTimer == player_.step) spellcheck = true;
+        if (auto* reckless = player_.aura("recklessswings"_action)) {
+            if (reckless->timer) (void)auraStep(player_, *reckless);
+            if (reckless->cooldownTimer == player_.step) spellcheck = true;
+        }
         if (auto* eureka = player_.aura("eureka"_action); eureka && eureka->timer) (void)auraStep(player_, *eureka);
         if (!player_.spelldelay || preemptible) {
             for (const auto& [isAura, index] : player_.configured.scheduledNoGcd)

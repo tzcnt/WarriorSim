@@ -78,6 +78,7 @@ bool isAlwaysBase(AuraKind kind) {
 } // namespace
 
 bool auraCanUse(PlayerState& player, AuraState& aura) {
+    if (aura.kind == AuraKind::RecklessSwings) return aura.cooldownTimer <= player.step;
     if (aura.kind == AuraKind::SweepingStrikes) {
         const double cost = aura.props.number("cost"_prop);
         return !aura.timer && (!aura.props.number("gcd"_prop) || !player.timer) && player.prop("adjacent"_prop) > 0 &&
@@ -188,6 +189,15 @@ void auraEnd(PlayerState& player, AuraState& aura) {
 }
 
 void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter) {
+    if (aura.kind == AuraKind::RecklessSwings) {
+        accountRefresh(player, aura);
+        aura.timer = player.step + durationMs(aura);
+        aura.starttimer = player.step;
+        aura.stacks = aura.props.integer("charges"_prop);
+        aura.cooldownTimer = player.step + cooldownMs(aura);
+        setDelay(player, aura);
+        return;
+    }
     if (aura.kind == AuraKind::SweepingStrikes) {
         if (!player.isValidStance("battle")) player.switchStance("battle", &aura.stancerage);
         player.rage -= aura.props.number("cost"_prop);
@@ -423,6 +433,13 @@ void auraUse(PlayerState& player, AuraState& aura, bool prepull, int precounter)
 }
 
 bool auraStep(PlayerState& player, AuraState& aura) {
+    if (aura.kind == AuraKind::RecklessSwings) {
+        if (aura.timer && player.step >= aura.timer) {
+            expire(player, aura);
+            aura.stacks = 0;
+        }
+        return aura.timer != 0;
+    }
     if (aura.kind == AuraKind::SweepingStrikes) {
         if (durationMs(aura) && aura.timer && player.step >= aura.timer) {
             expire(player, aura);

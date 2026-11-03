@@ -7,10 +7,10 @@ SHA-256 are recorded in `warrior-source.json`. The snapshot preserves the downlo
 Warrior `talents` object without changing its fields.
 
 Run `node scripts/extract-forever-talents.js` to regenerate `js/data/talents_forever.js`.
-The catalog contains **52 talents: 17 Arms, 17 Fury, 18 Protection**, with all 150
-rank descriptions confirmed by the source. No rank estimation is applied, and no later
-patch notes are pending. The extraction script can still apply notes newer than a snapshot.
-`rank-text.js` is retained only as a historical extraction helper.
+The script applies the **3 Nov 2026 patch notes** on top of the snapshot. The catalog contains
+**54 talents: 17 Arms, 19 Fury, 18 Protection**, with 146 rank descriptions. The
+snapshot confirms every rank except the rewritten patch-note text; no rank estimation
+is applied. `rank-text.js` is retained only as a historical extraction helper.
 
 The generated catalog uses the existing `n`/`m`/`d`/`x`/`y` talent structure, converting
 rows and columns to zero-based coordinates. Prerequisites use `[parent index, max rank]`.
@@ -20,11 +20,24 @@ costs. The source's single cost line is split into `cost` and the `Requires ...`
 `js/talent-rules.js` attaches runtime handlers and simulation support metadata.
 Forever tooltips continue to use local descriptions.
 
-Saved builds now use `forever-v3`. Keyed builds of any schema migrate by key.
-Positional `forever-v1` and `forever-v2` builds use those schemas' recorded talent
-order. Removed talents are refunded, as are descendants that lose their row or
+Saved builds now use `forever-v4`. Keyed builds of any schema migrate by key.
+Positional `forever-v1`, `forever-v2` and `forever-v3` builds use those schemas'
+recorded talent order. Ranks above a talent's new maximum are clamped. Removed talents are refunded, as are descendants that lose their row or
 prerequisite requirements. Classic positional builds still migrate by name.
 Default and permanent presets use the new schema and catalog.
+
+**3 Nov 2026 patch notes.** Slam's cooldown is 15 seconds (was 18), and Improved Slam
+reduces it by 2.5/5 seconds (was 3 at both ranks). Arms: Improved Tactical Mastery
+has 3 ranks retaining 5/10/15 extra rage (was 5 ranks of 3). Two-Handed Weapon
+Specialization gives 2/4/6% damage (was 1/2/3%). Bloodthrill has 2 ranks of 10/20%
+(was 5 ranks of 4%). Fury: Enrage moves to row 3 column 4. New: Reckless Swings
+(row 4 column 3, see below). Gore Drinker moves to row 5 column 3 and requires Blood
+Craze. Flurry no longer requires Death Wish and has 3 ranks of 10/20/30% (was 5 of 5%).
+New: Improved Whirlwind (row 6 column 3, 2 ranks). Bloodthirst now requires Death
+Wish. Booming Voice also reduces Piercing Howl's cost. Blood Craze and Gore Drinker
+no longer generate threat, and Blood Craze no longer activates while sitting. Protection: Defiance gives 7/13/20% threat (was
+5/10/15%). Defensive Stance's threat bonus rises from 30% to 80%. Client build
+1.60.1.70291 also made Impale require Deep Wounds again; the catalog follows that layout.
 
 **1-2 Oct 2026 hotfixes (Fury/Protection rework).** Fury gains Lingering Rage (row 2),
 Furious Precision (row 3, 4/7/10% off-hand hit) and Gore Drinker (row 6, after Enrage).
@@ -51,7 +64,7 @@ build 1.60.1.69876 corrected Improved Rend to 12/23/35%, Improved Execute to 3/5
 and Improved Disarm to 7/13/20 seconds, and removed Vitality. The September 24 notes
 made Bloodthrill 4/8/12/16/20% from main-hand attacks, and the October 1 notes halved
 Dual Wield Specialization's off-hand rage bonus. Historical optimization results in this
-directory describe their original catalogs; see [the October 2026 presets](#october-2026-presets).
+directory describe their original catalogs; see [the current presets](#current-presets).
 
 ## Combat rules
 
@@ -62,7 +75,7 @@ See [RAGE_GAIN.md](RAGE_GAIN.md) for rage-gain data and open questions.
 
 JavaScript character/spell construction and the WASM combat engine implement the
 same rules. Rank/stat/cost changes include Rend, Tactical Mastery (10 baseline +
-3 per point), Flurry, Unbridled Wrath (1 rage with any weapon), off-hand damage/rage
+5 per point), Two-Handed Weapon Specialization (2% per rank), Flurry (10% per rank), Unbridled Wrath (1 rage with any weapon), off-hand damage/rage
 (Dual Wield Specialization) and hit (Furious Precision, 4/7/10%), Focused Rage, Bastion,
 Execute/Cleave/Whirlwind/Thunder Clap costs, Battle Shout's cost (Booming Voice, 5%
 per rank), and both Bloodrage's initial gain and fractional ticks. The rage cap is 100,
@@ -71,10 +84,12 @@ or 105 for Gnomes.
 - Bloodthirst: 45% AP + 30/37/43/48 at levels 40/48/54/60.
 - Mortal Strike: weapon damage + 85/110/135/160 at those levels.
 - Shield Slam: 421–439 / 494–516 / 567–593 / 640–670 at those levels, plus block value once, with no AP coefficient.
-- Forever Slam has an 18-second cooldown, reduced by 3 seconds with either Improved Slam rank to 18/15/15 seconds at 0/1/2 ranks. It starts at cast completion. Without Improved Slam it pauses weapon timers during casting. Either talent rank lets them advance, deferring due swings until cast completion. Cast time and GCD are 1500/1250/1000 ms at 0/1/2 ranks. Classic has no cooldown and still resets timers at cast completion.
-- Bloodthrill: landed main-hand melee damage against the player's active Rend rolls 4% per rank for one six-second Overpower opportunity, with no ICD. White swings, queued Heroic Strike/Cleave and main-hand special attacks roll; off-hand swings and Whirlwind's off-hand hit do not. It refreshes, does not stack, and is independent of the ordinary dodge window. Adjacent targets without Rend cannot trigger it.
+- Forever Slam has a 15-second cooldown, reduced by 2.5 seconds per Improved Slam rank to 15/12.5/10 seconds at 0/1/2 ranks. It starts at cast completion. Without Improved Slam it pauses weapon timers during casting. Either talent rank lets them advance, deferring due swings until cast completion. Cast time and GCD are 1500/1250/1000 ms at 0/1/2 ranks. Classic has no cooldown and still resets timers at cast completion.
+- Bloodthrill: landed main-hand melee damage against the player's active Rend rolls 10% per rank for one six-second Overpower opportunity, with no ICD. White swings, queued Heroic Strike/Cleave and main-hand special attacks roll; off-hand swings and Whirlwind's off-hand hit do not. It refreshes, does not stack, and is independent of the ordinary dodge window. Adjacent targets without Rend cannot trigger it.
 - Weaponmaster: crit/extra-attack effects use existing weapon specialization code; mace/staff bypass 3% armor per rank for that hand, after armor debuffs. The sword proc guard resets between fights in both Classic and Forever so batching does not change results.
 - Whirlwind: always strikes with both weapons. Each hand rolls independently against each target, with one rage cost/cooldown. Off-hand damage uses the actual off-hand weapon.
+- Improved Whirlwind: reduces Whirlwind's 10-second cooldown by 1 second per rank. Both hands' hits on the primary target deal 15% more damage per rank, multiplying the other damage modifiers; adjacent targets are unaffected. The notes say "the closest enemy", which the simulator treats as the primary target.
+- Reckless Swings: off the global cooldown, any stance, 15-second cooldown, used on cooldown when enabled in the rotation. For 8 seconds, the next 4 landed melee hits on the primary target each add a flat 5 rage, up to the rage cap. White swings from either hand, extra attacks, queued Heroic Strike/Cleave and melee specials such as Whirlwind's hits all spend a charge. Misses, dodges and adjacent-target hits do not. Unused charges expire. Its 25%-of-base-health cost is outside the DPS model.
 - Raging Blows: Cleave and Whirlwind cost 3 less rage.
 - Spearing Strike: 40% normalized main-hand damage, or 120% against Giant/Dragonkin/mounted targets selected in Settings. Any melee weapon; requires Battle Stance. Like Overpower, it switches stance only when Tactical Mastery retains its cost, optionally below a configured rage. Mounted targets stay mounted, so every hit gets the bonus. Uses ordinary melee hit/crit/refund rules.
 - Enrage: existing incoming damaging attacks roll a 30% chance for 2% Physical damage per rank for 12 seconds; reapplication refreshes it. Death Wish's Forever +5% incoming damage penalty applies to the existing damage/rage events.
@@ -116,10 +131,10 @@ Incoming attacks are configured damage events, without avoidance, block or crit
 outcomes. Consequently Shield Specialization and Master of Defense cannot generate
 reactive rage, and Anticipation/Deflection do not simulate mitigation.
 Revenge and Charge are absent, so Improved Revenge, Improved Charge and Vanguard
-remain data-only. Current health/healing (Blood Craze, Gore Drinker, Last Stand),
-threat (Defiance), out-of-combat rage decay (Lingering Rage), shout radius (Booming
-Voice), and crowd-control/movement/utility effects (Iron Will) are also outside the
-existing DPS model. Maximum health is calculated for
+remain data-only. Current health/healing (Blood Craze, Gore Drinker, Last Stand,
+Reckless Swings' health cost), threat (Defiance, Defensive Stance), out-of-combat rage
+decay (Lingering Rage), shout radius and Piercing Howl's cost (Booming Voice), and
+crowd-control/movement/utility effects (Iron Will) are also outside the existing DPS model. Maximum health is calculated for
 Touch of the Grave; see [the racial notes](RACIALS.md). The other defensive-model
 limitations remain unchanged.
 The current equipment catalog also has no shields; Shield Slam/Bastion validation
@@ -130,42 +145,43 @@ claiming those missing systems are simulated.
 
 `test/forever-talents.test.js` checks formulas, costs, rage caps, fractional
 Bloodrage ticks, per-hand damage/hit/rage/armor bypass, Bloodthrill, Spearing Strike,
-Sweeping Strikes, exact Slam cast/GCD/swing timestamps, tree positions and prerequisites,
-removed talents, v1/v2 migration and local tooltips.
-`test/wasm/forever-fixtures.js` adds six full-report JS/native parity fixtures with
+Sweeping Strikes, Reckless Swings, Improved Whirlwind, exact Slam cast/GCD/swing timestamps,
+tree positions and prerequisites, removed talents, v1/v2/v3 migration and local tooltips.
+`test/wasm/forever-fixtures.js` adds eight full-report JS/native parity fixtures with
 fresh/persistent partitions. Existing Classic goldens are unchanged; Forever's
 golden now reflects its own rules. Run `npm test`, `npm run test:wasm`, and
 `npm run test:regressions -- --dist` after a full distribution build.
 
 Examples of changes present in this snapshot include Bloodthrill and Weaponmaster
 in Arms; Lingering Rage, Furious Precision, Raging Blows and Gore Drinker in Fury; and
-Master of Defense, Vanguard, Focused Rage and Bastion in Protection. Improved Slam
+Master of Defense, Vanguard, Focused Rage and Bastion in Protection; the 3 Nov notes
+add Reckless Swings and Improved Whirlwind to Fury. Improved Slam
 moves to Arms and Improved Thunder Clap to Protection. These changes are implemented
 for Forever while preserving Classic combat behavior.
 
-## October 2026 presets
+## Current presets
 
-Every permanent preset spent points in removed talents, so each was rebuilt on
-2026-10-07 and then tuned in the app. Gear, buffs and rotations were also revised.
-The first-visit default is the first preset, Dual Wield Fury.
-Since 2026-10-15 every preset enables Grace of Air Totem alongside Windfury Totem; the
-DPS below predates that and later engine changes.
-The DPS below is from this checkout's native engine, including the Deep Wounds change.
-It uses 100,000 fights per preset with a common seed and each preset's own settings
-(single-target, 50–60 s). This is a measurement, not a rerun of
-`scripts/optimize-forever-talents.js`.
+The permanent presets were rebuilt on 2026-11-03 for that day's patch notes; their
+previous versions date from the 2026-10-07 rework. Each preset learns Reckless Swings
+and enables it in its rotation, and both Fury presets take Improved Whirlwind. Gear,
+buffs and the rest of each rotation are unchanged. The first-visit default is the first
+preset, Dual Wield Fury.
+
+The DPS below is from this checkout's native engine. It uses 100,000 fights per preset
+with a common seed and each preset's own settings (single-target, 50–60 s). This is a
+measurement, not a rerun of `scripts/optimize-forever-talents.js`.
 
 | Preset | Talents | Mean DPS (± 95%) |
 | --- | --- | ---: |
-| Dual Wield Fury (19/32/0) | Arms: IHS 3, IR 3, ITM 5, IOP 2, AM 1, DW 3, Impale 2. Fury: Cruelty 5, LR 1, UW 5, FP 3, PH 1, DWS 5, RB 1, IE 2, IBR 2, DW 1, Flurry 5, BT 1 | 911.6 ± 0.5 |
-| Two-Handed Fury (20/31/0) | Arms: IHS 2, IR 3, ITM 5, IOP 2, DW 3, 2HWS 3, Impale 2. Fury: BV 5, Cruelty 5, UW 5, RB 1, Enrage 5, IE 2, IBR 1, DW 1, Flurry 5, BT 1 | 841.0 ± 0.6 |
-| Two-Handed Arms (35/16/0) | Arms: Deflection 2, IR 3, ITM 5, IOP 2, AM 1, DW 3, 2HWS 3, Impale 2, Bloodthrill 5, SS 1, WM 5, ISlam 2, MS 1. Fury: BV 5, Cruelty 5, UW 5, IE 1 | 737.7 ± 0.5 |
+| Dual Wield Fury (17/34/0) | Arms: IHS 3, IR 3, ITM 3, IOP 2, AM 1, DW 3, Impale 2. Fury: BV 1, Cruelty 5, LR 1, UW 5, FP 3, PH 1, DWS 5, RB 1, RS 1, IE 2, IBR 2, DW 1, Flurry 3, IWW 2, BT 1 | 1064.2 ± 0.6 |
+| Two-Handed Fury (20/31/0) | Arms: IHS 3, IR 3, ITM 3, IOP 2, AM 1, DW 3, 2HWS 3, Impale 2. Fury: BV 5, Cruelty 5, UW 5, Enrage 4, RB 1, RS 1, IE 2, IBR 1, DW 1, Flurry 3, IWW 2, BT 1 | 1009.2 ± 0.7 |
+| Two-Handed Arms (31/20/0) | Arms: Deflection 3, IR 3, ITM 3, IOP 2, AM 1, DW 3, 2HWS 3, Impale 2, Bloodthrill 2, SS 1, WM 5, ISlam 2, MS 1. Fury: BV 5, Cruelty 5, UW 5, Enrage 1, RB 1, RS 1, IE 2 | 885.9 ± 0.6 |
 
-The presets' target never attacks (target speed 0), so Enrage cannot trigger. The
-earlier 17/34/0 Dual Wield build kept Enrage 5/5 and measures 885.4 ± 0.6 on the same
-engine. Each Fury build needs 30 points in rows 1–6 for Bloodthirst, so some points
-go to talents that are inert here. Neither two-handed rotation uses Heroic Strike,
-so Deflection and Improved Heroic Strike are equivalent for the Arms preset.
+The presets' target never attacks (target speed 0), so Enrage cannot trigger; the
+two-handed presets spend points there only to open lower rows. Each Fury build needs
+30 points in rows 1–6 for Bloodthirst, so some points go to talents that are inert
+here. Neither two-handed rotation uses Heroic Strike, so Deflection and Improved
+Heroic Strike are equivalent for the Arms preset.
 
 See [the implementation audit](IMPLEMENTATION.md) for mode-specific rules, selector
 moves, runtime property mappings, engine gaps, and the accepted placeholder decisions.

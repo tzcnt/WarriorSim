@@ -1,29 +1,40 @@
 // Runtime integration for the captured Forever catalog;
 // local keys identify talents/actions and are also used in saved builds.
 var classicTalents = talents;
-var FOREVER_TALENT_SCHEMA = 'forever-v3';
+var FOREVER_TALENT_SCHEMA = 'forever-v4';
 var foreverTalentDefaults = {};
 for (const tree of classicTalents)
     for (const talent of tree.t)
         for (const key of Object.keys(talent.aura(0))) foreverTalentDefaults[key] = 0;
 
-// Talent order of positional saves from earlier schemas. forever-v2 predates the
-// 1-2 Oct 2026 Fury/Protection rework; forever-v1 also had Vitality at Protection 16.
+// Talent order of positional saves from earlier schemas. forever-v3 predates the 3 Nov 2026
+// patch, which moved Enrage and Gore Drinker and added Reckless Swings and Improved Whirlwind.
+// forever-v2 predates the 1-2 Oct 2026 Fury/Protection rework; forever-v1 also had Vitality at Protection 16.
 var FOREVER_LEGACY_TALENT_KEYS = (() => {
-    const v2 = [
-        'improved-heroic-strike deflection improved-rend improved-charge improved-tactical-mastery improved-overpower ' +
+    const keys = trees => trees.map((names, i) => names.split(' ').map(name => `${['arms', 'fury', 'protection'][i]}:${name}`));
+    const arms = 'improved-heroic-strike deflection improved-rend improved-charge improved-tactical-mastery improved-overpower ' +
         'anger-management deep-wounds spearing-strike two-handed-weapon-specialization impale bloodthrill ' +
-        'sweeping-strikes weaponmaster improved-slam improved-hamstring mortal-strike',
+        'sweeping-strikes weaponmaster improved-slam improved-hamstring mortal-strike';
+    const v2 = keys([arms,
         'booming-voice cruelty iron-will unbridled-wrath improved-cleave piercing-howl blood-craze boundless-rage ' +
         'dual-wield-specialization raging-blows enrage improved-execute precision death-wish improved-intercept ' +
         'improved-berserker-rage flurry bloodthirst',
         'shield-specialization anticipation improved-bloodrage toughness improved-thunder-clap last-stand ' +
         'master-of-defense improved-revenge defiance improved-sunder-armor improved-disarm vanguard ' +
         'improved-shield-wall concussion-blow improved-shield-bash focused-rage bastion shield-slam',
-    ].map((names, i) => names.split(' ').map(name => `${['arms', 'fury', 'protection'][i]}:${name}`));
+    ]);
+    const v3 = keys([arms,
+        'booming-voice cruelty lingering-rage unbridled-wrath furious-precision piercing-howl blood-craze ' +
+        'dual-wield-specialization raging-blows enrage improved-execute improved-berserker-rage death-wish ' +
+        'improved-intercept flurry gore-drinker bloodthirst',
+        'improved-bloodrage shield-specialization iron-will anticipation improved-revenge improved-thunder-clap ' +
+        'last-stand master-of-defense improved-disarm defiance improved-sunder-armor vanguard improved-shield-bash ' +
+        'improved-shield-wall concussion-blow focused-rage bastion shield-slam',
+    ]);
     return {
         'forever-v1': v2.map((keys, i) => i === 2 ? keys.toSpliced(15, 0, 'protection:vitality') : keys),
         'forever-v2': v2,
+        'forever-v3': v3,
     };
 })();
 var FOREVER_TALENT_SCHEMAS = [FOREVER_TALENT_SCHEMA, ...Object.keys(FOREVER_LEGACY_TALENT_KEYS)];
@@ -32,9 +43,10 @@ var FOREVER_TALENT_SCHEMAS = [FOREVER_TALENT_SCHEMA, ...Object.keys(FOREVER_LEGA
     const linear = (key, multiplier = 1) => rank => ({[key]: rank * multiplier});
     const effects = {
         'arms:improved-rend': rank => ({rendmod: [0, 12, 23, 35][rank]}),
-        'arms:improved-tactical-mastery': rank => ({rageretained: 10 + 3 * rank}),
+        'arms:improved-tactical-mastery': rank => ({rageretained: 10 + 5 * rank}),
+        'arms:two-handed-weapon-specialization': linear('twomod', .02),
         'arms:spearing-strike': linear('spearingstrike'),
-        'arms:bloodthrill': linear('bloodthrill', 4),
+        'arms:bloodthrill': linear('bloodthrill', 10),
         'arms:weaponmaster': rank => ({axecrit: rank, polearmcrit: rank, swordproc: rank, weaponmasterarp: rank * .03}),
         'arms:improved-slam': linear('impslam'),
         'fury:booming-voice': rank => ({shoutradius: rank * 10, shoutcost: rank * 5}),
@@ -44,10 +56,12 @@ var FOREVER_TALENT_SCHEMAS = [FOREVER_TALENT_SCHEMA, ...Object.keys(FOREVER_LEGA
         'fury:dual-wield-specialization': rank => ({offmod: rank * .05, offragebonus: rank * .10}),
         'fury:raging-blows': linear('ragingblows'),
         'fury:enrage': linear('enrage', 2),
+        'fury:reckless-swings': linear('recklessswings'),
         'fury:improved-execute': rank => ({executecost: [0, 3, 5][rank]}),
         'fury:improved-berserker-rage': rank => ({berserkerbonus: rank * 5, snareremoval: rank * 50}),
-        'fury:flurry': linear('flurry', 5),
         'fury:gore-drinker': linear('goredrinker', .5),
+        'fury:flurry': linear('flurry', 10),
+        'fury:improved-whirlwind': rank => ({whirlwindcd: rank, whirlwinddmg: rank * 15}),
         'protection:improved-bloodrage': linear('bloodragemod', .25),
         'protection:shield-specialization': rank => ({block: rank, blockragechance: rank * 20, blockrage: 5}),
         'protection:iron-will': linear('stunfearduration', 3),
@@ -56,7 +70,7 @@ var FOREVER_TALENT_SCHEMAS = [FOREVER_TALENT_SCHEMA, ...Object.keys(FOREVER_LEGA
         'protection:improved-thunder-clap': linear('impthunderclap', 2),
         'protection:master-of-defense': linear('avoidragechance', 50),
         'protection:improved-disarm': rank => ({disarmcd: [0, 7, 13, 20][rank]}),
-        'protection:defiance': linear('shieldthreat', 5),
+        'protection:defiance': rank => ({shieldthreat: [0, 7, 13, 20][rank]}),
         'protection:vanguard': linear('vanguard'),
         'protection:improved-shield-wall': linear('shieldwallcd', 330),
         'protection:focused-rage': linear('focusedrage'),
@@ -77,6 +91,7 @@ var FOREVER_TALENT_SCHEMAS = [FOREVER_TALENT_SCHEMA, ...Object.keys(FOREVER_LEGA
             if (original?.enable) talent.enable = original.enable;
             if (talent.n === 'Spearing Strike') talent.enable = 'forever:spearing-strike';
             if (talent.n === 'Sweeping Strikes') talent.enable = 'forever:sweeping-strikes';
+            if (talent.n === 'Reckless Swings') talent.enable = 'forever:reckless-swings';
             talent.forever.implementationStatus = unsupported.has(talent.n) ? 'outside-dps-model' : 'implemented';
         }
     }
@@ -88,6 +103,10 @@ var FOREVER_TALENT_SCHEMAS = [FOREVER_TALENT_SCHEMA, ...Object.keys(FOREVER_LEGA
         iconname: 'ability_rogue_slicedice', minlevel: 30, mode: 'forever', aura: true,
         active: false, priority: 9, expriority: 9,
         localDescription: 'Your next 5 melee attacks strike an additional nearby opponent. 30 Rage. 30 sec cooldown. Requires Battle Stance.'});
+    // Off the global cooldown and used on cooldown; its health cost is outside the DPS model.
+    spells.push({id: 'forever:reckless-swings', name: 'Reckless Swings', classname: 'RecklessSwings',
+        iconname: 'ability_warrior_endlessrage', minlevel: 25, mode: 'forever', aura: true, active: true,
+        localDescription: 'Your next 4 melee attacks generate 5 additional Rage. Lasts 8 sec. Costs 25% of base health. 15 sec cooldown.'});
 })();
 
 function selectTalentRules(gameMode) {

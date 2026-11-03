@@ -497,7 +497,7 @@ AuraKind parseAuraKind(std::string_view value) {
     AURA_KIND(BloodrageAura);
     AURA_KIND(Zandalarian); AURA_KIND(Avenger); AURA_KIND(BerserkerRageAura);
     AURA_KIND(BattleShout); AURA_KIND(Rend);
-    AURA_KIND(JujuFlurry);
+    AURA_KIND(JujuFlurry); AURA_KIND(RecklessSwings);
 #undef AURA_KIND
     throw std::runtime_error("unsupported aura kind: " + owned(value));
 }
@@ -524,6 +524,7 @@ const char* auraKindName(AuraKind kind) {
         case AuraKind::Flurry: return "Flurry";
         case AuraKind::Enrage: return "Enrage";
         case AuraKind::SweepingStrikes: return "SweepingStrikes";
+        case AuraKind::RecklessSwings: return "RecklessSwings";
         case AuraKind::OldDeepWounds: return "OldDeepWounds";
         case AuraKind::DeepWounds: return "DeepWounds";
         case AuraKind::Rend: return "Rend";
@@ -645,6 +646,7 @@ void PlayerState::buildConfiguredActionLists() {
 
     addOrderedKey(configured.endAuras, "enrage"_action);
     addOrderedKey(configured.endAuras, "sweepingstrikes"_action);
+    addOrderedKey(configured.endAuras, "recklessswings"_action);
     addOrderedProc(configured.endAuras, mh.proc1);
     addOrderedProc(configured.endAuras, mh.proc2);
     if (oh) {

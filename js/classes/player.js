@@ -973,6 +973,7 @@ class Player {
     endauras() {
         if (this.auras.enrage?.timer) this.auras.enrage.end();
         if (this.auras.sweepingstrikes?.timer) this.auras.sweepingstrikes.end();
+        if (this.auras.recklessswings?.timer) this.auras.recklessswings.end();
 
         if (this.mh.proc1 && this.mh.proc1.spell && this.mh.proc1.spell.timer) this.mh.proc1.spell.end();
         if (this.mh.proc2 && this.mh.proc2.spell && this.mh.proc2.spell.timer) this.mh.proc2.spell.end();
@@ -1172,6 +1173,7 @@ class Player {
         }
         
         let dmg = spell.dmg() * this.mh.modifier * (spell.eurekamod || 1);
+        if (!adjacent && spell.primarymod) dmg *= spell.primarymod;
         if (dmg) dmg += this.stats.moddmgtaken;
         let result;
         if (spell.defenseType == DEFENSETYPE.MELEE) 
@@ -1213,6 +1215,7 @@ class Player {
     }
     castoh(spell, adjacent, damageSoFar) {
         let dmg = spell.dmg(this.oh) * this.oh.modifier * (spell.eurekamod || 1);
+        if (!adjacent && spell.primarymod) dmg *= spell.primarymod;
         if (dmg) dmg += this.stats.moddmgtaken;
         let result = this.rollmeleespell(spell, this.oh);
 
@@ -1250,6 +1253,8 @@ class Player {
                     this.bloodthrilltimer = 6000;
                 const sweeping = this.auras.sweepingstrikes;
                 if (this.adjacent && sweeping?.timer && sweeping.stacks) sweeping.copy(dmg);
+                const reckless = this.auras.recklessswings;
+                if (reckless?.timer && reckless.stacks) reckless.proc();
             }
             return dmg;
         }

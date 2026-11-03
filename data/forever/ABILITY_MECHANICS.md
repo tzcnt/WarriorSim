@@ -4,7 +4,7 @@ This document tracks the current implementation per ability, distinguishing
 confirmed game behavior from assumptions. Implementation and tests establish what
 the simulator does; they do not independently establish live-server behavior.
 Coverage currently includes Rend, Bloodthirst, Slam, Heroic Strike, Overpower,
-Mortal Strike, and Execute. Last reviewed: 2026-10-07.
+Mortal Strike, Execute, Whirlwind and Reckless Swings. Last reviewed: 2026-11-03.
 
 ## Rend
 
@@ -71,10 +71,11 @@ user on 2026-09-18. The 1-2 Oct 2026 server hotfixes raise the scaling from 35% 
 **At level 60, Slam's flat damage bonus is 87.** This value is confirmed in-game,
 as reported by the user on 2026-09-18.
 
-**Slam's cooldown is 18 seconds, reduced by 3 seconds with either rank of
-Improved Slam.** Source: the 1-2 Oct 2026 server hotfix tooltips, which give a 3.0
-second reduction at both ranks. The 2026-09-24 patch notes gave 1.5 / 3 seconds. Improved Slam's cast time,
-GCD and swing-timer effects are unchanged.
+**Slam's cooldown is 15 seconds, reduced by 2.5 seconds per rank of Improved Slam**
+(15/12.5/10 seconds). Source: the 3 Nov 2026 patch notes. Before that, the cooldown was
+18 seconds, reduced by 3 seconds at either rank by the 1-2 Oct 2026 hotfixes, and by
+1.5 / 3 seconds in the 2026-09-24 notes. Improved Slam's cast time, GCD and
+swing-timer effects are unchanged.
 
 ## Heroic Strike
 
@@ -110,3 +111,31 @@ rage consumed.** These values are confirmed in-game, as reported by the user on
 ### Confirmed behavior
 
 Stacks fully with Blessing of Might.
+
+## Whirlwind
+
+### Confirmed behavior
+
+**Improved Whirlwind reduces Whirlwind's cooldown by 1/2 seconds and increases the
+damage it deals to the closest enemy by 15/30%.** Source: the 3 Nov 2026 patch notes.
+
+### Assumptions
+
+The simulator applies the bonus to both hands' hits on the primary target as a separate
+multiplier. Adjacent targets take normal damage.
+
+## Reckless Swings
+
+### Confirmed behavior
+
+**Reckless Swings (Fury row 4, 1 point) costs 25% of base health and has a 15-second
+cooldown. For 8 seconds, the next 4 melee attacks generate 5 additional rage.** Source:
+the 3 Nov 2026 patch notes.
+
+### Assumptions
+
+It is off the global cooldown, works in any stance and is used on cooldown. Only landed
+melee hits with damage on the primary target spend charges: white swings from either
+hand, extra attacks, queued Heroic Strike/Cleave and melee specials. Misses, dodges and
+adjacent-target hits do not. Each charge adds a flat 5 rage, up to the rage cap, and
+unused charges expire. The health cost is not modeled.

@@ -13,7 +13,7 @@ This project also fixes a number of bugs that were present in upstream, such as 
 
 ## WoW Forever Implementation Status
 
-- Talents: Done, based on the beta client's talent data with the 1-2 Oct 2026 server hotfixes.
+- Talents: Done, based on the beta client's talent data with the 1-2 Oct 2026 server hotfixes and the 3 Nov 2026 patch notes.
 - Racials: Implemented from public data and the 15, 26 and 27 Oct 2026 racial patch notes, with [documented provisional values](data/forever/RACIALS.md) where details are unpublished.
 - Gear: Not done / can't be done until we get in game.
 

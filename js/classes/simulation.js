@@ -481,6 +481,7 @@ class Simulation {
                     else if (player.spells.berserkerrage && player.spells.berserkerrage.zerkerpriority && player.spells.berserkerrage.canUse()) { player.spelldelay = 1; delayedspell = player.spells.berserkerrage; }
                     else if (player.spells.bloodrage && player.spells.bloodrage.canUse()) { player.spelldelay = 1; delayedspell = player.spells.bloodrage; }
                     else if (player.spells.berserkerrage && player.spells.berserkerrage.canUse()) { player.spelldelay = 1; delayedspell = player.spells.berserkerrage; }
+                    else if (player.auras.recklessswings && player.auras.recklessswings.canUse()) { player.spelldelay = 1; delayedspell = player.auras.recklessswings; }
 
                     else if (player.auras.cloudkeeper && player.auras.cloudkeeper.canUse()) { player.spelldelay = 1; delayedspell = player.auras.cloudkeeper; }
                     else if (player.auras.pummeler && player.auras.pummeler.canUse()) { player.spelldelay = 1; delayedspell = player.auras.pummeler; }
@@ -663,6 +664,8 @@ class Simulation {
             if (player.auras.enrage?.timer > step && player.auras.enrage.timer - step < next) next = player.auras.enrage.timer - step;
             if (player.auras.sweepingstrikes?.duration && player.auras.sweepingstrikes.timer > step && player.auras.sweepingstrikes.timer - step < next) next = player.auras.sweepingstrikes.timer - step;
             if (player.auras.sweepingstrikes?.cooldowntimer > step && player.auras.sweepingstrikes.cooldowntimer - step < next) next = player.auras.sweepingstrikes.cooldowntimer - step;
+            if (player.auras.recklessswings?.timer > step && player.auras.recklessswings.timer - step < next) next = player.auras.recklessswings.timer - step;
+            if (player.auras.recklessswings?.cooldowntimer > step && player.auras.recklessswings.cooldowntimer - step < next) next = player.auras.recklessswings.cooldowntimer - step;
             // Eureka! expires exactly, so its discounted costs never pass a rage check after it ends.
             if (player.auras.eureka?.timer > step && player.auras.eureka.timer - step < next) next = player.auras.eureka.timer - step;
             for (const action of scheduled) {
@@ -751,6 +754,8 @@ class Simulation {
                 if (!player.auras.sweepingstrikes.timer) spellcheck = true;
             }
             if (player.auras.sweepingstrikes && player.auras.sweepingstrikes.cooldowntimer === step) spellcheck = true;
+            if (player.auras.recklessswings?.timer) player.auras.recklessswings.step();
+            if (player.auras.recklessswings && player.auras.recklessswings.cooldowntimer === step) spellcheck = true;
             if (player.auras.eureka?.timer) player.auras.eureka.step();
             if (!player.spelldelay || preemptible) {
                 for (const action of scheduled) if (action.canUse()) spellcheck = true;

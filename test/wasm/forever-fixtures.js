@@ -76,6 +76,22 @@ function foreverFixtures() {
     cap.buffsAdd = [...(cap.buffsAdd || []), 23513];
     cap.rotation = {2687: {active: true, timetostartactive: true, timetostart: 0},
         17528: {active: true, timetostartactive: true, timetostart: 0}};
-    return [arms, reset, mace, fury, shield, cap];
+
+    // 3 Nov 2026 talents: Reckless Swings charges and Improved Whirlwind's primary-target bonus.
+    const reckless = base();
+    reckless.name = 'forever-reckless-swings-improved-whirlwind-adjacent';
+    reckless.talentSchema = 'forever-v4';
+    reckless.talents = [[3,0,3,0,3,2,1,3,0,0,2,0,0,0,0,0,0],
+        [0,5,0,5,3,0,0,5,5,1,1,2,0,1,0,0,3,2,1], Array(18).fill(0)];
+    reckless.player.adjacent = 2;
+    reckless.player.target = {...reckless.player.target, speed: 2000, mindmg: 250, maxdmg: 350};
+    reckless.rotation = {1680: {active: true}, 'forever:reckless-swings': {active: true}};
+    reckless.expect = {spells: ['whirlwind'], auras: ['recklessswings']};
+
+    const capped = structuredClone(reckless);
+    capped.name = 'forever-reckless-swings-single-target-rage-cap';
+    capped.player.adjacent = 0;
+    capped.sim.startrage = 100;
+    return [arms, reset, mace, fury, shield, cap, reckless, capped];
 }
 module.exports = {foreverFixtures};

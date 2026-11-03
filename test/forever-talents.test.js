@@ -16,14 +16,14 @@ function close(actual, expected) { assert.ok(Math.abs(actual - expected) < 1e-9,
 test('all Forever ranks resolve finite values, with client values and neutral removed effects', () => {
     const {run, player} = setup();
     assert.equal(run('talents === talentsForever'), true);
-    assert.deepEqual(JSON.parse(run('JSON.stringify(talents.map(t => t.t.length))')), [17,17,18]);
+    assert.deepEqual(JSON.parse(run('JSON.stringify(talents.map(t => t.t.length))')), [17,19,18]);
     assert.equal(run('talents.flatMap(tree => tree.t).every(t => Array.from({length: t.m + 1}, (_, r) => Object.values(t.aura(r)).every(Number.isFinite)).every(Boolean))'), true);
     assert.equal(run('talents[0].t[13].aura(5).axecrit'), 5);
     close(run('talents[0].t[13].aura(5).weaponmasterarp'), .15);
     assert.match(run('talents[0].t[13].d[4]'), /ignore\s+15%/);
     assert.match(run("talents[1].t.find(t => t.forever.key === 'fury:improved-berserker-rage').d[1]"), /generate 10 Rage/);
-    assert.equal(run('talents[0].t[4].aura(0).rageretained'), 10);
-    assert.equal(run('talents[0].t[4].aura(5).rageretained'), 25);
+    assert.deepEqual([0,1,2,3].map(rank => run(`talents[0].t[4].aura(${rank}).rageretained`)), [10,15,20,25]);
+    assert.equal(run('talents[0].t[4].m'), 3);
     assert.equal(player.talents.onemod, 0);
     assert.equal(player.talents.impbattleshout, 0);
     assert.equal(run('talents[0].t[2].aura(0).rendmod'), 0);
@@ -34,8 +34,9 @@ test('Forever default build is legal; prerequisites and lower-row requirements a
     assert.equal(run('validTalentBuild(talents, talents.map(t => t.t.map(x => x.c)), 60)'), true);
     assert.equal(run('validTalentBuild(talents, talents.map(t => t.t.map(x => x.c)), 59)'), false);
     assert.equal(run(`(() => { const r = talents.map(t => t.t.map(x => x.c)); r[0][2] = 2; return validTalentBuild(talents, r); })()`), false);
-    assert.equal(run(`(() => { const r = talents.map(t => t.t.map(() => 0)); r[0][0] = 3; r[0][1] = 5; r[0][2] = 3; r[0][4] = 4; r[0][10] = 2; return validTalentBuild(talents, r); })()`), true,
-        'Impale no longer requires Deep Wounds');
+    const impale = '(() => { const r = talents.map(t => t.t.map(() => 0)); r[0][0] = 3; r[0][1] = 5; r[0][2] = 3; r[0][3] = 1; r[0][4] = 3; r[0][10] = 2; return r; })()';
+    assert.equal(run(`validTalentBuild(talents, ${impale})`), false, 'Impale requires Deep Wounds again');
+    assert.equal(run(`(() => { const r = ${impale}; r[0][7] = 3; return validTalentBuild(talents, r); })()`), true);
 });
 
 test('legacy positional builds migrate by name, refund replacements, and round-trip by key', () => {
@@ -57,10 +58,12 @@ test('unlearned active talents cannot be injected through saved rotation setting
     fixture.talents = [Array(17).fill(0), Array(17).fill(0), Array(18).fill(0)];
     fixture.talentSchema = 'forever-v3';
     fixture.rotation = {23894: {active: true}, 27580: {active: true}, 23925: {active: true},
-        'forever:spearing-strike': {active: true}, 'forever:sweeping-strikes': {active: true}};
+        'forever:spearing-strike': {active: true}, 'forever:sweeping-strikes': {active: true},
+        'forever:reckless-swings': {active: true}};
     const p = createConfiguredPlayer(engine, fixture);
     for (const key of ['bloodthirst','mortalstrike','shieldslam','spearingstrike']) assert.equal(p.spells[key], undefined);
     assert.equal(p.auras.sweepingstrikes, undefined);
+    assert.equal(p.auras.recklessswings, undefined);
 });
 
 test('confirmed level-60 ability damage values match in both modes', () => {
@@ -288,7 +291,8 @@ test('Whirlwind always uses each hand independently and charges rage once', () =
     Object.assign(player.mh, {mindmg: 100, maxdmg: 100, bonusdmg: 0, modifier: 1});
     Object.assign(player.oh, {mindmg: 400, maxdmg: 400, bonusdmg: 0, modifier: .5});
     run('p.procattack = () => 0; p.rollmeleespell = () => RESULT.HIT; p.stance = "zerk";');
-    player.talents.ragingblows = 0;
+    Object.assign(player.talents, {ragingblows: 0, whirlwindcd: 0, whirlwinddmg: 0});
+    run('p.spells.whirlwind = new Whirlwind(p, 1680)');
     const spell = player.spells.whirlwind;
     close(run('p.cast(p.spells.whirlwind)'), 100);
     assert.equal(spell.offhandhit, true, 'Forever Whirlwind strikes with both weapons without Raging Blows');
@@ -327,11 +331,11 @@ test('Bloodthrill requires landed melee damage and current Rend; consumes indepe
     assert.equal(player.bloodthrilltimer, 0);
 });
 
-test('Bloodthrill rolls 4% per rank and only from main-hand hits, including queued strikes', () => {
+test('Bloodthrill rolls 10% per rank and only from main-hand hits, including queued strikes', () => {
     const {run, player} = setup();
-    assert.deepEqual([0,1,2,3,4,5].map(rank =>
-        run(`talents[0].t.find(t => t.forever.key === 'arms:bloodthrill').aura(${rank}).bloodthrill`)), [0,4,8,12,16,20]);
-    assert.match(run("talents[0].t.find(t => t.n === 'Bloodthrill').d[4]"), /Main Hand melee attacks .* 20% chance/);
+    assert.deepEqual([0,1,2].map(rank =>
+        run(`talents[0].t.find(t => t.forever.key === 'arms:bloodthrill').aura(${rank}).bloodthrill`)), [0,10,20]);
+    assert.match(run("talents[0].t.find(t => t.n === 'Bloodthrill').d[1]"), /Main Hand melee attacks .* 20% chance/);
     player.reset(100); player.talents.bloodthrill = 20;
     run('p.auras.rend = {timer: 10000, stacks: 3}; ww = new Whirlwind(p, 1680)');
     run('rng10k = () => 2000; p.dealdamage(100, RESULT.HIT, p.mh, null, false)');
@@ -348,16 +352,21 @@ test('Bloodthrill rolls 4% per rank and only from main-hand hits, including queu
     }
 });
 
-test('October rework positions and prerequisites; saved builds lose Bastion without 25 lower points', () => {
+test('November positions and prerequisites; saved builds lose Bastion without 25 lower points', () => {
     const {run} = setup();
     const layout = JSON.parse(run(`JSON.stringify(Object.fromEntries(talents.flatMap(tree => tree.t.map(t =>
         [t.forever.key, [t.y + 1, t.x + 1, t.r ? tree.t[t.r[0]].forever.key : null]]))))`));
     assert.deepEqual(layout['fury:lingering-rage'], [2, 2, null]);
     assert.deepEqual(layout['fury:furious-precision'], [3, 1, null]);
     assert.deepEqual(layout['fury:improved-berserker-rage'], [5, 1, null]);
-    assert.deepEqual(layout['fury:flurry'], [6, 2, 'fury:death-wish']);
-    assert.deepEqual(layout['fury:gore-drinker'], [6, 3, 'fury:enrage']);
-    assert.deepEqual(layout['fury:bloodthirst'], [7, 2, null]);
+    assert.deepEqual(layout['fury:enrage'], [3, 4, null]);
+    assert.deepEqual(layout['fury:reckless-swings'], [4, 3, null]);
+    assert.deepEqual(layout['fury:gore-drinker'], [5, 3, 'fury:blood-craze']);
+    assert.deepEqual(layout['fury:flurry'], [6, 2, null]);
+    assert.deepEqual(layout['fury:improved-whirlwind'], [6, 3, null]);
+    assert.deepEqual(layout['fury:bloodthirst'], [7, 2, 'fury:death-wish']);
+    assert.deepEqual(layout['arms:anger-management'], [3, 2, 'arms:improved-tactical-mastery']);
+    assert.deepEqual(layout['arms:impale'], [4, 3, 'arms:deep-wounds']);
     assert.deepEqual(layout['protection:improved-bloodrage'], [1, 1, null]);
     assert.deepEqual(layout['protection:iron-will'], [1, 3, null]);
     assert.deepEqual(layout['protection:last-stand'], [3, 1, null]);
@@ -378,12 +387,18 @@ test('October rework positions and prerequisites; saved builds lose Bastion with
         .map((t, i) => ({t, keys: talents[i].t.map(x => x.forever.key)})), FOREVER_TALENT_SCHEMA))`));
     assert.deepEqual(saved, JSON.parse(run(`JSON.stringify(normalizeForeverTalents(${build(base)}
         .map((t, i) => ({t, keys: talents[i].t.map(x => x.forever.key)})), FOREVER_TALENT_SCHEMA))`)), 'Bastion is refunded');
-    // Flurry now hangs from Death Wish; Bloodthirst needs only 30 points.
+    // Flurry no longer needs Death Wish, Bloodthirst now does, and Gore Drinker hangs from Blood Craze.
     const fury = {'fury:booming-voice': 2, 'fury:cruelty': 5, 'fury:unbridled-wrath': 5, 'fury:furious-precision': 3,
         'fury:dual-wield-specialization': 5, 'fury:enrage': 5, 'fury:improved-execute': 2, 'fury:improved-berserker-rage': 2};
-    assert.equal(valid({...fury, 'fury:flurry': 1}), false);
-    assert.equal(valid({...fury, 'fury:death-wish': 1, 'fury:flurry': 5, 'fury:bloodthirst': 1}), true);
-    assert.equal(valid({...fury, 'fury:improved-intercept': 2, 'fury:gore-drinker': 2, 'fury:bloodthirst': 1}), true);
+    assert.equal(valid({...fury, 'fury:flurry': 3, 'fury:improved-whirlwind': 2}), true);
+    assert.equal(valid({...fury, 'fury:flurry': 3, 'fury:bloodthirst': 1}), false);
+    assert.equal(valid({...fury, 'fury:death-wish': 1, 'fury:flurry': 3, 'fury:bloodthirst': 1}), true);
+    assert.equal(valid({...fury, 'fury:gore-drinker': 1}), false);
+    assert.equal(valid({...fury, 'fury:blood-craze': 3, 'fury:gore-drinker': 2}), true);
+    // Enrage now counts toward row 4.
+    const row4 = {'fury:cruelty': 5, 'fury:unbridled-wrath': 5, 'fury:enrage': 5, 'fury:reckless-swings': 1};
+    assert.equal(valid(row4), true);
+    assert.equal(valid({...row4, 'fury:enrage': 4}), false);
 });
 
 test('removed talents leave no effects; the rage cap is 100 and Precision no longer adds hit', () => {
@@ -410,11 +425,11 @@ test('Booming Voice reduces Battle Shout rage cost by 5% per rank in Forever onl
     assert.equal(classic.run('new BattleShout(p, 11551).cost'), 10 - classic.player.talents.boomingvoice * 2);
 });
 
-test('Improved Slam tooltips reduce the cooldown by 3 seconds at both ranks', () => {
+test('Improved Slam tooltips reduce the cooldown by 2.5 seconds per rank', () => {
     const {run} = setup();
     const d = JSON.parse(run("JSON.stringify(talents[0].t.find(t => t.n === 'Improved Slam').d)"));
-    assert.match(d[0], /cast time of your Slam ability by 0\.25 sec.*cooldown is reduced by 3\.0 sec/);
-    assert.match(d[1], /cast time of your Slam ability by 0\.50 sec.*cooldown is reduced by 3\.0 sec/);
+    assert.match(d[0], /cast time of your Slam ability by 0\.25 sec.*cooldown is reduced by 2\.5 sec/);
+    assert.match(d[1], /cast time of your Slam ability by 0\.50 sec.*cooldown is reduced by 5\.0 sec/);
 });
 
 test('Spearing Strike applies its conditional multiplier and no longer dismounts', () => {
@@ -444,6 +459,71 @@ test('Sweeping Strikes copies five hits without producing extra rage or proc rol
     assert.equal(player.auras.sweepingstrikes.canUse(), true);
 });
 
+test('Improved Whirlwind shortens the cooldown and raises damage to the primary target only', () => {
+    const {run, player} = setup();
+    assert.deepEqual([0,1,2].map(rank => JSON.parse(run(`JSON.stringify(talents[1].t.find(t => t.forever.key === 'fury:improved-whirlwind').aura(${rank}))`))),
+        [{whirlwindcd: 0, whirlwinddmg: 0}, {whirlwindcd: 1, whirlwinddmg: 15}, {whirlwindcd: 2, whirlwinddmg: 30}]);
+    player.reset(100); player.stats.ap = player.stats.moddmgdone = player.stats.moddmgtaken = 0;
+    player.stats.dmgmod = 1; player.target.armor = player.armorReduction = 0;
+    Object.assign(player.mh, {mindmg: 100, maxdmg: 100, bonusdmg: 0, modifier: 1});
+    Object.assign(player.oh, {mindmg: 400, maxdmg: 400, bonusdmg: 0, modifier: .5});
+    run('p.procattack = () => 0; p.rollmeleespell = () => RESULT.HIT; p.stance = "zerk";');
+    for (const [rank, cooldown, mod] of [[0, 10, 1], [1, 9, 1.15], [2, 8, 1.3]]) {
+        Object.assign(player.talents, {whirlwindcd: rank, whirlwinddmg: rank * 15});
+        run('p.spells.whirlwind = new Whirlwind(p, 1680); p.timer = 0; p.rage = 100; p.spells.whirlwind.timer = 0');
+        close(run('p.cast(p.spells.whirlwind)'), 100 * mod);
+        close(run('p.castoh(p.spells.whirlwind)'), 200 * mod);
+        assert.equal(player.spells.whirlwind.timer, cooldown * 1000);
+        close(run('p.cast(p.spells.whirlwind, false, true)'), 100);
+        close(run('p.castoh(p.spells.whirlwind, true)'), 200);
+    }
+    const classic = setup('classic');
+    assert.equal(classic.run('new Whirlwind(p, 1680).primarymod'), undefined);
+});
+
+test('Reckless Swings: four landed primary-target melee hits each add 5 Rage, off the GCD', () => {
+    const {run, player} = setup();
+    const swings = player.auras.recklessswings;
+    assert.ok(swings, 'the default build learns Reckless Swings');
+    assert.deepEqual([0, 1].map(rank => run(`talents[1].t.find(t => t.forever.key === 'fury:reckless-swings').aura(${rank}).recklessswings`)), [0, 1]);
+    player.reset(0);
+    run('p.addRage = () => {}; p.timer = 1000');
+    assert.equal(swings.canUse(), true, 'usable while the GCD runs');
+    swings.use();
+    assert.deepEqual([swings.stacks, swings.timer, swings.cooldowntimer, player.timer], [4, 8000, 15000, 1000]);
+    for (const [result, adjacent] of [['MISS', false], ['DODGE', false], ['HIT', true]])
+        run(`p.dealdamage(100, RESULT.${result}, p.mh, null, ${adjacent})`);
+    run('p.dealdamage(0, RESULT.HIT, p.mh, null, false)');
+    assert.equal(player.rage, 0, 'misses, dodges, adjacent and zero-damage hits keep their charges');
+    assert.equal(swings.stacks, 4);
+    for (const [weapon, spell] of [['mh', 'null'], ['oh', 'null'], ['mh', 'new HeroicStrike(p, 11567)'], ['oh', 'new Whirlwind(p, 1680)']])
+        run(`p.dealdamage(100, RESULT.CRIT, p.${weapon}, ${spell}, false)`);
+    assert.equal(player.rage, 20, 'off-hand and special attacks give the same 5 Rage');
+    assert.deepEqual([swings.stacks, swings.timer], [0, 0]);
+    run('p.dealdamage(100, RESULT.HIT, p.mh, null, false)');
+    assert.equal(player.rage, 20);
+    run('step = 14999');
+    assert.equal(swings.canUse(), false);
+    run('step = 15000');
+    assert.equal(swings.canUse(), true);
+    player.rage = 98; swings.use();
+    run('p.dealdamage(100, RESULT.HIT, p.mh, null, false)');
+    assert.equal(player.rage, 100, 'capped');
+    run('step = 22999; p.auras.recklessswings.step()');
+    assert.equal(swings.stacks, 3);
+    run('step = 23000; p.auras.recklessswings.step()');
+    assert.deepEqual([swings.stacks, swings.timer], [0, 0], 'unused charges expire after 8 seconds');
+});
+
+test('Reckless Swings is used on cooldown during a fight', () => {
+    const {engine, player, run, fixture} = setup();
+    run(`p.reactionmin = p.reactionmax = 0; uses = [];
+        const use = p.auras.recklessswings.use.bind(p.auras.recklessswings);
+        p.auras.recklessswings.use = () => { uses.push(step); use(); };`);
+    engine.createSimulation(player, {...fixture.sim, iterations: 1, timesecsmin: 40, timesecsmax: 40, startrage: 0}).startSync();
+    assert.deepEqual(JSON.parse(run('JSON.stringify(uses)')), [0, 15000, 30000]);
+});
+
 for (const [mode, ranks, cast, firstSwing] of [['classic',0,1500,3500], ['forever',0,1500,3500], ['forever',1,1250,1250], ['forever',2,1000,1000]]) {
     test(`${mode} Slam ${ranks}: cast/GCD and first swing at ${firstSwing}ms`, () => {
         const {engine, player, run, fixture} = setup(mode);
@@ -452,7 +532,7 @@ for (const [mode, ranks, cast, firstSwing] of [['classic',0,1500,3500], ['foreve
         const slam = player.spells.slam;
         assert.equal(slam.casttime, cast);
         assert.equal(slam.gcd, mode === 'classic' ? 1500 : cast);
-        assert.equal(slam.cooldown, mode === 'forever' ? (ranks ? 15 : 18) : 0);
+        assert.equal(slam.cooldown, mode === 'forever' ? 15 - ranks * 2.5 : 0);
         run(`events = []; const originalReset = p.reset.bind(p); p.reset = rage => {
             originalReset(rage); p.stats.haste = 1; p.mh.speed = 2; p.mh.timer = 500;
             p.mh.proc1 = p.mh.proc2 = p.mh.windfury = undefined;
@@ -486,7 +566,7 @@ for (const [mode, ranks] of [['classic',0], ['forever',0], ['forever',1], ['fore
             p.spells.slam.use = () => { completions.push(step); originalUse(); };`);
         const sim = {...fixture.sim, iterations: 1, timesecsmin: 45, timesecsmax: 45, startrage: 100};
         const spec = player.serializeSimulationSpec(sim);
-        const cooldown = mode === 'forever' ? (ranks ? 15 : 18) : 0;
+        const cooldown = mode === 'forever' ? 15 - ranks * 2.5 : 0;
         assert.equal(spec.player.spells.find(s => s.key === 'slam').props.cooldown, cooldown);
         engine.createSimulation(player, sim).startSync();
         const completions = JSON.parse(run('JSON.stringify(completions)'));
@@ -494,7 +574,9 @@ for (const [mode, ranks] of [['classic',0], ['forever',0], ['forever',1], ['fore
         assert.ok(completions.length >= 3);
         assert.deepEqual(completions.slice(0,3),
             [casttime, cooldown * 1000 + 2 * casttime, 2 * cooldown * 1000 + 3 * casttime]);
-        if (mode === 'forever') assert.equal(completions.length, 3);
+        // Each Forever cast completes one cast time after the cooldown ends, until the 45-second fight ends.
+        if (mode === 'forever') assert.deepEqual(completions,
+            Array.from({length: 5}, (_, i) => i * cooldown * 1000 + (i + 1) * casttime).filter(t => t < 45000));
     });
 }
 
@@ -533,6 +615,9 @@ test('client rank scaling matches the corrected non-linear values', () => {
         ['arms:improved-rend', 'rendmod', [0,12,23,35]],
         ['fury:improved-execute', 'executecost', [0,3,5]],
         ['protection:improved-disarm', 'disarmcd', [0,7,13,20]],
+        ['protection:defiance', 'shieldthreat', [0,7,13,20]],
+        ['arms:two-handed-weapon-specialization', 'twomod', [0,.02,.04,.06]],
+        ['fury:flurry', 'flurry', [0,10,20,30]],
     ]) for (const [rank, value] of values.entries()) {
         assert.equal(run(`talents.flatMap(t => t.t).find(t => t.forever.key === '${key}').aura(${rank}).${field}`), value);
     }
@@ -567,8 +652,9 @@ test('v2 keyed and positional builds migrate by talent, refunding removed and st
         return {keyed, positional: normalizeForeverTalents(old, 'forever-v2'), fury: named(keyed, 1), protection: named(keyed, 2)};
     })())`));
     assert.deepEqual(result.keyed, result.positional);
-    // Cruelty and Unbridled Wrath keep only 10 points below row 4, so rows 4-7 are refunded.
-    assert.deepEqual(result.fury, {'fury:cruelty': 5, 'fury:unbridled-wrath': 5});
+    // Enrage now sits in row 3, so rows 4-5 survive; their 24 points strand Flurry and Bloodthirst.
+    assert.deepEqual(result.fury, {'fury:cruelty': 5, 'fury:unbridled-wrath': 5, 'fury:enrage': 5,
+        'fury:dual-wield-specialization': 5, 'fury:raging-blows': 1, 'fury:improved-execute': 2, 'fury:death-wish': 1});
     assert.deepEqual(result.protection, {'protection:improved-bloodrage': 2});
     assert.deepEqual(result.keyed[0].t, [2,0,3,0,3,2,0,3,0,0,0,0,0,0,0,0,0]);
     // Iron Will moved trees and is refunded rather than moved.
@@ -577,10 +663,37 @@ test('v2 keyed and positional builds migrate by talent, refunding removed and st
     assert.equal(ironWill.flatMap(tree => tree.t).reduce((a, b) => a + b), 0);
 });
 
+test('v3 keyed and positional builds clamp reduced talents and refund stranded points', () => {
+    const {run} = setup();
+    const result = JSON.parse(run(`JSON.stringify((() => {
+        const old = FOREVER_LEGACY_TALENT_KEYS['forever-v3'].map(keys => ({t: keys.map(() => 0), keys: [...keys]}));
+        // The previous Dual Wield Fury preset: 19/32/0.
+        old[0].t = [3,0,3,0,5,2,1,3,0,0,2,0,0,0,0,0,0];
+        old[1].t = [0,5,1,5,3,1,0,5,1,0,2,2,1,0,5,0,1];
+        old[2].t[2] = 5;
+        const keyed = normalizeForeverTalents(old, 'forever-v3');
+        old.forEach(t => delete t.keys);
+        const named = (trees, i) => Object.fromEntries(trees[i].keys.map((k, j) => [k, trees[i].t[j]]).filter(([, r]) => r));
+        return {keyed, positional: normalizeForeverTalents(old, 'forever-v3'), arms: named(keyed, 0), fury: named(keyed, 1), protection: named(keyed, 2)};
+    })())`));
+    assert.deepEqual(result.keyed, result.positional);
+    // Tactical Mastery clamps to its new maximum, which still unlocks Anger Management.
+    assert.deepEqual(result.arms, {'arms:improved-heroic-strike': 3, 'arms:improved-rend': 3, 'arms:improved-tactical-mastery': 3,
+        'arms:improved-overpower': 2, 'arms:anger-management': 1, 'arms:deep-wounds': 3, 'arms:impale': 2});
+    // Flurry clamps to 3, which leaves 29 points below row 7 and refunds Bloodthirst.
+    assert.deepEqual(result.fury, {'fury:cruelty': 5, 'fury:lingering-rage': 1, 'fury:unbridled-wrath': 5, 'fury:furious-precision': 3,
+        'fury:piercing-howl': 1, 'fury:dual-wield-specialization': 5, 'fury:raging-blows': 1, 'fury:improved-execute': 2,
+        'fury:improved-berserker-rage': 2, 'fury:death-wish': 1, 'fury:flurry': 3});
+    assert.deepEqual(result.protection, {'protection:iron-will': 5});
+    // Positional saves in the current schema map by index, including both new talents.
+    const current = JSON.parse(run(`JSON.stringify(normalizeForeverTalents(talents.map(tree => ({t: tree.t.map(t => t.m)})), FOREVER_TALENT_SCHEMA, 200))`));
+    assert.deepEqual(current.map(tree => tree.t), JSON.parse(run('JSON.stringify(talents.map(tree => tree.t.map(t => t.m)))')));
+});
+
 test('Spearing Strike works with any melee weapon and requires Battle Stance', () => {
     const {engine, fixture} = setup();
-    fixture.talentSchema = 'forever-v3';
-    fixture.talents = [[3,5,3,0,5,0,0,0,1,0,0,0,0,0,0,0,0], Array(17).fill(0), Array(18).fill(0)];
+    fixture.talentSchema = 'forever-v4';
+    fixture.talents = [[3,5,3,1,3,0,0,0,1,0,0,0,0,0,0,0,0], Array(19).fill(0), Array(18).fill(0)];
     fixture.rotation = {'forever:spearing-strike': {active: true, maxrage: 20, maxrageactive: true}};
     const p = createConfiguredPlayer(engine, fixture);
     const spear = p.spells.spearingstrike;

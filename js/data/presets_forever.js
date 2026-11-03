@@ -1,6 +1,6 @@
 // Permanent profile snapshots, independent of saved profiles.
 // The first preset is also the first-visit default (js/session.js).
-// Talents since the October 2026 rework: data/forever/README.md#october-2026-presets.
+// Current talents and measured DPS: data/forever/README.md#current-presets.
 // Earlier talents: data/forever/dual-wield-talents-result.json. Abilities: data/forever/DUAL_WIELD_ABILITIES.md.
 // Two-handed Fury: data/forever/TWO_HANDED_FURY.md.
 // Two-handed Arms: data/forever/TWO_HANDED_ARMS.md.
@@ -30,10 +30,10 @@ var profilePresets = [
             "batching": "10",
             "bleedreduction": "1",
             "spellqueueing": "Yes",
-            "talentSchema": "forever-v3",
+            "talentSchema": "forever-v4",
             "maxhealth": "",
             "targetcreaturetype": "Other",
-            "profilename": "Dual Wield Fury (19/32/0)",
+            "profilename": "Dual Wield Fury (17/34/0)",
             "buffs": [
                 null,
                 "17007",
@@ -60,7 +60,7 @@ var profilePresets = [
                         0,
                         3,
                         0,
-                        5,
+                        3,
                         2,
                         1,
                         3,
@@ -97,22 +97,24 @@ var profilePresets = [
                 {
                     "n": "Fury",
                     "t": [
-                        0,
+                        1,
                         5,
                         1,
                         5,
                         3,
                         1,
                         0,
+                        0,
                         5,
                         1,
-                        0,
+                        1,
                         2,
                         2,
                         1,
                         0,
-                        5,
                         0,
+                        3,
+                        2,
                         1
                     ],
                     "keys": [
@@ -123,15 +125,17 @@ var profilePresets = [
                         "fury:furious-precision",
                         "fury:piercing-howl",
                         "fury:blood-craze",
+                        "fury:enrage",
                         "fury:dual-wield-specialization",
                         "fury:raging-blows",
-                        "fury:enrage",
+                        "fury:reckless-swings",
                         "fury:improved-execute",
                         "fury:improved-berserker-rage",
                         "fury:death-wish",
+                        "fury:gore-drinker",
                         "fury:improved-intercept",
                         "fury:flurry",
-                        "fury:gore-drinker",
+                        "fury:improved-whirlwind",
                         "fury:bloodthirst"
                     ]
                 },
@@ -330,6 +334,10 @@ var profilePresets = [
                     "timetoendactive": true,
                     "timetostart": 0,
                     "timetostartactive": false
+                },
+                {
+                    "id": "forever:reckless-swings",
+                    "active": true
                 }
             ],
             "enchant": {
@@ -393,7 +401,7 @@ var profilePresets = [
             "batching": "10",
             "bleedreduction": "1",
             "spellqueueing": "Yes",
-            "talentSchema": "forever-v3",
+            "talentSchema": "forever-v4",
             "maxhealth": "",
             "targetcreaturetype": "Other",
             "profilename": "Two-Handed Fury (20/31/0)",
@@ -419,13 +427,13 @@ var profilePresets = [
                 {
                     "n": "Arms",
                     "t": [
-                        2,
+                        3,
                         0,
                         3,
                         0,
-                        5,
+                        3,
                         2,
-                        0,
+                        1,
                         3,
                         0,
                         3,
@@ -467,15 +475,17 @@ var profilePresets = [
                         0,
                         0,
                         0,
+                        4,
                         0,
                         1,
-                        5,
+                        1,
                         2,
                         1,
                         1,
                         0,
-                        5,
                         0,
+                        3,
+                        2,
                         1
                     ],
                     "keys": [
@@ -486,15 +496,17 @@ var profilePresets = [
                         "fury:furious-precision",
                         "fury:piercing-howl",
                         "fury:blood-craze",
+                        "fury:enrage",
                         "fury:dual-wield-specialization",
                         "fury:raging-blows",
-                        "fury:enrage",
+                        "fury:reckless-swings",
                         "fury:improved-execute",
                         "fury:improved-berserker-rage",
                         "fury:death-wish",
+                        "fury:gore-drinker",
                         "fury:improved-intercept",
                         "fury:flurry",
-                        "fury:gore-drinker",
+                        "fury:improved-whirlwind",
                         "fury:bloodthirst"
                     ]
                 },
@@ -691,6 +703,10 @@ var profilePresets = [
                     "timetoendactive": true,
                     "timetostart": 0,
                     "timetostartactive": false
+                },
+                {
+                    "id": "forever:reckless-swings",
+                    "active": true
                 }
             ],
             "enchant": {
@@ -750,10 +766,10 @@ var profilePresets = [
             "batching": "10",
             "bleedreduction": "1",
             "spellqueueing": "Yes",
-            "talentSchema": "forever-v3",
+            "talentSchema": "forever-v4",
             "maxhealth": "",
             "targetcreaturetype": "Other",
-            "profilename": "Two-Handed Arms (35/16/0)",
+            "profilename": "Two-Handed Arms (31/20/0)",
             "buffs": [
                 null,
                 "17007",
@@ -777,17 +793,17 @@ var profilePresets = [
                     "n": "Arms",
                     "t": [
                         0,
-                        2,
+                        3,
                         3,
                         0,
-                        5,
+                        3,
                         2,
                         1,
                         3,
                         0,
                         3,
                         2,
-                        5,
+                        2,
                         1,
                         5,
                         2,
@@ -824,10 +840,12 @@ var profilePresets = [
                         0,
                         0,
                         0,
-                        0,
-                        0,
+                        1,
                         0,
                         1,
+                        1,
+                        2,
+                        0,
                         0,
                         0,
                         0,
@@ -843,15 +861,17 @@ var profilePresets = [
                         "fury:furious-precision",
                         "fury:piercing-howl",
                         "fury:blood-craze",
+                        "fury:enrage",
                         "fury:dual-wield-specialization",
                         "fury:raging-blows",
-                        "fury:enrage",
+                        "fury:reckless-swings",
                         "fury:improved-execute",
                         "fury:improved-berserker-rage",
                         "fury:death-wish",
+                        "fury:gore-drinker",
                         "fury:improved-intercept",
                         "fury:flurry",
-                        "fury:gore-drinker",
+                        "fury:improved-whirlwind",
                         "fury:bloodthirst"
                     ]
                 },
@@ -1046,6 +1066,10 @@ var profilePresets = [
                     "timetoendactive": true,
                     "timetostart": 0,
                     "timetostartactive": false
+                },
+                {
+                    "id": "forever:reckless-swings",
+                    "active": true
                 }
             ],
             "enchant": {

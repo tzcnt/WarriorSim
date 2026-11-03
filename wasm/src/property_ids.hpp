@@ -8,7 +8,7 @@
 
 namespace warriorsim::detail {
 
-inline constexpr std::size_t kDensePropertyCount = 145;
+inline constexpr std::size_t kDensePropertyCount = 147;
 inline constexpr std::array<std::string_view, kDensePropertyCount> kDensePropertyNames = {
     "abilitiescrit",
     "adjacent",
@@ -155,6 +155,8 @@ inline constexpr std::array<std::string_view, kDensePropertyCount> kDensePropert
     "costreduction",
     "healthcoeff",
     "maxhealth",
+    "charges",
+    "primarymod",
 };
 
 constexpr std::uint64_t propertyHash(std::string_view value) {
@@ -310,6 +312,8 @@ constexpr int propertyIndex(std::string_view value) {
     case propertyHash("costreduction"): return value == "costreduction" ? 142 : -1;
     case propertyHash("healthcoeff"): return value == "healthcoeff" ? 143 : -1;
     case propertyHash("maxhealth"): return value == "maxhealth" ? 144 : -1;
+    case propertyHash("charges"): return value == "charges" ? 145 : -1;
+    case propertyHash("primarymod"): return value == "primarymod" ? 146 : -1;
     default: return -1;
     }
 }

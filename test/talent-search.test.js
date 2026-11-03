@@ -103,9 +103,9 @@ test('Arms search retains Mortal Strike, enforces prerequisites, and explores le
     }
     const bounds = Object.fromEntries(trees.flatMap((t, i) => t.t.map((t, j) => [t.key, baseline[i][j]])));
     bounds['arms:improved-slam'] = [0, 2];
-    bounds['arms:bloodthrill'] = [0, 5];
+    bounds['arms:bloodthrill'] = [0, 2];
     const bounded = domain(trees, 51, bounds, 'arms'), expected = [];
-    for (let slam = 0; slam <= 2; slam++) for (let bloodthrill = 0; bloodthrill <= 5; bloodthrill++) {
+    for (let slam = 0; slam <= 2; slam++) for (let bloodthrill = 0; bloodthrill <= 2; bloodthrill++) {
         const ranks = structuredClone(baseline);
         ranks[0][14] = slam;
         ranks[0][11] = bloodthrill;

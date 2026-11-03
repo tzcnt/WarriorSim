@@ -38,7 +38,8 @@ enum class AuraKind : std::uint8_t {
     BloodFury, Berserking, Empyrean, Eskhandar, Zeal, Annihilator, Rivenspike,
     Bonereaver, Destiny, Untamed, Pummeler, Windfury, Swarmguard, Flask, Slayer, Spider,
     Earthstrike, Gabbar, PrimalBlessing, BloodrageAura, Zandalarian,
-    Avenger, BerserkerRageAura, BattleShout, Rend, JujuFlurry, Enrage, SweepingStrikes, ElunesLight, Eureka, TouchOfTheGrave
+    Avenger, BerserkerRageAura, BattleShout, Rend, JujuFlurry, Enrage, SweepingStrikes, ElunesLight, Eureka, TouchOfTheGrave,
+    RecklessSwings
 };
 
 namespace detail {

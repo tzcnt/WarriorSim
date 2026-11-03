@@ -7,7 +7,7 @@
 
 namespace warriorsim::detail {
 
-inline constexpr std::size_t kActionKeyCount = 56;
+inline constexpr std::size_t kActionKeyCount = 57;
 inline constexpr std::array<std::string_view, kActionKeyCount> kActionKeyNames = {
     "annihilator",
     "battleshout",
@@ -49,6 +49,7 @@ inline constexpr std::array<std::string_view, kActionKeyCount> kActionKeyNames =
     "pummeler",
     "ragepotion",
     "recklessness",
+    "recklessswings",
     "rend",
     "rivenspike",
     "shieldslam",
@@ -115,22 +116,23 @@ constexpr int actionKeyIndex(std::string_view value) {
     case actionKeyHash("pummeler"): return value == "pummeler" ? 37 : -1;
     case actionKeyHash("ragepotion"): return value == "ragepotion" ? 38 : -1;
     case actionKeyHash("recklessness"): return value == "recklessness" ? 39 : -1;
-    case actionKeyHash("rend"): return value == "rend" ? 40 : -1;
-    case actionKeyHash("rivenspike"): return value == "rivenspike" ? 41 : -1;
-    case actionKeyHash("shieldslam"): return value == "shieldslam" ? 42 : -1;
-    case actionKeyHash("slam"): return value == "slam" ? 43 : -1;
-    case actionKeyHash("slayer"): return value == "slayer" ? 44 : -1;
-    case actionKeyHash("spearingstrike"): return value == "spearingstrike" ? 45 : -1;
-    case actionKeyHash("spider"): return value == "spider" ? 46 : -1;
-    case actionKeyHash("stanceswitch"): return value == "stanceswitch" ? 47 : -1;
-    case actionKeyHash("sunderarmor"): return value == "sunderarmor" ? 48 : -1;
-    case actionKeyHash("swarmguard"): return value == "swarmguard" ? 49 : -1;
-    case actionKeyHash("sweepingstrikes"): return value == "sweepingstrikes" ? 50 : -1;
-    case actionKeyHash("thunderclap"): return value == "thunderclap" ? 51 : -1;
-    case actionKeyHash("touchofthegrave"): return value == "touchofthegrave" ? 52 : -1;
-    case actionKeyHash("whirlwind"): return value == "whirlwind" ? 53 : -1;
-    case actionKeyHash("zandalarian"): return value == "zandalarian" ? 54 : -1;
-    case actionKeyHash("zeal"): return value == "zeal" ? 55 : -1;
+    case actionKeyHash("recklessswings"): return value == "recklessswings" ? 40 : -1;
+    case actionKeyHash("rend"): return value == "rend" ? 41 : -1;
+    case actionKeyHash("rivenspike"): return value == "rivenspike" ? 42 : -1;
+    case actionKeyHash("shieldslam"): return value == "shieldslam" ? 43 : -1;
+    case actionKeyHash("slam"): return value == "slam" ? 44 : -1;
+    case actionKeyHash("slayer"): return value == "slayer" ? 45 : -1;
+    case actionKeyHash("spearingstrike"): return value == "spearingstrike" ? 46 : -1;
+    case actionKeyHash("spider"): return value == "spider" ? 47 : -1;
+    case actionKeyHash("stanceswitch"): return value == "stanceswitch" ? 48 : -1;
+    case actionKeyHash("sunderarmor"): return value == "sunderarmor" ? 49 : -1;
+    case actionKeyHash("swarmguard"): return value == "swarmguard" ? 50 : -1;
+    case actionKeyHash("sweepingstrikes"): return value == "sweepingstrikes" ? 51 : -1;
+    case actionKeyHash("thunderclap"): return value == "thunderclap" ? 52 : -1;
+    case actionKeyHash("touchofthegrave"): return value == "touchofthegrave" ? 53 : -1;
+    case actionKeyHash("whirlwind"): return value == "whirlwind" ? 54 : -1;
+    case actionKeyHash("zandalarian"): return value == "zandalarian" ? 55 : -1;
+    case actionKeyHash("zeal"): return value == "zeal" ? 56 : -1;
     default: return -1;
     }
 }

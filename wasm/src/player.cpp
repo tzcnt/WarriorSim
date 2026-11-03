@@ -643,6 +643,7 @@ double PlayerState::cast(SpellState& ability, SpellState* delayedHeroic, int adj
     }
     if (ability.props.boolean("useonly"_prop)) return 0;
     double dmg = spellDamage(*this, ability) * mh.modifier * ability.props.number("eurekamod"_prop, 1);
+    if (!adjacent && ability.props.has("primarymod"_prop)) dmg *= ability.props.number("primarymod"_prop);
     if (dmg) dmg += stats.number("moddmgtaken"_prop);
     Result result = Result::Hit;
     const int defenseType = ability.props.integer("defenseType"_prop, 2);
@@ -672,6 +673,7 @@ double PlayerState::cast(SpellState& ability, SpellState* delayedHeroic, int adj
 double PlayerState::castOh(SpellState& ability, int adjacent, double damageSoFar) {
     if (!oh) return 0;
     double dmg = spellDamage(*this, ability, &*oh) * oh->modifier * ability.props.number("eurekamod"_prop, 1);
+    if (!adjacent && ability.props.has("primarymod"_prop)) dmg *= ability.props.number("primarymod"_prop);
     if (dmg) dmg += stats.number("moddmgtaken"_prop);
     const Result result = rollMeleeSpell(ability, *oh);
     const double procDmg = procAttack(&ability, *oh, result, adjacent, damageSoFar);
@@ -718,6 +720,10 @@ double PlayerState::dealDamage(double dmg, Result result, WeaponState& weapon,
             sweeping->idmg += dmg;
             sweeping->totaldmg += dmg;
             if (!--sweeping->stacks) auraEnd(*this, *sweeping);
+        }
+        if (auto* reckless = aura("recklessswings"_action); reckless && reckless->timer && reckless->stacks) {
+            gainRage(reckless->props.number("rage"_prop));
+            if (!--reckless->stacks) auraEnd(*this, *reckless);
         }
     }
     return landed ? dmg : 0;
