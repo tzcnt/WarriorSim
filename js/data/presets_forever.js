@@ -33,7 +33,7 @@ var profilePresets = [
             "talentSchema": "forever-v4",
             "maxhealth": "",
             "targetcreaturetype": "Other",
-            "profilename": "Dual Wield Fury (17/34/0)",
+            "profilename": "Dual Wield Fury (17/33/1)",
             "buffs": [
                 null,
                 "17007",
@@ -99,7 +99,7 @@ var profilePresets = [
                     "t": [
                         1,
                         5,
-                        1,
+                        0,
                         5,
                         3,
                         1,
@@ -142,7 +142,7 @@ var profilePresets = [
                 {
                     "n": "Protection",
                     "t": [
-                        0,
+                        1,
                         0,
                         0,
                         0,

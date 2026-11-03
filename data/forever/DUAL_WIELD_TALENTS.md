@@ -1,7 +1,7 @@
 # Default dual-wield talent search
 
 > **Superseded talents (2026-10-07):** the 1-2 Oct 2026 Fury/Protection rework removed
-> talents this allocation used. The preset now uses 17/34/0; see
+> talents this allocation used. The preset now uses 17/33/1; see
 > [the current presets](README.md#current-presets). The search below is historical.
 
 The current default is **13/38/0**, with **Death Wish scheduled 31 seconds before

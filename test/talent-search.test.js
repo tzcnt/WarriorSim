@@ -13,7 +13,13 @@ function fixture() {
     vm.runInContext(fs.readFileSync('js/data/presets_forever.js', 'utf8'), context);
     const trees = JSON.parse(JSON.stringify(context.talentsForever)).map(tree => ({...tree,
         t: tree.t.map(t => ({...t, key: t.forever.key}))}));
+    // The search domain forbids Protection, so the baseline is the default preset with its
+    // Improved Bloodrage point moved back to Lingering Rage (17/34/0).
     const baseline = JSON.parse(JSON.stringify(context.profilePresets[0].profile.talents)).map(tree => tree.t);
+    const [lingering, bloodrage] = ['fury:lingering-rage', 'protection:improved-bloodrage']
+        .map(k => trees[k.startsWith('fury') ? 1 : 2].t.findIndex(t => t.key === k));
+    baseline[1][lingering] += baseline[2][bloodrage];
+    baseline[2][bloodrage] = 0;
     return {trees, baseline};
 }
 

@@ -163,8 +163,9 @@ for Forever while preserving Classic combat behavior.
 
 The permanent presets were rebuilt on 2026-11-03 for that day's patch notes; their
 previous versions date from the 2026-10-07 rework. Each preset learns Reckless Swings
-and enables it in its rotation, and both Fury presets take Improved Whirlwind. Gear,
-buffs and the rest of each rotation are unchanged. The first-visit default is the first
+and enables it in its rotation, and both Fury presets take Improved Whirlwind. Dual
+Wield Fury moves its Lingering Rage point, which only delays out-of-combat rage decay,
+to Improved Bloodrage. Gear, buffs and the rest of each rotation are unchanged. The first-visit default is the first
 preset, Dual Wield Fury.
 
 The DPS below is from this checkout's native engine. It uses 100,000 fights per preset
@@ -173,7 +174,7 @@ measurement, not a rerun of `scripts/optimize-forever-talents.js`.
 
 | Preset | Talents | Mean DPS (± 95%) |
 | --- | --- | ---: |
-| Dual Wield Fury (17/34/0) | Arms: IHS 3, IR 3, ITM 3, IOP 2, AM 1, DW 3, Impale 2. Fury: BV 1, Cruelty 5, LR 1, UW 5, FP 3, PH 1, DWS 5, RB 1, RS 1, IE 2, IBR 2, DW 1, Flurry 3, IWW 2, BT 1 | 1064.2 ± 0.6 |
+| Dual Wield Fury (17/33/1) | Arms: IHS 3, IR 3, ITM 3, IOP 2, AM 1, DW 3, Impale 2. Fury: BV 1, Cruelty 5, UW 5, FP 3, PH 1, DWS 5, RB 1, RS 1, IE 2, IBR 2, DW 1, Flurry 3, IWW 2, BT 1. Protection: Improved Bloodrage 1 | 1065.1 ± 0.6 |
 | Two-Handed Fury (20/31/0) | Arms: IHS 3, IR 3, ITM 3, IOP 2, AM 1, DW 3, 2HWS 3, Impale 2. Fury: BV 5, Cruelty 5, UW 5, Enrage 4, RB 1, RS 1, IE 2, IBR 1, DW 1, Flurry 3, IWW 2, BT 1 | 1009.2 ± 0.7 |
 | Two-Handed Arms (31/20/0) | Arms: Deflection 3, IR 3, ITM 3, IOP 2, AM 1, DW 3, 2HWS 3, Impale 2, Bloodthrill 2, SS 1, WM 5, ISlam 2, MS 1. Fury: BV 5, Cruelty 5, UW 5, Enrage 1, RB 1, RS 1, IE 2 | 885.9 ± 0.6 |
 
