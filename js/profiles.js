@@ -111,17 +111,24 @@ SIM.PROFILES = {
 
     deleteProfile(profile) {
         let index = profile.data('index');
+        let active = globalThis.profileid || 0;
         delete localStorage[mode + index];
+        // Compaction shifts later profiles down, so the active profile's slot moves with it.
+        let activeSlot = 0;
         let count = 0;
-        for(let i = 0; i < 40; i++) {
+        for(let i = 0; i <= 40; i++) {
             if (!localStorage[mode + i]) continue;
+            if (i == active) activeSlot = count;
             localStorage[mode + count] = localStorage[mode + i];
             if (count != i) delete localStorage[mode + i];
             count++;
         }
-        if (globalThis.profileid == index) globalThis.profileid = 0;
+        globalThis.profileid = activeSlot;
         this.buildProfiles();
         SIM.UI.addAlert(`Profile deleted`);
+        // The page still shows the deleted profile; without a reload its settings would
+        // overwrite slot 0 on the next save.
+        if (index == active) this.loadProfile(this.container.find('.profile[data-index="0"]'));
     },
 
     addProfile(index) {
