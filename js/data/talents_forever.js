@@ -27,7 +27,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "changed",
                   "tree": "Arms",
@@ -65,7 +64,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "same",
                   "tree": "Arms",
@@ -99,7 +97,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "changed",
                   "tree": "Arms",
@@ -131,7 +128,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "changed",
                   "tree": "Arms",
@@ -165,7 +161,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "changed",
                   "tree": "Arms",
@@ -199,7 +194,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "moved",
                   "tree": "Arms",
@@ -234,7 +228,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "changed",
                   "tree": "Arms",
@@ -272,7 +265,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "changed",
                   "tree": "Arms",
@@ -302,7 +294,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "cost": "15 Rage; Melee Range; Instant; 20 sec cooldown",
                "reqText": "Requires Battle Stance",
                "classic": {
@@ -333,7 +324,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "changed",
                   "tree": "Arms",
@@ -370,7 +360,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "changed",
                   "tree": "Arms",
@@ -404,7 +393,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "new"
                },
@@ -430,7 +418,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "cost": "30 Rage; Instant; 30 sec cooldown",
                "reqText": "Requires Battle Stance",
                "classic": {
@@ -470,7 +457,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "new",
                   "replaces": [
@@ -503,7 +489,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "hotfix": "2026-10-02",
                "classic": {
                   "status": "changed",
@@ -540,7 +525,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "same",
                   "tree": "Arms",
@@ -574,7 +558,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "cost": "30 Rage; Melee Range; Instant; 6 sec cooldown",
                "classic": {
                   "status": "same",
@@ -618,7 +601,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "hotfix": "2026-10-02",
                "classic": {
                   "status": "changed",
@@ -658,7 +640,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "changed",
                   "tree": "Fury",
@@ -696,7 +677,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "hotfix": "2026-10-02",
                "classic": {
                   "status": "new"
@@ -730,7 +710,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "hotfix": "2026-10-02",
                "classic": {
                   "status": "changed",
@@ -765,7 +744,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "hotfix": "2026-10-02",
                "classic": {
                   "status": "new"
@@ -791,7 +769,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "cost": "10 Rage; Instant",
                "hotfix": "2026-10-02",
                "classic": {
@@ -827,7 +804,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "hotfix": "2026-10-02",
                "fixed": [
                   "20%",
@@ -870,7 +846,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "changed",
                   "tree": "Fury",
@@ -909,7 +884,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "hotfix": "2026-10-02",
                "classic": {
                   "status": "changed",
@@ -940,7 +914,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "hotfix": "2026-10-02",
                "classic": {
                   "status": "new"
@@ -966,7 +939,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "patch-notes",
-               "implementationStatus": "unimplemented",
                "cost": "25% of base health; Instant; 15 sec cooldown",
                "classic": {
                   "status": "new"
@@ -995,7 +967,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "changed",
                   "tree": "Fury",
@@ -1028,7 +999,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "hotfix": "2026-10-02",
                "classic": {
                   "status": "changed",
@@ -1060,7 +1030,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "cost": "10 Rage; Instant; 3 min cooldown",
                "classic": {
                   "status": "changed",
@@ -1097,7 +1066,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "hotfix": "2026-10-02",
                "classic": {
                   "status": "new"
@@ -1126,7 +1094,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "same",
                   "tree": "Fury",
@@ -1160,7 +1127,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "hotfix": "2026-10-02",
                "classic": {
                   "status": "changed",
@@ -1196,7 +1162,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "patch-notes",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "new"
                },
@@ -1226,7 +1191,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "cost": "30 Rage; Melee Range; Instant; 6 sec cooldown",
                "hotfix": "2026-10-02",
                "classic": {
@@ -1267,7 +1231,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "hotfix": "2026-10-02",
                "classic": {
                   "status": "changed",
@@ -1307,7 +1270,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "changed",
                   "tree": "Protection",
@@ -1345,7 +1307,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "hotfix": "2026-10-02",
                "classic": {
                   "status": "changed",
@@ -1385,7 +1346,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "hotfix": "2026-10-02",
                "classic": {
                   "status": "changed",
@@ -1421,7 +1381,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "hotfix": "2026-10-02",
                "classic": {
                   "status": "changed",
@@ -1457,7 +1416,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "changed",
                   "tree": "Arms",
@@ -1488,7 +1446,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "cost": "Instant; 3 min cooldown",
                "hotfix": "2026-10-02",
                "classic": {
@@ -1527,7 +1484,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "new"
                }
@@ -1556,7 +1512,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "hotfix": "2026-10-02",
                "classic": {
                   "status": "changed",
@@ -1592,7 +1547,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "changed",
                   "tree": "Protection",
@@ -1627,7 +1581,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "changed",
                   "tree": "Protection",
@@ -1657,7 +1610,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "hotfix": "2026-10-02",
                "classic": {
                   "status": "new"
@@ -1685,7 +1637,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "hotfix": "2026-10-02",
                "classic": {
                   "status": "moved",
@@ -1719,7 +1670,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "classic": {
                   "status": "changed",
                   "tree": "Protection",
@@ -1749,7 +1699,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "cost": "10 Rage; Melee Range; Instant; 45 sec cooldown",
                "classic": {
                   "status": "changed",
@@ -1784,7 +1733,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "hotfix": "2026-10-02",
                "classic": {
                   "status": "new"
@@ -1818,7 +1766,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "hotfix": "2026-10-02",
                "classic": {
                   "status": "changed",
@@ -1854,7 +1801,6 @@ var talentsForever = [
                "sourceComplete": true,
                "estimatedDescriptionRanks": [],
                "source": "beta",
-               "implementationStatus": "unimplemented",
                "cost": "20 Rage; Melee Range; Instant; 6 sec cooldown",
                "reqText": "Requires Shields",
                "classic": {

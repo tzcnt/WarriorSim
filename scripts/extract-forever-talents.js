@@ -102,7 +102,7 @@ const talents = snapshot.warrior.trees.map(tree => {
             sourceComplete: talent.complete === true && !estimated.length,
             estimatedDescriptionRanks: estimated,
             source: talent.src,
-            implementationStatus: 'unimplemented',
+            // implementationStatus is set at load by js/talent-rules.js, which owns the handlers.
         };
         if (talent.cost) {
             // "15 Rage | Melee Range | Instant | 20 sec cooldown | Requires Battle Stance"
