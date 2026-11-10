@@ -331,7 +331,7 @@ test('Bloodthrill requires landed melee damage and current Rend; consumes indepe
     assert.equal(player.bloodthrilltimer, 0);
 });
 
-test('Bloodthrill rolls 10% per rank and only from main-hand hits, including queued strikes', () => {
+test('Bloodthrill rolls 10% per rank and only from main-hand white swings and queued strikes', () => {
     const {run, player} = setup();
     assert.deepEqual([0,1,2].map(rank =>
         run(`talents[0].t.find(t => t.forever.key === 'arms:bloodthrill').aura(${rank}).bloodthrill`)), [0,10,20]);
@@ -345,10 +345,16 @@ test('Bloodthrill rolls 10% per rank and only from main-hand hits, including que
         run(`p.dealdamage(100, RESULT.HIT, p.oh, ${spell}, false)`);
         assert.equal(player.bloodthrilltimer, 0, `off-hand ${spell}`);
     }
-    for (const spell of ['null', 'new HeroicStrike(p, 11567)', 'new Cleave(p, 20569)', 'ww']) {
+    for (const spell of ['null', 'new HeroicStrike(p, 11567)', 'new Cleave(p, 20569)']) {
         player.bloodthrilltimer = 0;
         run(`p.dealdamage(100, RESULT.HIT, p.mh, ${spell}, false)`);
         assert.equal(player.bloodthrilltimer, 6000, `main-hand ${spell}`);
+    }
+    player.bloodthrilltimer = 0;
+    for (const spell of ['ww', 'new MortalStrike(p, 27580)', 'new Slam(p, 11605)', 'new Overpower(p, 11585)',
+        'new Bloodthirst(p, 23894)', 'new Execute(p, 20662)']) {
+        run(`p.dealdamage(100, RESULT.HIT, p.mh, ${spell}, false)`);
+        assert.equal(player.bloodthrilltimer, 0, `main-hand special ${spell}`);
     }
 });
 

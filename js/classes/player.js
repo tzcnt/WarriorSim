@@ -1248,8 +1248,9 @@ class Player {
             if (dmg > 0 && this.auras.touchofthegrave)
                 this.auras.touchofthegrave.proc();
             if (dmg > 0 && !adjacent && (!spell || spell.defenseType === DEFENSETYPE.MELEE)) {
-                // Bloodthrill: main-hand hits only, including queued Heroic Strike/Cleave.
-                if (this.talents.bloodthrill && weapon === this.mh && this.auras.rend?.timer > step && this.auras.rend.stacks && rng10k() < this.talents.bloodthrill * 100)
+                // Bloodthrill: main-hand white swings and queued Heroic Strike/Cleave only.
+                if (this.talents.bloodthrill && weapon === this.mh && (!spell || spell instanceof HeroicStrike || spell instanceof Cleave) &&
+                    this.auras.rend?.timer > step && this.auras.rend.stacks && rng10k() < this.talents.bloodthrill * 100)
                     this.bloodthrilltimer = 6000;
                 const sweeping = this.auras.sweepingstrikes;
                 if (this.adjacent && sweeping?.timer && sweeping.stacks) sweeping.copy(dmg);

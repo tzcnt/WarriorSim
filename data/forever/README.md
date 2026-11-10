@@ -85,7 +85,7 @@ or 105 for Gnomes.
 - Mortal Strike: weapon damage + 85/110/135/160 at those levels.
 - Shield Slam: 421–439 / 494–516 / 567–593 / 640–670 at those levels, plus block value once, with no AP coefficient.
 - Forever Slam has a 15-second cooldown, reduced by 2.5 seconds per Improved Slam rank to 15/12.5/10 seconds at 0/1/2 ranks. It starts at cast completion. Without Improved Slam it pauses weapon timers during casting. Either talent rank lets them advance, deferring due swings until cast completion. Cast time and GCD are 1500/1250/1000 ms at 0/1/2 ranks. Classic has no cooldown and still resets timers at cast completion.
-- Bloodthrill: landed main-hand melee damage against the player's active Rend rolls 10% per rank for one six-second Overpower opportunity, with no ICD. White swings, queued Heroic Strike/Cleave and main-hand special attacks roll; off-hand swings and Whirlwind's off-hand hit do not. It refreshes, does not stack, and is independent of the ordinary dodge window. Adjacent targets without Rend cannot trigger it.
+- Bloodthrill: landed main-hand melee damage against the player's active Rend rolls 10% per rank for one six-second Overpower opportunity, with no ICD. Only main-hand white swings (including extra attacks) and queued Heroic Strike/Cleave roll, as confirmed on 2026-11-10. Main-hand special attacks such as Mortal Strike, Slam, Whirlwind, Overpower and Execute do not, and neither do off-hand swings. It refreshes, does not stack, and is independent of the ordinary dodge window. Adjacent targets without Rend cannot trigger it.
 - Weaponmaster: crit/extra-attack effects use existing weapon specialization code; mace/staff bypass 3% armor per rank for that hand, after armor debuffs. The sword proc guard resets between fights in both Classic and Forever so batching does not change results.
 - Whirlwind: always strikes with both weapons. Each hand rolls independently against each target, with one rage cost/cooldown. Off-hand damage uses the actual off-hand weapon.
 - Improved Whirlwind: reduces Whirlwind's 10-second cooldown by 1 second per rank. Both hands' hits on the primary target deal 15% more damage per rank, multiplying the other damage modifiers; adjacent targets are unaffected. The notes say "the closest enemy", which the simulator treats as the primary target.
@@ -168,7 +168,9 @@ Wield Fury moves its Lingering Rage point, which only delays out-of-combat rage 
 to Improved Bloodrage. Gear, buffs and the rest of each rotation are unchanged. The first-visit default is the first
 preset, Dual Wield Fury.
 
-The DPS below is from this checkout's native engine. It uses 100,000 fights per preset
+The DPS below is from this checkout's native engine. The Two-Handed Arms figure was
+remeasured on 2026-11-10 after Bloodthrill was restricted to white swings and queued
+Heroic Strike/Cleave (previously 885.9). It uses 100,000 fights per preset
 with a common seed and each preset's own settings (single-target, 50–60 s). This is a
 measurement, not a rerun of `scripts/optimize-forever-talents.js`.
 
@@ -176,7 +178,7 @@ measurement, not a rerun of `scripts/optimize-forever-talents.js`.
 | --- | --- | ---: |
 | Dual Wield Fury (17/33/1) | Arms: IHS 3, IR 3, ITM 3, IOP 2, AM 1, DW 3, Impale 2. Fury: BV 1, Cruelty 5, UW 5, FP 3, PH 1, DWS 5, RB 1, RS 1, IE 2, IBR 2, DW 1, Flurry 3, IWW 2, BT 1. Protection: Improved Bloodrage 1 | 1065.1 ± 0.6 |
 | Two-Handed Fury (20/31/0) | Arms: IHS 3, IR 3, ITM 3, IOP 2, AM 1, DW 3, 2HWS 3, Impale 2. Fury: BV 5, Cruelty 5, UW 5, Enrage 4, RB 1, RS 1, IE 2, IBR 1, DW 1, Flurry 3, IWW 2, BT 1 | 1009.2 ± 0.7 |
-| Two-Handed Arms (31/20/0) | Arms: Deflection 3, IR 3, ITM 3, IOP 2, AM 1, DW 3, 2HWS 3, Impale 2, Bloodthrill 2, SS 1, WM 5, ISlam 2, MS 1. Fury: BV 5, Cruelty 5, UW 5, Enrage 1, RB 1, RS 1, IE 2 | 885.9 ± 0.6 |
+| Two-Handed Arms (31/20/0) | Arms: Deflection 3, IR 3, ITM 3, IOP 2, AM 1, DW 3, 2HWS 3, Impale 2, Bloodthrill 2, SS 1, WM 5, ISlam 2, MS 1. Fury: BV 5, Cruelty 5, UW 5, Enrage 1, RB 1, RS 1, IE 2 | 869.8 ± 0.6 |
 
 The presets' target never attacks (target speed 0), so Enrage cannot trigger; the
 two-handed presets spend points there only to open lower rows. Each Fury build needs

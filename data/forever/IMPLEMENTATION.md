@@ -1,5 +1,11 @@
 # WoW Forever implementation decisions
 
+**2026-11-10 update:** Confirmed: Bloodthrill procs only from white swings and
+queued Heroic Strike/Cleave. Other abilities, including main-hand specials such as
+Mortal Strike, Slam and Whirlwind, no longer roll it. This replaces the 2026-09-24
+interpretation below. Off-hand white swings still do not roll, per the talent's
+"Main Hand" text.
+
 **2026-11-03 update:** The day's patch notes change Slam, Arms and Fury; see
 [the catalog notes](README.md). Slam's cooldown is 15/12.5/10 seconds at 0/1/2 Improved
 Slam ranks. Tactical Mastery retains 10 rage plus 5 per Improved Tactical Mastery rank,
@@ -40,7 +46,8 @@ rank; Improved Slam keeps its cast time, GCD and swing-timer effects. Bloodthril
 rolls 4% per rank and only from main-hand hits: white swings, queued Heroic
 Strike/Cleave, and main-hand special attacks. Off-hand swings and Whirlwind's
 off-hand hit no longer trigger it. The patch notes do not say whether main-hand
-specials count; this is our interpretation. Bastion and Focused Rage swap tree
+specials count; this is our interpretation. (Superseded on 2026-11-10: main-hand
+specials do not count.) Bastion and Focused Rage swap tree
 positions, and Eureka! now reduces rage costs by 10%. See [the catalog notes](README.md).
 
 **2026-09-16 update:** Client build 1.60.1.69876 supersedes the original
